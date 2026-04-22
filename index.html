@@ -91,6 +91,8 @@ header nav a:hover{color:#fff}
   color:#fff;display:flex;align-items:center;gap:10px;
 }
 .row h2::before{content:'';width:4px;height:22px;background:#ff2a2a;border-radius:2px}
+.row.kids h2::before{background:#ff9dd6}
+.row.kids h2{color:#ffcce9}
 .row-scroll{
   display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;
   padding:4px 0 40px 0;
@@ -99,11 +101,23 @@ header nav a:hover{color:#fff}
 .row-scroll::-webkit-scrollbar{height:6px}
 .row-scroll::-webkit-scrollbar-track{background:#1a1a1a}
 .row-scroll::-webkit-scrollbar-thumb{background:#ff2a2a;border-radius:3px}
+.row.kids .row-scroll::-webkit-scrollbar-thumb{background:#ff9dd6}
+
+/* Kids section wrapper — softer dreamy background */
+.kids-wrap{
+  background:
+    radial-gradient(ellipse at 20% 0%,rgba(255,180,220,0.12) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 100%,rgba(180,230,255,0.12) 0%,transparent 55%),
+    linear-gradient(180deg,rgba(255,200,230,0.03) 0%,rgba(180,220,255,0.03) 100%);
+  padding:20px 0;margin-top:20px;
+  border-top:1px solid rgba(255,157,214,0.15);
+  border-bottom:1px solid rgba(255,157,214,0.15);
+}
 
 /* ===== CARDS ===== */
 .card{
-  flex:0 0 300px;aspect-ratio:16/9;
-  border-radius:6px;cursor:pointer;position:relative;
+  flex:0 0 320px;aspect-ratio:16/9;
+  border-radius:8px;cursor:pointer;position:relative;
   overflow:hidden;
   transition:transform 0.25s cubic-bezier(0.25,0.8,0.25,1),
              box-shadow 0.25s ease;
@@ -113,17 +127,20 @@ header nav a:hover{color:#fff}
   transform:scale(1.08);z-index:10;
   box-shadow:0 20px 60px rgba(0,0,0,0.9),0 0 0 3px rgba(255,42,42,0.6);
 }
+.card.kids-card:hover{box-shadow:0 20px 60px rgba(0,0,0,0.85),0 0 0 3px rgba(255,157,214,0.7)}
 .card-bg{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
   font-family:'Impact','Arial Black',sans-serif;
-  font-size:36px;color:#fff;letter-spacing:1px;
+  color:#fff;letter-spacing:1px;
   text-shadow:0 4px 20px rgba(0,0,0,0.8);
   text-align:center;padding:16px;
 }
-.card .emoji{font-size:48px;margin-bottom:6px;filter:drop-shadow(0 2px 10px rgba(0,0,0,0.5))}
-.card .title{font-size:24px;letter-spacing:2px;line-height:1.1}
-.card .subtitle{font-size:10px;color:rgba(255,255,255,0.7);font-family:inherit;letter-spacing:3px;margin-top:6px;font-weight:normal}
+.card .emoji{font-size:54px;margin-bottom:6px;filter:drop-shadow(0 2px 10px rgba(0,0,0,0.5))}
+.card .title{font-size:26px;letter-spacing:2px;line-height:1.05}
+.card .subtitle{font-size:10px;color:rgba(255,255,255,0.75);font-family:inherit;letter-spacing:3px;margin-top:6px;font-weight:normal}
+.kids-card .title{font-family:'Comic Sans MS','Chalkboard SE',cursive;letter-spacing:1px;font-size:28px}
+.kids-card .subtitle{color:rgba(255,255,255,0.85)}
 .card-overlay{
   position:absolute;inset:0;opacity:0;
   background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 70%,transparent 100%);
@@ -138,27 +155,32 @@ header nav a:hover{color:#fff}
   border:1px solid #ff2a2a;color:#ff2a2a;font-size:9px;letter-spacing:1px;
   border-radius:3px;font-weight:bold;
 }
+.kids-card .card-overlay .chip{background:rgba(255,157,214,0.25);border-color:#ff9dd6;color:#ff9dd6}
 
-/* Card-specific gradients & emoji */
-.bg-doom{background:
-  radial-gradient(ellipse at 70% 30%,#ff4020 0%,transparent 60%),
+/* Card-specific gradients */
+.bg-doomfps{background:
+  radial-gradient(ellipse at 65% 30%,#ff4020 0%,transparent 60%),
+  radial-gradient(ellipse at 30% 80%,#801408 0%,transparent 55%),
   linear-gradient(135deg,#4a0a10 0%,#1a0408 100%)}
-.bg-retrowave{background:
-  radial-gradient(ellipse at 50% 120%,#ff00aa 0%,transparent 55%),
-  linear-gradient(180deg,#1a0040 0%,#000a30 60%,#300818 100%)}
-.bg-archero{background:
-  radial-gradient(ellipse at 30% 30%,#4aff80 0%,transparent 60%),
-  linear-gradient(135deg,#0a3020 0%,#001a10 100%)}
-.bg-pixeldoom{background:
+.bg-doomtop{background:
   radial-gradient(ellipse at 50% 50%,#cc4020 0%,transparent 55%),
   linear-gradient(135deg,#2a0808 0%,#0a0204 100%)}
 .bg-darktower{background:
   radial-gradient(ellipse at 50% 90%,#a020ff 0%,transparent 55%),
+  radial-gradient(ellipse at 50% 10%,#4000aa 0%,transparent 60%),
   linear-gradient(180deg,#0a0020 0%,#1a0030 50%,#00000a 100%)}
-.bg-comingsoon{background:
-  repeating-linear-gradient(45deg,#1a1a1a 0 20px,#222 20px 40px);
-  color:#555;
+.bg-flower{background:
+  radial-gradient(ellipse at 30% 30%,#ffb8e0 0%,transparent 55%),
+  radial-gradient(ellipse at 70% 70%,#c0f0ff 0%,transparent 55%),
+  linear-gradient(135deg,#ff7ac0 0%,#d840a0 100%)}
+.bg-worm{background:
+  radial-gradient(ellipse at 50% 30%,#ffe080 0%,transparent 55%),
+  radial-gradient(ellipse at 50% 80%,#80e050 0%,transparent 60%),
+  linear-gradient(135deg,#ff9040 0%,#40c040 100%)}
+.bg-comingsoon{
+  background:repeating-linear-gradient(45deg,#1a1a1a 0 20px,#222 20px 40px);
 }
+.bg-comingsoon .title,.bg-comingsoon .subtitle{color:#555}
 
 /* ===== FOOTER ===== */
 footer{
@@ -179,8 +201,9 @@ footer a{color:#888;margin:0 8px}
   .hero .btn{padding:12px 22px;font-size:14px}
   .row{padding:20px 20px}
   .row h2{font-size:18px}
-  .card{flex:0 0 260px}
-  .card .title{font-size:20px}
+  .card{flex:0 0 270px}
+  .card .title{font-size:22px}
+  .kids-card .title{font-size:24px}
   footer{padding:30px 20px 20px}
 }
 </style>
@@ -191,6 +214,7 @@ footer a{color:#888;margin:0 8px}
   <a href="/" class="brand">SURTADO<span class="dot">.</span>GAMES</a>
   <nav>
     <a href="#games">games</a>
+    <a href="#kids">kids</a>
     <a href="https://github.com/marcofurtado-hub" target="_blank">github</a>
   </nav>
 </header>
@@ -199,7 +223,7 @@ footer a{color:#888;margin:0 8px}
 <section class="hero">
   <div class="hero-bg"><div class="hero-grid"></div></div>
   <div class="hero-content">
-    <div class="badge">★ FEATURED</div>
+    <div class="badge">★ FEATURED · NEW</div>
     <h1>DOOMZINHO <span class="glitch">FPS</span></h1>
     <div class="meta">2026 <span>•</span> FPS <span>•</span> ROGUELIKE <span>•</span> WEB</div>
     <p class="desc">
@@ -214,12 +238,12 @@ footer a{color:#888;margin:0 8px}
   </div>
 </section>
 
-<!-- ===== ALL GAMES ===== -->
+<!-- ===== MAIN GAMES ===== -->
 <section class="row" id="games">
-  <h2>TODOS OS JOGOS</h2>
+  <h2>GAMES</h2>
   <div class="row-scroll">
     <a class="card" href="https://marcofurtado-hub.github.io/doom-3d-game/?v=53" target="_blank">
-      <div class="card-bg bg-doom">
+      <div class="card-bg bg-doomfps">
         <div>
           <div class="emoji">🔫</div>
           <div class="title">DOOMZINHO<br>FPS</div>
@@ -229,52 +253,22 @@ footer a{color:#888;margin:0 8px}
       <div class="card-overlay">
         <span class="chip">FPS · ROGUELIKE</span>
         <h3>Doomzinho FPS</h3>
-        <p>Arena FPS com 11 bosses, 9 armas, powerups, ranking mundial.</p>
+        <p>Primeira pessoa com 11 bosses, 9 armas, NUKE de vitória e ranking mundial.</p>
       </div>
     </a>
 
-    <a class="card" href="https://marcofurtado-hub.github.io/neon-drive/" target="_blank">
-      <div class="card-bg bg-retrowave">
+    <a class="card" href="https://marcofurtado-hub.github.io/doom-top-down-3d/" target="_blank">
+      <div class="card-bg bg-doomtop">
         <div>
-          <div class="emoji">🏎️</div>
-          <div class="title">NEON<br>DRIVE</div>
-          <div class="subtitle">RETROWAVE RACER</div>
+          <div class="emoji">👁️</div>
+          <div class="title">DOOM<br>3D TOP</div>
+          <div class="subtitle">TOP-DOWN SHOOTER</div>
         </div>
       </div>
       <div class="card-overlay">
-        <span class="chip">RACING · RETROWAVE</span>
-        <h3>Neon Drive</h3>
-        <p>Corrida 3D retrowave com synth music. Mobile + desktop.</p>
-      </div>
-    </a>
-
-    <a class="card" href="https://marcofurtado-hub.github.io/archero_PVP/" target="_blank">
-      <div class="card-bg bg-archero">
-        <div>
-          <div class="emoji">🏹</div>
-          <div class="title">ARCHERO<br>PVP</div>
-          <div class="subtitle">SHOOTER PVP</div>
-        </div>
-      </div>
-      <div class="card-overlay">
-        <span class="chip">SHOOTER · PVP</span>
-        <h3>Archero PVP</h3>
-        <p>Auto-shooter top-down estilo Archero com combate PVP.</p>
-      </div>
-    </a>
-
-    <a class="card" href="https://marcofurtado-hub.github.io/doom-top-down/" target="_blank">
-      <div class="card-bg bg-pixeldoom">
-        <div>
-          <div class="emoji">👾</div>
-          <div class="title">DOOM<br>TOP-DOWN</div>
-          <div class="subtitle">PIXEL SURVIVOR</div>
-        </div>
-      </div>
-      <div class="card-overlay">
-        <span class="chip">SURVIVOR · PIXEL</span>
-        <h3>DOOM Top-Down</h3>
-        <p>Pixel art wave shooter com auto-fire, crates de armas, bosses.</p>
+        <span class="chip">SHOOTER · TOP-DOWN</span>
+        <h3>Doom 3D Top-View</h3>
+        <p>Wave shooter 3D em câmera aérea, estilo low-poly blocky.</p>
       </div>
     </a>
 
@@ -289,58 +283,59 @@ footer a{color:#888;margin:0 8px}
       <div class="card-overlay">
         <span class="chip">ADVENTURE · DARK</span>
         <h3>Dark Tower</h3>
-        <p>Jogo de aventura sombria.</p>
+        <p>Aventura sombria. Suba a torre e enfrente o que habita lá.</p>
       </div>
     </a>
+  </div>
+</section>
 
-    <div class="card" style="cursor:default" onclick="return false">
-      <div class="card-bg bg-comingsoon">
-        <div>
-          <div class="emoji">⏳</div>
-          <div class="title">COMING<br>SOON</div>
-          <div class="subtitle">NOVO JOGO</div>
+<!-- ===== KIDS ZONE ===== -->
+<div class="kids-wrap" id="kids">
+  <section class="row kids">
+    <h2>👧 KIDS ZONE · jogos das minhas filhas 💕</h2>
+    <div class="row-scroll">
+      <a class="card kids-card" href="https://marcofurtado-hub.github.io/flower-tic-tac-toe/" target="_blank">
+        <div class="card-bg bg-flower">
+          <div>
+            <div class="emoji">🌸</div>
+            <div class="title">Flower<br>Tic Tac Toe</div>
+            <div class="subtitle">CLÁSSICO FOFO</div>
+          </div>
+        </div>
+        <div class="card-overlay">
+          <span class="chip">PUZZLE · KIDS</span>
+          <h3>Flower Tic Tac Toe</h3>
+          <p>Jogo da velha com flores em vez de X e O.</p>
+        </div>
+      </a>
+
+      <a class="card kids-card" href="https://marcofurtado-hub.github.io/fruit-worm/" target="_blank">
+        <div class="card-bg bg-worm">
+          <div>
+            <div class="emoji">🐛🍓</div>
+            <div class="title">Fruit<br>Worm</div>
+            <div class="subtitle">COMA AS FRUTAS</div>
+          </div>
+        </div>
+        <div class="card-overlay">
+          <span class="chip">ARCADE · KIDS</span>
+          <h3>Fruit Worm</h3>
+          <p>Minhoca cresce comendo frutinhas — snake clássico fofo.</p>
+        </div>
+      </a>
+
+      <div class="card kids-card" style="cursor:default" onclick="return false">
+        <div class="card-bg bg-comingsoon">
+          <div>
+            <div class="emoji">🌈</div>
+            <div class="title">COMING<br>SOON</div>
+            <div class="subtitle">NOVO JOGO KIDS</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-<section class="row">
-  <h2>FPS / ACTION</h2>
-  <div class="row-scroll">
-    <a class="card" href="https://marcofurtado-hub.github.io/doom-3d-game/?v=53" target="_blank">
-      <div class="card-bg bg-doom">
-        <div><div class="emoji">🔫</div><div class="title">DOOMZINHO<br>FPS</div></div>
-      </div>
-    </a>
-    <a class="card" href="https://marcofurtado-hub.github.io/doom-top-down/" target="_blank">
-      <div class="card-bg bg-pixeldoom">
-        <div><div class="emoji">👾</div><div class="title">DOOM<br>TOP-DOWN</div></div>
-      </div>
-    </a>
-    <a class="card" href="https://marcofurtado-hub.github.io/archero_PVP/" target="_blank">
-      <div class="card-bg bg-archero">
-        <div><div class="emoji">🏹</div><div class="title">ARCHERO<br>PVP</div></div>
-      </div>
-    </a>
-  </div>
-</section>
-
-<section class="row">
-  <h2>RACING / ARCADE</h2>
-  <div class="row-scroll">
-    <a class="card" href="https://marcofurtado-hub.github.io/neon-drive/" target="_blank">
-      <div class="card-bg bg-retrowave">
-        <div><div class="emoji">🏎️</div><div class="title">NEON<br>DRIVE</div></div>
-      </div>
-    </a>
-    <div class="card" style="cursor:default">
-      <div class="card-bg bg-comingsoon">
-        <div><div class="emoji">⏳</div><div class="title">COMING<br>SOON</div></div>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <footer>
   <p>SURTADO.GAMES — feito com ♥ e Three.js</p>
@@ -348,7 +343,6 @@ footer a{color:#888;margin:0 8px}
 </footer>
 
 <script>
-// Header solidifies on scroll
 const hdr = document.getElementById('hdr');
 addEventListener('scroll', () => {
   hdr.classList.toggle('solid', scrollY > 40);
