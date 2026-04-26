@@ -52,6 +52,11 @@
   #screen h1 .blue{color:#40e0ff;text-shadow:0 0 24px #40e0ff,0 0 6px #80f0ff}
   #screen h2{font-size:18px;color:#cfe;margin-bottom:32px;opacity:.85}
   #screen .start{font-size:18px;color:#ffe040;margin:20px 0;animation:blink 1s steps(2) infinite}
+  #screen{cursor:pointer}
+  #screen .btn{display:inline-block;padding:18px 60px;font-size:24px;letter-spacing:8px;color:#0a0a10;background:linear-gradient(135deg,#ffe040,#ffaa30);border:none;font-family:inherit;font-weight:bold;cursor:pointer;margin:10px 0;box-shadow:0 0 24px rgba(255,224,64,.6),0 0 8px rgba(255,224,64,.9);transition:transform .1s, box-shadow .1s}
+  #screen .btn:hover{transform:scale(1.05);box-shadow:0 0 36px rgba(255,224,64,.85),0 0 12px rgba(255,224,64,1)}
+  #screen .btn:active{transform:scale(0.97)}
+  #screen #fatal{display:none;color:#ff6060;font-size:13px;margin-top:16px;max-width:600px;line-height:1.6}
   @keyframes blink{50%{opacity:.2}}
   #screen .controls{margin-top:24px;font-size:12px;color:#88aabb;line-height:1.9;text-align:left}
   #screen .controls b{color:#ffe040;margin-right:10px;display:inline-block;min-width:140px}
@@ -110,7 +115,9 @@
 <div id="screen">
   <h1>SPACE <span class="blue">FOX</span></h1>
   <h2>ARENA · DEFENDA O SETOR LYLAT</h2>
-  <div class="start" id="startMsg">CLIQUE OU ESPAÇO PARA COMEÇAR</div>
+  <button class="btn" id="startBtn" type="button">INICIAR</button>
+  <div class="start" id="startMsg">ou aperte ESPAÇO</div>
+  <div id="fatal"></div>
   <div class="controls">
     <div><b>W / S</b> subir / descer (pitch direto)</div>
     <div><b>A / D</b> virar esq / dir &nbsp;·&nbsp; <b>2× rápido</b> giro de barril (defende!)</div>
@@ -442,6 +449,25 @@ addEventListener('mouseup',   e => { if (e.button === 0) shootDown = false; });
 document.getElementById('screen').addEventListener('click', () => {
   if (state === STATE.TITLE) startGame();
   else if (state === STATE.DEAD || state === STATE.WIN) location.reload();
+});
+// explicit start button (clicked or focused & Enter)
+const $startBtn = document.getElementById('startBtn');
+if ($startBtn) {
+  $startBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (state === STATE.TITLE) startGame();
+    else if (state === STATE.DEAD || state === STATE.WIN) location.reload();
+  });
+}
+
+// surface any fatal error so the user sees it instead of a blank screen
+addEventListener('error', e => {
+  const $f = document.getElementById('fatal');
+  if ($f) { $f.style.display='block'; $f.textContent = 'ERRO: ' + (e.message || e.error?.message || 'desconhecido'); }
+});
+addEventListener('unhandledrejection', e => {
+  const $f = document.getElementById('fatal');
+  if ($f) { $f.style.display='block'; $f.textContent = 'ERRO: ' + (e.reason?.message || e.reason || 'promise rejected'); }
 });
 
 // =====================================================================
