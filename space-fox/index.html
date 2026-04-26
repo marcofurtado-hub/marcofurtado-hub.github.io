@@ -8,7 +8,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Courier New',monospace;color:#cfe}
   canvas{display:block}
-  body{cursor:crosshair}
+  body{cursor:none}
 
   /* HUD */
   #hud{position:fixed;inset:0;pointer-events:none;font-size:13px;letter-spacing:2px;text-shadow:0 0 6px #000,0 0 2px #000}
@@ -34,7 +34,7 @@
   .weapon .key{color:#88aabb;font-size:9px;margin-top:2px}
 
   /* Reticle */
-  #reticle{position:fixed;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;pointer-events:none}
+  #reticle{position:fixed;left:0;top:0;width:48px;height:48px;margin:-24px 0 0 -24px;pointer-events:none;will-change:transform}
   #reticle .ring{position:absolute;inset:0;border:2px solid #ffe040;border-radius:50%;opacity:.7}
   #reticle .ring2{position:absolute;inset:8px;border:1px solid #ffe040;border-radius:50%;opacity:.4}
   #reticle .dot{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#ffe040;border-radius:50%}
@@ -384,7 +384,9 @@
 
     // ---- input ----
     var keys = {};
-    var mouseX = 0, mouseY = 0;
+    var mouseX = 0, mouseY = 0;                      // NDC -1..1
+    var mouseClientX = window.innerWidth/2;
+    var mouseClientY = window.innerHeight/2;
     var shootDown = false;
     var TAP_WINDOW = 0.32, HOLD_THRESHOLD = 1.15;
     var lastTap = { KeyA:0, KeyD:0 };
@@ -412,6 +414,8 @@
     });
     document.addEventListener('keyup', function (e) { keys[e.code] = false; });
     document.addEventListener('mousemove', function (e) {
+      mouseClientX = e.clientX;
+      mouseClientY = e.clientY;
       mouseX = (e.clientX / window.innerWidth)  * 2 - 1;
       mouseY = -((e.clientY / window.innerHeight) * 2 - 1);
     });
@@ -481,9 +485,27 @@
     var beamGeo = new THREE.CylinderGeometry(0.18, 0.18, 1.6, 6);
     beamGeo.rotateX(Math.PI/2);
 
+    // ---- mouse aim ----
+    var _ray = new THREE.Raycaster();
+    var _aimNDC = new THREE.Vector2();
+    function computeAimPoint() {
+      // if we have a lock target, snap to it
+      var lk = findLockTarget();
+      if (lk) {
+        var lp = new THREE.Vector3();
+        if (lk === boss) lk.coreGlow.getWorldPosition(lp);
+        else lp.copy(lk.mesh.position);
+        return lp;
+      }
+      _aimNDC.set(mouseX, mouseY);
+      _ray.setFromCamera(_aimNDC, camera);
+      // shoot to a point at fixed distance ahead — far enough that bullets fly straight
+      return _ray.ray.origin.clone().addScaledVector(_ray.ray.direction, 320);
+    }
+
     function fireWeapon() {
       var w = WEAPONS.find(function (x) { return x.id === currentWeapon; });
-      var fwd = new THREE.Vector3(0, 0, -1).applyEuler(ship.rotation).normalize();
+      var aimPt = computeAimPoint();
       var lp = new THREE.Vector3(); ship.userData.leftLaser.getWorldPosition(lp);
       var rp = new THREE.Vector3(); ship.userData.rightLaser.getWorldPosition(rp);
       var mid = lp.clone().add(rp).multiplyScalar(0.5);
@@ -496,28 +518,30 @@
         playerBullets.push({ mesh:m, vel:dir.clone().multiplyScalar(speed), life:1.7, dmg:dmg, kind:kind, color:color });
       }
 
+      var dirMid = aimPt.clone().sub(mid).normalize();
+
       if (w.kind === 'beam') {
         if (w.id === 'twin') {
-          spawnBeam(lp, fwd, w.color, w.speed, w.dmg, 'beam');
-          spawnBeam(rp, fwd, w.color, w.speed, w.dmg, 'beam');
+          spawnBeam(lp, aimPt.clone().sub(lp).normalize(), w.color, w.speed, w.dmg, 'beam');
+          spawnBeam(rp, aimPt.clone().sub(rp).normalize(), w.color, w.speed, w.dmg, 'beam');
         } else if (w.id === 'spread') {
-          var right = new THREE.Vector3(1,0,0).applyEuler(ship.rotation);
+          var right = new THREE.Vector3().crossVectors(dirMid, new THREE.Vector3(0,1,0)).normalize();
           var half = (w.count - 1) / 2;
           for (var i=0; i<w.count; i++) {
             var off = (i - half) * w.spread;
-            var d = fwd.clone().addScaledVector(right, Math.sin(off)).normalize();
+            var d = dirMid.clone().addScaledVector(right, Math.sin(off)).normalize();
             spawnBeam(mid, d, w.color, w.speed, w.dmg, 'beam');
           }
         } else {
-          spawnBeam(mid, fwd, w.color, w.speed, w.dmg, 'beam');
+          spawnBeam(mid, dirMid, w.color, w.speed, w.dmg, 'beam');
         }
       } else if (w.kind === 'rocket') {
         var rgeo = new THREE.CylinderGeometry(0.3, 0.3, 1.4, 8); rgeo.rotateX(Math.PI/2);
         var m = new THREE.Mesh(rgeo, new THREE.MeshLambertMaterial({color:w.color, emissive:0x440000, emissiveIntensity:0.8}));
         m.position.copy(mid);
-        m.lookAt(mid.clone().add(fwd));
+        m.lookAt(mid.clone().add(dirMid));
         scene.add(m);
-        playerBullets.push({ mesh:m, vel:fwd.clone().multiplyScalar(w.speed), life:3.5, dmg:w.dmg, kind:'rocket', splash:w.splash, color:w.color });
+        playerBullets.push({ mesh:m, vel:dirMid.clone().multiplyScalar(w.speed), life:3.5, dmg:w.dmg, kind:'rocket', splash:w.splash, color:w.color });
       }
       if (SFX[w.id]) SFX[w.id](); else SFX.laser();
     }
@@ -776,10 +800,11 @@
     // ---- waves ----
     function isBossWave(idx) { return idx % 3 === 0; }
     function waveSpec(idx) {
+      // *muito* mais denso: começa cheio e cresce a cada wave
       return {
-        fighters: 2 + Math.floor(idx*0.7),
-        drones:   1 + Math.floor(idx*0.9),
-        gunships: idx >= 4 ? 1 + Math.floor((idx-3)*0.4) : 0
+        fighters: 8 + idx*2,
+        drones:   6 + idx*2,
+        gunships: idx >= 2 ? 1 + Math.floor(idx*0.7) : 0
       };
     }
     function spawnWaveEnemies() {
@@ -941,7 +966,7 @@
       startManeuver('roll', dir);
     }
 
-    // ---- lock-on ----
+    // ---- lock-on (snaps to enemy near mouse cursor) ----
     var ndc = new THREE.Vector3();
     function findLockTarget() {
       var best = null, bestD = Infinity;
@@ -949,15 +974,19 @@
         var e = enemies[i];
         if (!e.alive) continue;
         ndc.copy(e.mesh.position).project(camera);
-        if (ndc.z > 1) continue;
-        var d = ndc.x*ndc.x + ndc.y*ndc.y;
-        if (d < 0.06 && d < bestD) { bestD = d; best = e; }
+        if (ndc.z > 1) continue;                          // behind camera
+        var dx = ndc.x - mouseX, dy = ndc.y - mouseY;
+        var d = dx*dx + dy*dy;
+        if (d < 0.05 && d < bestD) { bestD = d; best = e; }
       }
       if (boss && boss.alive) {
         var wp = new THREE.Vector3(); boss.coreGlow.getWorldPosition(wp);
         ndc.copy(wp).project(camera);
-        var d2 = ndc.x*ndc.x + ndc.y*ndc.y;
-        if (d2 < 0.05 && d2 < bestD) best = boss;
+        if (ndc.z <= 1) {
+          var dx2 = ndc.x - mouseX, dy2 = ndc.y - mouseY;
+          var d2 = dx2*dx2 + dy2*dy2;
+          if (d2 < 0.05 && d2 < bestD) best = boss;
+        }
       }
       return best;
     }
@@ -972,7 +1001,7 @@
       $reticle.style.display = 'block';
       audio() && actx.resume && actx.resume();
       SFX.start();
-      interWaveT = 2;
+      interWaveT = 0.6;
     }
 
     // ---- main loop ----
@@ -1261,6 +1290,20 @@
 
         var lk = findLockTarget();
         $reticle.classList.toggle('lock', !!lk);
+        // reticle follows the mouse, but snaps to lock target if any
+        var rx, ry;
+        if (lk) {
+          var wp = new THREE.Vector3();
+          if (lk === boss) lk.coreGlow.getWorldPosition(wp);
+          else wp.copy(lk.mesh.position);
+          wp.project(camera);
+          rx = (wp.x*0.5+0.5) * window.innerWidth;
+          ry = (-wp.y*0.5+0.5) * window.innerHeight;
+        } else {
+          rx = mouseClientX;
+          ry = mouseClientY;
+        }
+        $reticle.style.transform = 'translate(' + rx + 'px, ' + ry + 'px)';
       }
 
       renderer.render(scene, camera);
