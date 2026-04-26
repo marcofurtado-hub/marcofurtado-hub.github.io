@@ -72,6 +72,7 @@
   #banner .l{color:#ffe040;font-size:18px;letter-spacing:8px;margin-bottom:6px}
   #banner .b{color:#40e0ff;font-size:48px;letter-spacing:12px;text-shadow:0 0 24px #40e0ff;font-weight:bold}
   #score-pop{position:fixed;left:50%;top:45%;transform:translateX(-50%);font-size:26px;color:#ffe040;text-shadow:0 0 12px #ffe040;z-index:3;display:none;letter-spacing:6px;pointer-events:none}
+  #offscreen{position:fixed;inset:0;pointer-events:none;z-index:4}
   #pause{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,8,16,.65);z-index:8;text-align:center}
   #pause.show{display:flex}
   #pause h2{color:#ffe040;font-size:48px;letter-spacing:14px;text-shadow:0 0 20px #ffaa30;margin-bottom:12px}
@@ -112,6 +113,7 @@
 <div id="warn">!! BOSS !!</div>
 <div id="banner"><div class="l" id="bannerL">WAVE 1</div><div class="b" id="bannerB">COMEÇAR</div></div>
 <div id="score-pop"></div>
+<canvas id="offscreen"></canvas>
 <div id="pause"><h2>PAUSADO</h2><p>ESC para voltar</p></div>
 
 <div id="screen">
@@ -263,7 +265,8 @@
     })();
 
     // ---- arena ----
-    var ARENA_R = 800, ARENA_H_MAX = 380;
+    // arena menor — combate denso, sem precisar caçar inimigos longe
+    var ARENA_R = 500, ARENA_H_MAX = 280;
     (function () {
       var g = new THREE.CircleGeometry(ARENA_R, 64);
       g.rotateX(-Math.PI/2);
@@ -458,7 +461,7 @@
       shotCD: 0, invuln: 0,
       maneuver: null
     };
-    var SHIP_FORWARD_SPEED = 70, SHIP_BOOST_MULT = 1.7;
+    var SHIP_FORWARD_SPEED = 42, SHIP_BOOST_MULT = 2.0;
 
     // ---- input ----
     var keys = {};
@@ -721,7 +724,8 @@
       eng.position.set(0, 0, 1.7); eng.scale.z = 1.5;
       g.add(eng);
 
-      return { mesh:g, hp:25, type:'fighter', shootCD: 1+Math.random()*1.5, points:200, r:2.0 };
+      g.scale.setScalar(1.8);  // muito maior pra ser fácil de ver
+      return { mesh:g, hp:32, type:'fighter', shootCD: 1+Math.random()*1.5, points:200, r:3.6 };
     }
     function makeDrone() {
       var g = new THREE.Group();
@@ -743,7 +747,8 @@
       // olho central laranja
       var eye = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), new THREE.MeshBasicMaterial({color:0xffaa30}));
       eye.position.set(0, 0.45, 0); g.add(eye);
-      return { mesh:g, hp:14, type:'drone', shootCD: 0.8+Math.random(), points:120, r:1.6, spawnT:performance.now()/1000 };
+      g.scale.setScalar(1.7);
+      return { mesh:g, hp:18, type:'drone', shootCD: 0.8+Math.random(), points:120, r:2.7, spawnT:performance.now()/1000 };
     }
     function makeGunship() {
       var g = new THREE.Group();
@@ -788,7 +793,8 @@
       rL1.position.set(-3.2, 0.6, 0.3); g.add(rL1);
       var rL2 = rL1.clone(); rL2.position.x = 3.2; g.add(rL2);
 
-      return { mesh:g, hp:60, type:'gunship', shootCD: 1.5+Math.random(), points:400, r:3.5 };
+      g.scale.setScalar(1.5);
+      return { mesh:g, hp:80, type:'gunship', shootCD: 1.5+Math.random(), points:400, r:5.5 };
     }
     function makeAsteroid() {
       var g = new THREE.Group();
@@ -831,12 +837,12 @@
       e.alive = true;
       scene.add(e.mesh); enemies.push(e); return e;
     }
-    // pre-populate the arena with floating asteroids (ambient — don't count toward wave)
+    // pre-populate the arena with poucos asteroides (não atrapalhar visão)
     (function () {
-      for (var i=0; i<14; i++) {
+      for (var i=0; i<5; i++) {
         var a = Math.random()*Math.PI*2;
-        var d = 120 + Math.random()*(ARENA_R-220);
-        var ast = spawnEnemy('asteroid', Math.cos(a)*d, 40 + Math.random()*220, Math.sin(a)*d);
+        var d = 100 + Math.random()*(ARENA_R-200);
+        var ast = spawnEnemy('asteroid', Math.cos(a)*d, 50 + Math.random()*150, Math.sin(a)*d);
         if (ast) ast.isAmbient = true;
       }
     })();
@@ -1029,10 +1035,20 @@
       for (var i=0; i<spec.fighters; i++) types.push('fighter');
       for (var j=0; j<spec.drones; j++)   types.push('drone');
       for (var k=0; k<spec.gunships; k++) types.push('gunship');
+      // direção que o player está olhando, em XZ
+      var fwdW = new THREE.Vector3(0, 0, -1).applyEuler(ship.rotation);
+      var fwdAng = Math.atan2(fwdW.z, fwdW.x);
       for (var t=0; t<types.length; t++) {
-        var a = Math.random()*Math.PI*2;
-        var d = 200 + Math.random()*(ARENA_R-280);
-        spawnEnemy(types[t], Math.cos(a)*d, 40 + Math.random()*200, Math.sin(a)*d);
+        // cone frontal de ~180° (todo o quadrante visível) — não atrás do player
+        var ang = fwdAng + (Math.random() - 0.5) * Math.PI * 1.0;
+        var d = 80 + Math.random() * 200;
+        var sx = ship.position.x + Math.cos(ang) * d;
+        var sz = ship.position.z + Math.sin(ang) * d;
+        var sy = Math.max(20, Math.min(ARENA_H_MAX-20, ship.position.y + (Math.random()-0.5) * 80));
+        // clamp inside arena
+        var hd = Math.hypot(sx, sz);
+        if (hd > ARENA_R - 50) { var k2 = (ARENA_R - 50) / hd; sx *= k2; sz *= k2; }
+        spawnEnemy(types[t], sx, sy, sz);
       }
     }
     function startNextWave() {
@@ -1226,6 +1242,73 @@
       interWaveT = 0.6;
     }
 
+    // ---- off-screen arrows: setinha vermelha na borda da tela
+    //      apontando pro inimigo q está fora do view ----
+    var $offscreen = document.getElementById('offscreen');
+    var offCtx = $offscreen.getContext('2d');
+    function resizeOffscreen() {
+      $offscreen.width = window.innerWidth;
+      $offscreen.height = window.innerHeight;
+    }
+    resizeOffscreen();
+    window.addEventListener('resize', resizeOffscreen);
+
+    var _projTmp = new THREE.Vector3();
+    function drawOffscreenArrows() {
+      var W = $offscreen.width, H = $offscreen.height;
+      offCtx.clearRect(0, 0, W, H);
+      var cx = W/2, cy = H/2;
+      var margin = 36;
+      function drawArrow(target, color) {
+        _projTmp.copy(target).project(camera);
+        var behind = _projTmp.z > 1;
+        var px = _projTmp.x, py = _projTmp.y;
+        // se está na tela (e não atrás), pula
+        if (!behind && Math.abs(px) <= 1 && Math.abs(py) <= 1) return;
+        // se está atrás, "vira" o vetor
+        if (behind) { px = -px; py = -py; }
+        // calcula interseção com a borda do retângulo (com margin)
+        var maxX = (W/2 - margin), maxY = (H/2 - margin);
+        var sx = px * maxX, sy = -py * maxY;
+        var ax = Math.abs(sx), ay = Math.abs(sy);
+        var k = Math.max(ax/maxX, ay/maxY);
+        if (k > 0) { sx /= k; sy /= k; }
+        // posição final na tela
+        var ex = cx + Math.max(-maxX, Math.min(maxX, sx));
+        var ey = cy + Math.max(-maxY, Math.min(maxY, sy));
+        // ângulo do triangulinho apontando pra fora da tela
+        var ang = Math.atan2(sy, sx);
+        offCtx.save();
+        offCtx.translate(ex, ey);
+        offCtx.rotate(ang);
+        offCtx.fillStyle = color;
+        offCtx.shadowColor = color;
+        offCtx.shadowBlur = 12;
+        offCtx.beginPath();
+        offCtx.moveTo(14, 0);
+        offCtx.lineTo(-6, -8);
+        offCtx.lineTo(-6, 8);
+        offCtx.closePath();
+        offCtx.fill();
+        offCtx.restore();
+      }
+      // inimigos
+      for (var i=0; i<enemies.length; i++) {
+        var e = enemies[i];
+        if (!e.alive || e.isAmbient) continue;
+        drawArrow(e.mesh.position, '#ff4040');
+      }
+      // boss weak points
+      if (boss && boss.alive && boss.weakPoints) {
+        for (var w=0; w<boss.weakPoints.length; w++) {
+          var wp = boss.weakPoints[w];
+          if (!wp.alive) continue;
+          var p = new THREE.Vector3(); wp.mesh.getWorldPosition(p);
+          drawArrow(p, '#ff8030');
+        }
+      }
+    }
+
     // ---- main loop ----
     var clock = new THREE.Clock();
     var tmpEuler = new THREE.Euler();
@@ -1407,19 +1490,21 @@
           var toPlayer = ship.position.clone().sub(e4.mesh.position);
           var dist = toPlayer.length();
           if (e4.type === 'fighter') {
-            var desired = 60;
-            if (dist > desired+5) e4.mesh.position.addScaledVector(toPlayer.normalize(), 22*dt);
-            else if (dist < desired-5) e4.mesh.position.addScaledVector(toPlayer.normalize(), -18*dt);
+            // mais agressivo — engaja perto e fica perto
+            var desired = 35;
+            if (dist > desired+3) e4.mesh.position.addScaledVector(toPlayer.normalize(), 32*dt);
+            else if (dist < desired-3) e4.mesh.position.addScaledVector(toPlayer.normalize(), -22*dt);
             else {
               var side = new THREE.Vector3().crossVectors(toPlayer.normalize(), new THREE.Vector3(0,1,0));
-              e4.mesh.position.addScaledVector(side, 16*dt * Math.sin(performance.now()*0.001 + i3));
+              e4.mesh.position.addScaledVector(side, 22*dt * Math.sin(performance.now()*0.001 + i3));
             }
             e4.mesh.lookAt(ship.position);
             e4.shootCD -= dt;
-            if (e4.shootCD <= 0 && dist < 200) {
+            if (e4.shootCD <= 0 && dist < 220) {
               spawnEnemyShot(e4.mesh.position.clone(), ship.position.clone().add(new THREE.Vector3((Math.random()-0.5)*4,(Math.random()-0.5)*3,(Math.random()-0.5)*4)), 10, 130);
-              e4.shootCD = 1.4 + Math.random()*1.2;
+              e4.shootCD = 1.0 + Math.random()*0.9;
             }
+            if (dist < e4.r + 1.6 && player.invuln <= 0) { damagePlayer(15); damageEnemy(e4, 9999); continue; }
           } else if (e4.type === 'drone') {
             var t2 = (performance.now()/1000) - (e4.spawnT || 0);
             var side2 = new THREE.Vector3().crossVectors(toPlayer.normalize(), new THREE.Vector3(0,1,0));
@@ -1444,9 +1529,9 @@
               damagePlayer(20); damageEnemy(e4, 9999); continue;
             }
           } else if (e4.type === 'gunship') {
-            var desired2 = 110;
-            if (dist > desired2+10) e4.mesh.position.addScaledVector(toPlayer.normalize(), 14*dt);
-            else if (dist < desired2-10) e4.mesh.position.addScaledVector(toPlayer.normalize(), -10*dt);
+            var desired2 = 70;
+            if (dist > desired2+10) e4.mesh.position.addScaledVector(toPlayer.normalize(), 22*dt);
+            else if (dist < desired2-10) e4.mesh.position.addScaledVector(toPlayer.normalize(), -14*dt);
             e4.mesh.position.y += Math.sin(performance.now()*0.001 + i3)*0.2;
             e4.mesh.lookAt(ship.position);
             e4.shootCD -= dt;
@@ -1536,6 +1621,9 @@
 
         if (warnT > 0) { warnT -= dt; if (warnT <= 0) $warn.style.display = 'none'; }
         updateHUD();
+
+        // off-screen indicators
+        drawOffscreenArrows();
 
         var lk = findLockTarget();
         $reticle.classList.toggle('lock', !!lk);
