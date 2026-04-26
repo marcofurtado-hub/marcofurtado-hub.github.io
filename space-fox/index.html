@@ -198,8 +198,9 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050818);
-    scene.fog = new THREE.Fog(0x080a20, 600, 1800);
+    // sunny daytime
+    scene.background = new THREE.Color(0xa6d8ff);
+    scene.fog = new THREE.Fog(0xb8e0ff, 500, 1800);
 
     var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 4000);
 
@@ -209,44 +210,45 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    scene.add(new THREE.HemisphereLight(0x9fcfff, 0x223355, 0.85));
-    var sun = new THREE.DirectionalLight(0xfff0c0, 0.85);
-    sun.position.set(150, 300, 100); scene.add(sun);
+    // bright sunny lighting
+    scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x1a5070, 1.05));
+    var sun = new THREE.DirectionalLight(0xffeec0, 1.15);
+    sun.position.set(180, 320, 140); scene.add(sun);
 
-    // ---- starfield ----
+    // ---- big sun in the sky (pure visual) ----
     (function () {
-      var N = 1200;
-      var geo = new THREE.BufferGeometry();
-      var pos = new Float32Array(N*3), col = new Float32Array(N*3);
-      for (var i=0; i<N; i++) {
-        var r = 1800 + Math.random()*600;
-        var t = Math.random()*Math.PI*2;
-        var p = (Math.random()-0.5)*Math.PI*1.2;
-        pos[i*3]   = Math.cos(t)*Math.cos(p)*r;
-        pos[i*3+1] = Math.sin(p)*r;
-        pos[i*3+2] = Math.sin(t)*Math.cos(p)*r;
-        var c = 0.6 + Math.random()*0.4;
-        col[i*3]   = c*0.8; col[i*3+1] = c; col[i*3+2] = c;
-      }
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
-      scene.add(new THREE.Points(geo, new THREE.PointsMaterial({size:2.2, vertexColors:true, sizeAttenuation:false})));
+      var sunMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(110, 24, 16),
+        new THREE.MeshBasicMaterial({color:0xfff4c8})
+      );
+      sunMesh.position.set(900, 600, -1700);
+      scene.add(sunMesh);
+      var halo = new THREE.Mesh(
+        new THREE.SphereGeometry(180, 24, 16),
+        new THREE.MeshBasicMaterial({color:0xffe890, transparent:true, opacity:0.25})
+      );
+      halo.position.copy(sunMesh.position);
+      scene.add(halo);
     })();
 
-    // distant planet
+    // ---- clouds (low-poly sphere clusters at high altitude) ----
     (function () {
-      var planet = new THREE.Mesh(
-        new THREE.SphereGeometry(420, 24, 16),
-        new THREE.MeshLambertMaterial({color:0x2a6a3a, flatShading:true})
-      );
-      planet.position.set(-900, 350, -1700); scene.add(planet);
-      var ring = new THREE.Mesh(
-        new THREE.RingGeometry(490, 600, 48, 1),
-        new THREE.MeshBasicMaterial({color:0xffaa30, side:THREE.DoubleSide, transparent:true, opacity:.32})
-      );
-      ring.position.copy(planet.position); ring.rotation.x = Math.PI/2 - 0.4; ring.rotation.z = 0.3; scene.add(ring);
-      var moon = new THREE.Mesh(new THREE.SphereGeometry(70, 12, 8), new THREE.MeshLambertMaterial({color:0xc0c4cc, flatShading:true}));
-      moon.position.set(1100, 480, -1500); scene.add(moon);
+      var cmat = new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.95, flatShading:true});
+      for (var c=0; c<14; c++) {
+        var g = new THREE.Group();
+        var n = 4 + Math.floor(Math.random()*3);
+        for (var k=0; k<n; k++) {
+          var s = 14 + Math.random()*22;
+          var sp = new THREE.Mesh(new THREE.SphereGeometry(s, 8, 6), cmat);
+          sp.position.set((k-n/2)*s*0.7 + (Math.random()-0.5)*8, (Math.random()-0.5)*4, (Math.random()-0.5)*8);
+          sp.scale.y = 0.55 + Math.random()*0.2;
+          g.add(sp);
+        }
+        var ang = Math.random()*Math.PI*2;
+        var dist = 700 + Math.random()*700;
+        g.position.set(Math.cos(ang)*dist, 380 + Math.random()*200, Math.sin(ang)*dist);
+        scene.add(g);
+      }
     })();
 
     // ---- arena ----
@@ -262,33 +264,67 @@
         pos.setY(i, h - 8);
       }
       g.computeVertexNormals();
-      scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({color:0x2a3550, flatShading:true})));
+      // ocean
+      scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({color:0x1f78c8, flatShading:true})));
 
-      var grid = new THREE.GridHelper(ARENA_R*2, 60, 0x40e0ff, 0x1a4a6a);
-      grid.position.y = -7.5;
-      grid.material.transparent = true; grid.material.opacity = 0.25;
-      scene.add(grid);
+      // foam ring near boundary
+      var foam = new THREE.Mesh(
+        new THREE.RingGeometry(ARENA_R-22, ARENA_R-6, 96, 1),
+        new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.35, side:THREE.DoubleSide})
+      );
+      foam.rotation.x = -Math.PI/2;
+      foam.position.y = -7.4;
+      scene.add(foam);
 
-      var rockMat = new THREE.MeshLambertMaterial({color:0x444a66, flatShading:true});
-      for (var k=0; k<24; k++) {
-        var a = Math.random()*Math.PI*2;
-        var d = ARENA_R*0.55 + Math.random()*ARENA_R*0.4;
-        var hh = 30 + Math.random()*70;
-        var rr = 14 + Math.random()*22;
-        var sides = 5 + Math.floor(Math.random()*3);
-        var m = new THREE.Mesh(new THREE.ConeGeometry(rr, hh, sides), rockMat);
-        m.position.set(Math.cos(a)*d, hh/2-8, Math.sin(a)*d);
-        m.rotation.y = Math.random()*Math.PI*2;
-        scene.add(m);
+      // ---- islands (sand base + green hill) ----
+      var sandMat  = new THREE.MeshLambertMaterial({color:0xeed896, flatShading:true});
+      var grassMat = new THREE.MeshLambertMaterial({color:0x4a8a3a, flatShading:true});
+      var darkGrass= new THREE.MeshLambertMaterial({color:0x2f6a26, flatShading:true});
+      var rockMat  = new THREE.MeshLambertMaterial({color:0x6a5a45, flatShading:true});
+      function makeIsland(x, z, sz) {
+        var ig = new THREE.Group();
+        var sand = new THREE.Mesh(new THREE.CylinderGeometry(sz, sz*1.15, 3, 14), sandMat);
+        sand.position.y = -6;
+        ig.add(sand);
+        var hh2 = 10 + Math.random()*22;
+        var hill = new THREE.Mesh(new THREE.ConeGeometry(sz*0.7, hh2, 7), grassMat);
+        hill.position.y = -5 + hh2/2;
+        ig.add(hill);
+        // lower ring of grass cones for shape
+        for (var b=0; b<3; b++) {
+          var ang2 = b/3*Math.PI*2 + Math.random();
+          var bsz = sz*0.35 + Math.random()*sz*0.25;
+          var bh  = 4 + Math.random()*6;
+          var bump = new THREE.Mesh(new THREE.ConeGeometry(bsz, bh, 6), darkGrass);
+          bump.position.set(Math.cos(ang2)*sz*0.45, -5 + bh/2, Math.sin(ang2)*sz*0.45);
+          ig.add(bump);
+        }
+        // little palm trees
+        var palms = 1 + Math.floor(Math.random()*3);
+        for (var p=0; p<palms; p++) {
+          var pa = Math.random()*Math.PI*2, pd = Math.random()*sz*0.6;
+          var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.55, 5, 5), rockMat);
+          trunk.position.set(Math.cos(pa)*pd, -3, Math.sin(pa)*pd);
+          ig.add(trunk);
+          var leaves = new THREE.Mesh(new THREE.ConeGeometry(2.2, 1.6, 6), darkGrass);
+          leaves.position.set(Math.cos(pa)*pd, 0.5, Math.sin(pa)*pd);
+          ig.add(leaves);
+        }
+        ig.position.set(x, 0, z);
+        scene.add(ig);
       }
-      for (var k2=0; k2<10; k2++) {
-        var rr2 = 8 + Math.random()*16;
-        var mm = new THREE.Mesh(new THREE.IcosahedronGeometry(rr2, 0), new THREE.MeshLambertMaterial({color:0x6a5a45, flatShading:true}));
-        var aa = Math.random()*Math.PI*2;
-        var dd = 100 + Math.random()*(ARENA_R-160);
-        mm.position.set(Math.cos(aa)*dd, 30 + Math.random()*200, Math.sin(aa)*dd);
-        mm.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-        scene.add(mm);
+      // ring of islands near the boundary
+      for (var k=0; k<12; k++) {
+        var a = (k/12)*Math.PI*2 + Math.random()*0.3;
+        var d = ARENA_R*0.55 + Math.random()*ARENA_R*0.35;
+        var sz = 28 + Math.random()*36;
+        makeIsland(Math.cos(a)*d, Math.sin(a)*d, sz);
+      }
+      // a couple of bigger islands further inside
+      for (var k3=0; k3<5; k3++) {
+        var a3 = Math.random()*Math.PI*2;
+        var d3 = 140 + Math.random()*180;
+        makeIsland(Math.cos(a3)*d3, Math.sin(a3)*d3, 22 + Math.random()*22);
       }
     })();
 
@@ -502,20 +538,45 @@
     var explosions = [];
     function spawnExplosion(at, color, scale) {
       color = color || 0xffaa30; scale = scale || 1;
-      var N = 12, g = new THREE.Group(), parts = [];
+      var g = new THREE.Group();
+      var parts = [];
+      // bright debris (color)
+      var N = 20;
       for (var i=0; i<N; i++) {
         var m = new THREE.Mesh(
-          new THREE.TetrahedronGeometry(0.4 + Math.random()*0.4, 0),
+          new THREE.TetrahedronGeometry(0.4 + Math.random()*0.6, 0),
           new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:1})
         );
-        var dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).normalize().multiplyScalar(8 + Math.random()*10);
-        parts.push({mesh:m, vel:dir});
+        var dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5))
+                    .normalize().multiplyScalar(11 + Math.random()*14);
+        parts.push({mesh:m, vel:dir, kind:'debris'});
         g.add(m);
       }
+      // dark smoke puffs
+      for (var s=0; s<7; s++) {
+        var sm = new THREE.Mesh(
+          new THREE.SphereGeometry(0.9 + Math.random()*0.7, 6, 4),
+          new THREE.MeshBasicMaterial({color:0x2a2622, transparent:true, opacity:0.85})
+        );
+        var dir2 = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).multiplyScalar(5);
+        parts.push({mesh:sm, vel:dir2, kind:'smoke'});
+        g.add(sm);
+      }
       g.position.copy(at); g.scale.setScalar(scale); scene.add(g);
-      var flash = new THREE.Mesh(new THREE.SphereGeometry(2, 12, 8), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.9}));
+      // bright central flash
+      var flash = new THREE.Mesh(
+        new THREE.SphereGeometry(2.5, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.95})
+      );
       g.add(flash);
-      explosions.push({ group:g, parts:parts, life:0.7, max:0.7, flash:flash });
+      // shockwave ring (horizontal)
+      var ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.6, 1.4, 32, 1),
+        new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.85, side:THREE.DoubleSide})
+      );
+      ring.rotation.x = -Math.PI/2;
+      g.add(ring);
+      explosions.push({ group:g, parts:parts, life:1.0, max:1.0, flash:flash, ring:ring });
       SFX.boom();
     }
 
@@ -556,16 +617,56 @@
       eye.position.set(0, 1.5, -1.3); g.add(eye);
       return { mesh:g, hp:60, type:'gunship', shootCD: 1.5+Math.random(), points:400, r:3.5 };
     }
+    function makeAsteroid() {
+      var g = new THREE.Group();
+      var sz = 6 + Math.random()*10;
+      var mat = new THREE.MeshLambertMaterial({color:0x6a5a45, flatShading:true});
+      var body = new THREE.Mesh(new THREE.IcosahedronGeometry(sz, 0), mat);
+      // dent the geometry so each asteroid is unique
+      var pos = body.geometry.attributes.position;
+      for (var i=0; i<pos.count; i++) {
+        var k = .82 + Math.random()*.36;
+        pos.setXYZ(i, pos.getX(i)*k, pos.getY(i)*k, pos.getZ(i)*k);
+      }
+      body.geometry.computeVertexNormals();
+      g.add(body);
+      // a few darker bumps for texture
+      for (var b=0; b<2; b++) {
+        var bm = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(sz*0.25 + Math.random()*sz*0.2, 0),
+          new THREE.MeshLambertMaterial({color:0x4a3e30, flatShading:true})
+        );
+        bm.position.set((Math.random()-0.5)*sz*0.9, (Math.random()-0.5)*sz*0.9, (Math.random()-0.5)*sz*0.9);
+        g.add(bm);
+      }
+      return {
+        mesh:g, hp:18 + Math.floor(sz), type:'asteroid', shootCD:0,
+        points:80, r:sz*0.95,
+        spin: new THREE.Vector3((Math.random()-0.5)*0.6,(Math.random()-0.5)*0.6,(Math.random()-0.5)*0.6),
+        drift: new THREE.Vector3((Math.random()-0.5)*2,(Math.random()-0.5)*0.6,(Math.random()-0.5)*2),
+        bobT: Math.random()*10
+      };
+    }
     function spawnEnemy(type, x, y, z) {
       var e;
       if (type === 'fighter')  e = makeFighter();
       else if (type === 'drone')   e = makeDrone();
       else if (type === 'gunship') e = makeGunship();
+      else if (type === 'asteroid') e = makeAsteroid();
       else return null;
       e.mesh.position.set(x, y, z);
       e.alive = true;
       scene.add(e.mesh); enemies.push(e); return e;
     }
+    // pre-populate the arena with floating asteroids (ambient — don't count toward wave)
+    (function () {
+      for (var i=0; i<14; i++) {
+        var a = Math.random()*Math.PI*2;
+        var d = 120 + Math.random()*(ARENA_R-220);
+        var ast = spawnEnemy('asteroid', Math.cos(a)*d, 40 + Math.random()*220, Math.sin(a)*d);
+        if (ast) ast.isAmbient = true;
+      }
+    })();
 
     // ---- bosses ----
     var boss = null;
@@ -707,7 +808,10 @@
     }
     function checkWaveCleared() {
       if (!waveActive || boss) return;
-      var rem = 0; for (var i=0; i<enemies.length; i++) if (enemies[i].alive) rem++;
+      var rem = 0;
+      for (var i=0; i<enemies.length; i++) {
+        if (enemies[i].alive && !enemies[i].isAmbient) rem++;
+      }
       document.getElementById('enemiesLeft').textContent = rem;
       if (rem === 0) { waveActive = false; interWaveT = 4; score += 500; popScore(500); }
     }
@@ -1051,6 +1155,22 @@
             e4.mesh.position.addScaledVector(side2, Math.sin(t2*4)*20*dt);
             e4.mesh.rotation.y += dt*3;
             if (dist < 2.4) { damagePlayer(15); damageEnemy(e4, 999); continue; }
+          } else if (e4.type === 'asteroid') {
+            e4.mesh.rotation.x += e4.spin.x * dt;
+            e4.mesh.rotation.y += e4.spin.y * dt;
+            e4.mesh.rotation.z += e4.spin.z * dt;
+            e4.bobT += dt;
+            e4.mesh.position.addScaledVector(e4.drift, dt);
+            e4.mesh.position.y += Math.sin(e4.bobT*0.6)*0.05;
+            // bounce off arena bounds
+            var hd = Math.hypot(e4.mesh.position.x, e4.mesh.position.z);
+            if (hd > ARENA_R - 50) { e4.drift.x = -e4.drift.x; e4.drift.z = -e4.drift.z; }
+            if (e4.mesh.position.y < 30) e4.drift.y = Math.abs(e4.drift.y);
+            if (e4.mesh.position.y > 280) e4.drift.y = -Math.abs(e4.drift.y);
+            // collide with player
+            if (dist < e4.r + 1.5 && player.invuln <= 0) {
+              damagePlayer(20); damageEnemy(e4, 9999); continue;
+            }
           } else if (e4.type === 'gunship') {
             var desired2 = 110;
             if (dist > desired2+10) e4.mesh.position.addScaledVector(toPlayer.normalize(), 14*dt);
@@ -1107,11 +1227,25 @@
           for (var ep=0; ep<ex.parts.length; ep++) {
             var pp = ex.parts[ep];
             pp.mesh.position.addScaledVector(pp.vel, dt);
-            pp.vel.multiplyScalar(0.95);
-            pp.mesh.material.opacity = 1 - ek;
+            if (pp.kind === 'smoke') {
+              pp.vel.multiplyScalar(0.92);
+              pp.vel.y += 6 * dt;                 // smoke rises
+              pp.mesh.scale.setScalar(1 + ek*1.4);
+              pp.mesh.material.opacity = (1 - ek) * 0.85;
+            } else {
+              pp.vel.multiplyScalar(0.95);
+              pp.vel.y -= 18 * dt;                // debris falls
+              pp.mesh.material.opacity = 1 - ek;
+              pp.mesh.rotation.x += dt*4;
+              pp.mesh.rotation.y += dt*5;
+            }
           }
-          ex.flash.scale.setScalar(1 + ek*4);
-          ex.flash.material.opacity = (1 - ek) * 0.9;
+          ex.flash.scale.setScalar(1 + ek*5);
+          ex.flash.material.opacity = (1 - ek*1.4) * 0.95;
+          if (ex.ring) {
+            ex.ring.scale.setScalar(1 + ek*9);
+            ex.ring.material.opacity = (1 - ek) * 0.85;
+          }
           if (ex.life <= 0) { scene.remove(ex.group); explosions.splice(ei, 1); }
         }
 
