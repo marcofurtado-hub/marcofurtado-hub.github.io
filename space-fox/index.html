@@ -11,11 +11,11 @@
   body{cursor:none}
 
   /* HUD */
-  #hud{position:fixed;inset:0;pointer-events:none;font-size:13px;letter-spacing:2px;text-shadow:0 0 6px #000,0 0 2px #000}
+  #hud{position:fixed;inset:0;pointer-events:none;font-size:14px;letter-spacing:2px;text-shadow:0 0 8px #000,0 0 3px #000}
   .top{position:absolute;top:10px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
-  .panel{background:rgba(0,8,16,.45);border:1px solid #1a4a6a;padding:6px 10px;backdrop-filter:blur(2px)}
-  .label{color:#88aabb;font-size:10px}
-  .value{color:#ffe040;font-size:18px;font-weight:bold;letter-spacing:3px}
+  .panel{background:rgba(0,8,16,.72);border:2px solid #2a6a90;padding:8px 14px;box-shadow:0 0 14px rgba(0,40,80,.4);backdrop-filter:blur(2px)}
+  .label{color:#a8c8d8;font-size:11px}
+  .value{color:#ffe040;font-size:22px;font-weight:bold;letter-spacing:3px;text-shadow:0 0 6px rgba(255,224,64,.5)}
   .bar{height:8px;width:160px;background:#0a1a2a;border:1px solid #1a4a6a;margin-top:4px;overflow:hidden}
   .bar > i{display:block;height:100%;background:linear-gradient(90deg,#40e0ff,#80f0ff);transition:width .15s}
   .bar.boost > i{background:linear-gradient(90deg,#ffaa30,#ffe040)}
@@ -34,14 +34,19 @@
   .weapon .key{color:#88aabb;font-size:9px;margin-top:2px}
 
   /* Reticle */
-  #reticle{position:fixed;left:0;top:0;width:48px;height:48px;margin:-24px 0 0 -24px;pointer-events:none;will-change:transform}
-  #reticle .ring{position:absolute;inset:0;border:2px solid #ffe040;border-radius:50%;opacity:.7}
-  #reticle .ring2{position:absolute;inset:8px;border:1px solid #ffe040;border-radius:50%;opacity:.4}
-  #reticle .dot{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#ffe040;border-radius:50%}
-  #reticle.lock .ring{border-color:#ff4040;animation:pulse .25s steps(2) infinite}
-  #reticle.lock .ring2{border-color:#ff4040}
-  #reticle.lock .dot{background:#ff4040}
-  @keyframes pulse{50%{transform:scale(1.15)}}
+  #reticle{position:fixed;left:0;top:0;width:72px;height:72px;margin:-36px 0 0 -36px;pointer-events:none;will-change:transform}
+  #reticle .ring{position:absolute;inset:0;border:3px solid #ffe040;border-radius:50%;opacity:.95;box-shadow:0 0 18px rgba(255,224,64,.95),inset 0 0 8px rgba(255,224,64,.5)}
+  #reticle .ring2{position:absolute;inset:14px;border:2px solid #ffe040;border-radius:50%;opacity:.7}
+  #reticle .dot{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#ffe040;border-radius:50%;box-shadow:0 0 6px #ffe040}
+  #reticle::before{content:'';position:absolute;left:50%;top:-10px;width:2px;height:18px;margin-left:-1px;background:#ffe040;box-shadow:0 0 8px #ffe040}
+  #reticle::after{content:'';position:absolute;top:50%;left:-10px;width:18px;height:2px;margin-top:-1px;background:#ffe040;box-shadow:0 0 8px #ffe040}
+  #reticle .v{position:absolute;left:50%;bottom:-10px;width:2px;height:18px;margin-left:-1px;background:#ffe040;box-shadow:0 0 8px #ffe040}
+  #reticle .h{position:absolute;top:50%;right:-10px;width:18px;height:2px;margin-top:-1px;background:#ffe040;box-shadow:0 0 8px #ffe040}
+  #reticle.lock .ring,#reticle.lock .ring2{border-color:#ff4040;box-shadow:0 0 22px rgba(255,80,80,.95),inset 0 0 8px rgba(255,80,80,.5)}
+  #reticle.lock .dot{background:#ff4040;box-shadow:0 0 8px #ff4040}
+  #reticle.lock::before,#reticle.lock::after,#reticle.lock .v,#reticle.lock .h{background:#ff4040;box-shadow:0 0 8px #ff4040}
+  #reticle.lock .ring{animation:pulse .25s steps(2) infinite}
+  @keyframes pulse{50%{transform:scale(1.12)}}
 
   /* Title screen */
   #screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(8,16,40,.85),rgba(0,0,0,.95));z-index:10;text-align:center;letter-spacing:3px;cursor:pointer}
@@ -67,6 +72,10 @@
   #banner .l{color:#ffe040;font-size:18px;letter-spacing:8px;margin-bottom:6px}
   #banner .b{color:#40e0ff;font-size:48px;letter-spacing:12px;text-shadow:0 0 24px #40e0ff;font-weight:bold}
   #score-pop{position:fixed;left:50%;top:45%;transform:translateX(-50%);font-size:26px;color:#ffe040;text-shadow:0 0 12px #ffe040;z-index:3;display:none;letter-spacing:6px;pointer-events:none}
+  #pause{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,8,16,.65);z-index:8;text-align:center}
+  #pause.show{display:flex}
+  #pause h2{color:#ffe040;font-size:48px;letter-spacing:14px;text-shadow:0 0 20px #ffaa30;margin-bottom:12px}
+  #pause p{color:#cfe;font-size:14px;letter-spacing:3px}
 </style>
 </head>
 <body>
@@ -98,11 +107,12 @@
   <div id="weapons"></div>
 </div>
 
-<div id="reticle" style="display:none"><div class="ring"></div><div class="ring2"></div><div class="dot"></div></div>
+<div id="reticle" style="display:none"><div class="ring"></div><div class="ring2"></div><div class="dot"></div><div class="v"></div><div class="h"></div></div>
 <div id="flash"></div>
 <div id="warn">!! BOSS !!</div>
 <div id="banner"><div class="l" id="bannerL">WAVE 1</div><div class="b" id="bannerB">COMEÇAR</div></div>
 <div id="score-pop"></div>
+<div id="pause"><h2>PAUSADO</h2><p>ESC para voltar</p></div>
 
 <div id="screen">
   <h1>SPACE <span class="blue">FOX</span></h1>
@@ -176,6 +186,7 @@
     // ---- state ----
     var STATE = { TITLE:'title', PLAY:'play', DEAD:'dead', WIN:'win' };
     var state = STATE.TITLE;
+    var paused = false;
     var score = 0;
     var waveIdx = 0;
     var waveActive = false;
@@ -198,9 +209,9 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene = new THREE.Scene();
-    // sunny daytime
-    scene.background = new THREE.Color(0xa6d8ff);
-    scene.fog = new THREE.Fog(0xb8e0ff, 500, 1800);
+    // dia ensolarado mas céu mais saturado/contrastante
+    scene.background = new THREE.Color(0x5a92c8);
+    scene.fog = new THREE.Fog(0x7aa6cc, 450, 1600);
 
     var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 4000);
 
@@ -328,43 +339,110 @@
       }
     })();
 
-    // ---- ship ----
+    // ---- ship: Arwing-style com cockpit envidraçado, laser ventrais e duplo motor ----
     function makeShip() {
       var g = new THREE.Group();
-      var matWhite = new THREE.MeshLambertMaterial({color:0xeef0f6, flatShading:true});
-      var matBlue  = new THREE.MeshLambertMaterial({color:0x2255aa, flatShading:true});
-      var matDark  = new THREE.MeshLambertMaterial({color:0x223044, flatShading:true});
-      var matGold  = new THREE.MeshLambertMaterial({color:0xffaa30, flatShading:true});
-      var matLas   = new THREE.MeshLambertMaterial({color:0x222a3a, flatShading:true});
+      var matWhite = new THREE.MeshLambertMaterial({color:0xf2f5fa, flatShading:true});
+      var matBlue  = new THREE.MeshLambertMaterial({color:0x1f4ea0, flatShading:true});
+      var matRed   = new THREE.MeshLambertMaterial({color:0xc02020, flatShading:true});
+      var matCock  = new THREE.MeshPhongMaterial({color:0x0a1830, flatShading:true, shininess:80, specular:0x60c0ff, emissive:0x102540, emissiveIntensity:0.4});
+      var matDark  = new THREE.MeshLambertMaterial({color:0x1a2030, flatShading:true});
+      var matGold  = new THREE.MeshLambertMaterial({color:0xffaa30, flatShading:true, emissive:0x442000, emissiveIntensity:0.6});
 
-      var body = new THREE.Mesh(new THREE.ConeGeometry(0.7, 4.4, 4), matWhite);
-      body.rotation.x = -Math.PI/2; g.add(body);
+      // bicudo nariz
+      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.55, 2.2, 5), matWhite);
+      nose.rotation.x = -Math.PI/2; nose.position.z = -2.2; g.add(nose);
 
-      var cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 6), matDark);
-      cockpit.position.set(0, 0.35, 0.1); cockpit.scale.set(1, 0.5, 1.4); g.add(cockpit);
+      // fuselagem central
+      var fuse = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 3.6), matWhite);
+      g.add(fuse);
 
-      var wL = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.18, 1.2), matWhite);
-      wL.position.set(-1.4, -0.05, -0.2); g.add(wL);
-      var wR = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.18, 1.2), matWhite);
-      wR.position.set( 1.4, -0.05, -0.2); g.add(wR);
+      // detalhe vermelho na lateral (faixa de combate)
+      var stripeL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.4, 2.4), matRed);
+      stripeL.position.set(-0.66, 0, 0); g.add(stripeL);
+      var stripeR = stripeL.clone(); stripeR.position.x = 0.66; g.add(stripeR);
 
-      var sL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 0.3), matBlue);
-      sL.position.set(-1.4, 0.06, -0.2); g.add(sL);
-      var sR = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 0.3), matBlue);
-      sR.position.set( 1.4, 0.06, -0.2); g.add(sR);
+      // cockpit envidraçado (semi-esfera achatada)
+      var cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.72, 16, 10, 0, Math.PI*2, 0, Math.PI/2), matCock);
+      cockpit.position.set(0, 0.42, -0.3);
+      cockpit.scale.set(0.95, 0.7, 1.5);
+      g.add(cockpit);
 
-      var lL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 6), matLas);
-      lL.rotation.x = Math.PI/2; lL.position.set(-2.5, 0, 0); g.add(lL);
-      var lR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 6), matLas);
-      lR.rotation.x = Math.PI/2; lR.position.set( 2.5, 0, 0); g.add(lR);
+      // base do cockpit (frame)
+      var frame = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 2.0), matDark);
+      frame.position.set(0, 0.32, -0.3); g.add(frame);
 
-      var fin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 1.2), matGold);
-      fin.position.set(0, 0.55, 1.6); g.add(fin);
+      // asas em delta
+      var wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0);
+      wingShape.lineTo(2.8, 0.4);
+      wingShape.lineTo(2.8, 0.85);
+      wingShape.lineTo(0.4, 1.05);
+      wingShape.lineTo(0, 0);
+      var wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.22, bevelEnabled:false });
+      wingGeo.translate(0, -0.5, -0.2);
+      var wL = new THREE.Mesh(wingGeo, matWhite);
+      wL.position.set(0, 0, 0); wL.rotation.y = Math.PI;
+      g.add(wL);
+      var wR = new THREE.Mesh(wingGeo, matWhite); wR.rotation.y = 0; g.add(wR);
 
-      var eg = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 6), new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:.85}));
-      eg.scale.z = 1.6; eg.position.set(0, 0, 2.4); g.add(eg);
+      // faixas azuis nas asas
+      var stripeWL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 0.35), matBlue);
+      stripeWL.position.set(-1.5, 0.05, -0.3); g.add(stripeWL);
+      var stripeWR = stripeWL.clone(); stripeWR.position.x = 1.5; g.add(stripeWR);
 
-      g.userData = { engineGlow: eg, leftLaser: lL, rightLaser: lR };
+      // ponteiras de laser ventrais (canhões duplos sob as asas)
+      var lasMat = new THREE.MeshLambertMaterial({color:0x161a26, flatShading:true});
+      function makeLaser(x) {
+        var grp = new THREE.Group();
+        var b = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.6, 8), lasMat);
+        b.rotation.x = Math.PI/2; b.position.z = 0;
+        grp.add(b);
+        // ponta dourada
+        var t = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.10, 0.4, 8), matGold);
+        t.rotation.x = Math.PI/2; t.position.z = -0.95;
+        grp.add(t);
+        grp.position.set(x, -0.45, -0.5);
+        return grp;
+      }
+      var laserGL = makeLaser(-2.2); g.add(laserGL);
+      var laserGR = makeLaser( 2.2); g.add(laserGR);
+      // referências de "wing tip" (de onde os tiros saem) — usadas pelo fireWeapon
+      var lL = new THREE.Object3D(); lL.position.set(-2.2, -0.45, -1.45); g.add(lL);
+      var lR = new THREE.Object3D(); lR.position.set( 2.2, -0.45, -1.45); g.add(lR);
+
+      // estabilizadores verticais (G-Difussers)
+      var fin = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.2, 1.6), matWhite);
+      fin.position.set(0, 0.85, 1.3); g.add(fin);
+      var finFlare = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, 0.5), matRed);
+      finFlare.position.set(0, 1.4, 1.0); g.add(finFlare);
+
+      // duplo motor traseiro com flame
+      function makeEngine(x) {
+        var grp = new THREE.Group();
+        var nz = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 1.0, 12), matDark);
+        nz.rotation.x = Math.PI/2; nz.position.z = 0;
+        grp.add(nz);
+        var glow = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 8), new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:.92}));
+        glow.scale.z = 1.8; glow.position.z = 0.7;
+        grp.add(glow);
+        var hot = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 6), new THREE.MeshBasicMaterial({color:0xffffff}));
+        hot.scale.z = 1.1; hot.position.z = 0.6;
+        grp.add(hot);
+        grp.position.set(x, 0, 1.8);
+        grp.userData = { glow: glow, hot: hot };
+        return grp;
+      }
+      var engL = makeEngine(-0.5); g.add(engL);
+      var engR = makeEngine( 0.5); g.add(engR);
+
+      // pontas das asas com luzes de navegação (LED)
+      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({color:0xff4040}));
+      ledL.position.set(-2.85, 0.0, -0.4); g.add(ledL);
+      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({color:0x40ff40}));
+      ledR.position.set( 2.85, 0.0, -0.4); g.add(ledR);
+
+      g.userData = { engineGlow: engL.userData.glow, engineGlowR: engR.userData.glow, leftLaser: lL, rightLaser: lR };
       return g;
     }
     var ship = makeShip();
@@ -399,6 +477,11 @@
         e.preventDefault(); startGame(); return;
       }
       if (e.code === 'KeyR' && (state === STATE.DEAD || state === STATE.WIN)) { window.location.reload(); return; }
+      if (e.code === 'Escape' && state === STATE.PLAY) {
+        paused = !paused;
+        document.getElementById('pause').classList.toggle('show', paused);
+        e.preventDefault(); return;
+      }
       if (e.code === 'Space') e.preventDefault();
       if (e.code.indexOf('Digit') === 0) {
         var n = parseInt(e.code.slice(5)) - 1;
@@ -493,8 +576,7 @@
       var lk = findLockTarget();
       if (lk) {
         var lp = new THREE.Vector3();
-        if (lk === boss) lk.coreGlow.getWorldPosition(lp);
-        else lp.copy(lk.mesh.position);
+        lk.mesh.getWorldPosition(lp);
         return lp;
       }
       _aimNDC.set(mouseX, mouseY);
@@ -606,39 +688,106 @@
 
     // ---- enemies ----
     var enemies = [];
+    // ---- inimigos com cara de nave ----
     function makeFighter() {
       var g = new THREE.Group();
-      var mat = new THREE.MeshLambertMaterial({color:0x5a1a1a, flatShading:true});
-      var matD = new THREE.MeshLambertMaterial({color:0x222222, flatShading:true});
-      var body = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), mat);
-      body.scale.set(1.5, 0.7, 1.0); g.add(body);
-      var w = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.18, 0.7), matD); g.add(w);
-      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({color:0xff3030}));
-      eye.position.set(0, 0, -1.4); g.add(eye);
+      var matHull  = new THREE.MeshLambertMaterial({color:0x782020, flatShading:true});
+      var matDark  = new THREE.MeshLambertMaterial({color:0x191919, flatShading:true});
+      var matCock  = new THREE.MeshPhongMaterial({color:0x200000, flatShading:true, shininess:60, specular:0xff8080, emissive:0x300000, emissiveIntensity:0.4});
+
+      // fuselagem afilada
+      var body = new THREE.Mesh(new THREE.ConeGeometry(0.7, 3.6, 4), matHull);
+      body.rotation.x = -Math.PI/2; g.add(body);
+      // chassi
+      var chassi = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 1.6), matHull);
+      chassi.position.set(0, 0, 0.2); g.add(chassi);
+      // canopy vermelho-escuro
+      var cock = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8, 0, Math.PI*2, 0, Math.PI/2), matCock);
+      cock.position.set(0, 0.18, -0.2); cock.scale.set(0.9, 0.6, 1.5);
+      g.add(cock);
+      // asas em flecha invertida (descendentes)
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.14, 0.9), matDark);
+      wL.position.set(-1.2, -0.15, 0.2); wL.rotation.z = -0.18; g.add(wL);
+      var wR = wL.clone(); wR.position.x = 1.2; wR.rotation.z = 0.18; g.add(wR);
+      // canhões nas asas
+      var gL = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.9, 6), matDark);
+      gL.rotation.x = Math.PI/2; gL.position.set(-2.0, -0.18, -0.4); g.add(gL);
+      var gR = gL.clone(); gR.position.x = 2.0; g.add(gR);
+      // luz vermelha (eye/scanner)
+      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshBasicMaterial({color:0xff5050}));
+      eye.position.set(0, 0.0, -1.5); g.add(eye);
+      // motor traseiro
+      var eng = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 6), new THREE.MeshBasicMaterial({color:0xff8030, transparent:true, opacity:0.9}));
+      eng.position.set(0, 0, 1.7); eng.scale.z = 1.5;
+      g.add(eng);
+
       return { mesh:g, hp:25, type:'fighter', shootCD: 1+Math.random()*1.5, points:200, r:2.0 };
     }
     function makeDrone() {
       var g = new THREE.Group();
-      var mat = new THREE.MeshLambertMaterial({color:0x6a3030, flatShading:true});
-      var body = new THREE.Mesh(new THREE.IcosahedronGeometry(1.3, 0), mat); g.add(body);
-      for (var i=0; i<3; i++) {
-        var a = (i/3)*Math.PI*2;
-        var l = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({color:0xff8030}));
-        l.position.set(Math.cos(a)*1.4, 0, Math.sin(a)*1.4); g.add(l);
+      var matHull = new THREE.MeshLambertMaterial({color:0x803428, flatShading:true});
+      var matDark = new THREE.MeshLambertMaterial({color:0x1a1818, flatShading:true});
+      // disco UFO (parte de baixo)
+      var disc = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.0, 0.4, 14), matHull);
+      g.add(disc);
+      // cúpula superior
+      var dome = new THREE.Mesh(new THREE.SphereGeometry(0.7, 14, 8, 0, Math.PI*2, 0, Math.PI/2), matDark);
+      dome.position.y = 0.2; dome.scale.y = 0.7;
+      g.add(dome);
+      // anel de luzes laranja embaixo
+      for (var i=0; i<6; i++) {
+        var a = (i/6)*Math.PI*2;
+        var l = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshBasicMaterial({color:0xff8030}));
+        l.position.set(Math.cos(a)*1.15, -0.2, Math.sin(a)*1.15); g.add(l);
       }
+      // olho central laranja
+      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), new THREE.MeshBasicMaterial({color:0xffaa30}));
+      eye.position.set(0, 0.45, 0); g.add(eye);
       return { mesh:g, hp:14, type:'drone', shootCD: 0.8+Math.random(), points:120, r:1.6, spawnT:performance.now()/1000 };
     }
     function makeGunship() {
       var g = new THREE.Group();
-      var mat = new THREE.MeshLambertMaterial({color:0x404a66, flatShading:true});
-      var matD = new THREE.MeshLambertMaterial({color:0x222020, flatShading:true});
-      var body = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 4), mat); g.add(body);
-      var top = new THREE.Mesh(new THREE.BoxGeometry(3, 1.2, 2.5), mat); top.position.y = 1.5; g.add(top);
-      var bL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2, 6), matD);
-      bL.rotation.x = Math.PI/2; bL.position.set(-2, 0, -2.5); g.add(bL);
-      var bR = bL.clone(); bR.position.x = 2; g.add(bR);
-      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({color:0xff4040}));
-      eye.position.set(0, 1.5, -1.3); g.add(eye);
+      var matHull = new THREE.MeshLambertMaterial({color:0x445068, flatShading:true});
+      var matDark = new THREE.MeshLambertMaterial({color:0x18181c, flatShading:true});
+      var matAcc  = new THREE.MeshLambertMaterial({color:0x2a3346, flatShading:true});
+
+      // hull principal (chunky)
+      var hull = new THREE.Mesh(new THREE.BoxGeometry(6, 1.8, 4.5), matHull); g.add(hull);
+      // proa cônica
+      var bow = new THREE.Mesh(new THREE.ConeGeometry(1.6, 2.2, 4), matHull);
+      bow.rotation.x = -Math.PI/2; bow.position.set(0, 0, -3.0);
+      bow.scale.set(0.8, 0.6, 1);
+      g.add(bow);
+      // ponte de comando
+      var bridge = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 2.0), matAcc);
+      bridge.position.set(0, 1.2, 0.3); g.add(bridge);
+      var bridgeTop = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 1.2), matAcc);
+      bridgeTop.position.set(0, 1.85, 0.3); g.add(bridgeTop);
+      // viseira da ponte (vidro vermelho)
+      var visor = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 0.05), new THREE.MeshBasicMaterial({color:0xff4040}));
+      visor.position.set(0, 1.4, -0.7); g.add(visor);
+      // canhões duplos na frente
+      var bL = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 2.2, 8), matDark);
+      bL.rotation.x = Math.PI/2; bL.position.set(-2.0, -0.3, -2.6); g.add(bL);
+      var bR = bL.clone(); bR.position.x = 2.0; g.add(bR);
+      // detalhes laterais (suportes)
+      var pylonL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.8, 3.0), matAcc);
+      pylonL.position.set(-3.2, 0, 0.3); g.add(pylonL);
+      var pylonR = pylonL.clone(); pylonR.position.x = 3.2; g.add(pylonR);
+      // motores traseiros (3)
+      for (var k=-1; k<=1; k++) {
+        var en = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.0, 8), matDark);
+        en.rotation.x = Math.PI/2; en.position.set(k*1.4, 0, 2.6);
+        g.add(en);
+        var enG = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 6), new THREE.MeshBasicMaterial({color:0xff6030, transparent:true, opacity:0.9}));
+        enG.position.set(k*1.4, 0, 3.2); enG.scale.z = 1.4;
+        g.add(enG);
+      }
+      // luzes vermelhas piscando
+      var rL1 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({color:0xff4040}));
+      rL1.position.set(-3.2, 0.6, 0.3); g.add(rL1);
+      var rL2 = rL1.clone(); rL2.position.x = 3.2; g.add(rL2);
+
       return { mesh:g, hp:60, type:'gunship', shootCD: 1.5+Math.random(), points:400, r:3.5 };
     }
     function makeAsteroid() {
@@ -695,56 +844,123 @@
     // ---- bosses ----
     var boss = null;
     var bossesDefeated = 0;
+    // helper: cria um "weak point" — mesh de núcleo brilhante atado ao boss.
+    // weakPoints[] é o que o tiro do player tem que acertar pra dano cheio.
+    function addWeakPoint(parent, x, y, z, color, radius) {
+      radius = radius || 1.6;
+      var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:0.9, flatShading:true});
+      var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.65});
+      var housing = new THREE.Mesh(new THREE.SphereGeometry(radius*1.4, 12, 8), new THREE.MeshLambertMaterial({color:0x202028, flatShading:true}));
+      housing.position.set(x, y, z); parent.add(housing);
+      var core = new THREE.Mesh(new THREE.SphereGeometry(radius, 14, 10), matCore);
+      core.position.set(x, y, z); parent.add(core);
+      var halo = new THREE.Mesh(new THREE.SphereGeometry(radius*1.7, 14, 10), matGlow);
+      halo.position.set(x, y, z); parent.add(halo);
+      return { mesh:core, halo:halo, housing:housing, hp:120, alive:true, color:color };
+    }
+
     function makeBossA() {
+      // DREADNOUGHT — encouraçado massivo, 3 weak points
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x444a66, flatShading:true});
-      var matCore = new THREE.MeshLambertMaterial({color:0x803030, flatShading:true});
-      var matGlow = new THREE.MeshBasicMaterial({color:0xff4040});
-      g.add(new THREE.Mesh(new THREE.BoxGeometry(34, 8, 22), matMain));
-      var wL = new THREE.Mesh(new THREE.BoxGeometry(20, 2.2, 12), matMain); wL.position.set(-22, 0, 3); g.add(wL);
-      var wR = wL.clone(); wR.position.x = 22; g.add(wR);
-      var tw = new THREE.Mesh(new THREE.CylinderGeometry(3, 5, 8, 6), matMain); tw.position.set(0, 7, 3); g.add(tw);
-      var core = new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 10), matCore); core.position.set(0, 7, -3); g.add(core);
-      var coreGlow = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 10), matGlow); coreGlow.position.copy(core.position); g.add(coreGlow);
-      return { mesh:g, hp:600, maxHp:600, core:core, coreGlow:coreGlow, t:0, alive:true, r:18, name:'DREADNOUGHT', drops:'twin', shootCD:1.2 };
+      var matAcc  = new THREE.MeshLambertMaterial({color:0x222a40, flatShading:true});
+      var matDark = new THREE.MeshLambertMaterial({color:0x12141c, flatShading:true});
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(60, 14, 38), matMain));
+      var hullTop = new THREE.Mesh(new THREE.BoxGeometry(48, 5, 30), matAcc);
+      hullTop.position.y = 9; g.add(hullTop);
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(34, 3.6, 20), matMain); wL.position.set(-38, 0, 4); g.add(wL);
+      var wR = wL.clone(); wR.position.x = 38; g.add(wR);
+      // torres de canhão
+      for (var k=-1; k<=1; k+=2) {
+        var tur = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 3, 4, 8), matAcc);
+        tur.position.set(k*16, 12.5, -4); g.add(tur);
+        var bar = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 6), matDark);
+        bar.rotation.x = Math.PI/2; bar.position.set(k*16, 12.5, -10); g.add(bar);
+      }
+      // ponte de comando alta
+      var bridge = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 14), matMain);
+      bridge.position.set(0, 14, 4); g.add(bridge);
+      var bridgeTop = new THREE.Mesh(new THREE.ConeGeometry(4, 6, 4), matAcc);
+      bridgeTop.position.set(0, 20, 4); g.add(bridgeTop);
+      // pontos brilhantes (alvos)
+      var wp1 = addWeakPoint(g, 0, 14, -4, 0xff4040, 2.2);            // núcleo central na ponte
+      var wp2 = addWeakPoint(g, -22, 0, -10, 0xff4040, 1.8);          // reator esq
+      var wp3 = addWeakPoint(g,  22, 0, -10, 0xff4040, 1.8);          // reator dir
+      // engines
+      for (var ee=-1; ee<=1; ee+=2) {
+        var en = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.0, 5, 10), matMain);
+        en.rotation.z = Math.PI/2; en.position.set(ee*10, -2, 18); g.add(en);
+        var fl = new THREE.Mesh(new THREE.SphereGeometry(1.8, 10, 8), new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:0.85}));
+        fl.position.set(ee*10, -2, 21); fl.scale.z = 1.6; g.add(fl);
+      }
+      return { mesh:g, hp:900, maxHp:900, core:wp1.mesh, coreGlow:wp1.mesh, weakPoints:[wp1,wp2,wp3], t:0, alive:true, r:30, name:'DREADNOUGHT', drops:'twin', shootCD:1.0 };
     }
+
     function makeBossB() {
+      // CARMESIM — caça pesado simétrico
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x6a2030, flatShading:true});
-      var matCore = new THREE.MeshLambertMaterial({color:0xff8030, flatShading:true});
-      var body = new THREE.Mesh(new THREE.OctahedronGeometry(8, 0), matMain);
-      body.scale.set(1.6, 0.7, 1.2); g.add(body);
-      var w1 = new THREE.Mesh(new THREE.BoxGeometry(22, 1.5, 5), new THREE.MeshLambertMaterial({color:0x111111, flatShading:true})); g.add(w1);
-      var w2 = w1.clone(); w2.rotation.z = Math.PI/2; g.add(w2);
-      var core = new THREE.Mesh(new THREE.SphereGeometry(1.8, 12, 10), matCore); core.position.set(0, 0, -5); g.add(core);
-      return { mesh:g, hp:850, maxHp:850, core:core, coreGlow:core, t:0, alive:true, r:13, name:'CARMESIM', drops:'spread', shootCD:0.8 };
+      var body = new THREE.Mesh(new THREE.OctahedronGeometry(13, 0), matMain);
+      body.scale.set(1.7, 0.6, 1.2); g.add(body);
+      var wps = [];
+      for (var i=0; i<4; i++) {
+        var a = (i/4)*Math.PI*2 + Math.PI/4;
+        var arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.4, 14), matMain);
+        arm.position.set(Math.cos(a)*8, 0, Math.sin(a)*8);
+        arm.rotation.y = -a + Math.PI/2;
+        g.add(arm);
+        wps.push(addWeakPoint(g, Math.cos(a)*16, 0, Math.sin(a)*16, 0xff8030, 1.6));
+      }
+      wps.push(addWeakPoint(g, 0, 0, -6, 0xffaa30, 2.4));
+      return { mesh:g, hp:1200, maxHp:1200, core:wps[0].mesh, coreGlow:wps[0].mesh, weakPoints:wps, t:0, alive:true, r:22, name:'CARMESIM', drops:'spread', shootCD:0.7 };
     }
+
     function makeBossC() {
+      // TITAN — fortaleza hexagonal massiva
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x556680, flatShading:true});
-      var matCore = new THREE.MeshLambertMaterial({color:0x40ff80, flatShading:true});
-      g.add(new THREE.Mesh(new THREE.CylinderGeometry(8, 10, 8, 8), matMain));
-      var cap = new THREE.Mesh(new THREE.SphereGeometry(8, 16, 8, 0, Math.PI*2, 0, Math.PI/2), matMain);
-      cap.position.y = 4; g.add(cap);
+      var matAcc  = new THREE.MeshLambertMaterial({color:0x222a36, flatShading:true});
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(14, 16, 12, 8), matMain));
+      var cap = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 10, 0, Math.PI*2, 0, Math.PI/2), matMain);
+      cap.position.y = 6; g.add(cap);
+      var wps = [];
       for (var i=0; i<6; i++) {
         var a = i/6*Math.PI*2;
-        var arm = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 6), new THREE.MeshLambertMaterial({color:0x222222, flatShading:true}));
-        arm.position.set(Math.cos(a)*9, -2, Math.sin(a)*9); arm.rotation.y = -a; g.add(arm);
+        var arm = new THREE.Mesh(new THREE.BoxGeometry(3, 1.4, 8), matAcc);
+        arm.position.set(Math.cos(a)*15, -2, Math.sin(a)*15);
+        arm.rotation.y = -a; g.add(arm);
+        wps.push(addWeakPoint(g, Math.cos(a)*20, -1, Math.sin(a)*20, 0x40ff80, 1.6));
       }
-      var core = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), matCore); core.position.set(0, 5, 0); g.add(core);
-      return { mesh:g, hp:1100, maxHp:1100, core:core, coreGlow:core, t:0, alive:true, r:14, name:'TITAN', drops:'rocket', shootCD:1.4 };
+      wps.push(addWeakPoint(g, 0, 12, 0, 0x80ffaa, 3.0));
+      return { mesh:g, hp:1600, maxHp:1600, core:wps[0].mesh, coreGlow:wps[0].mesh, weakPoints:wps, t:0, alive:true, r:22, name:'TITAN', drops:'rocket', shootCD:1.2 };
     }
+
     function makeBossD() {
+      // MOTHERSHIP — gigante com múltiplos núcleos
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x303040, flatShading:true});
-      var matCore = new THREE.MeshLambertMaterial({color:0x40e0ff, flatShading:true});
-      g.add(new THREE.Mesh(new THREE.BoxGeometry(50, 12, 28), matMain));
-      var wL = new THREE.Mesh(new THREE.BoxGeometry(28, 3, 18), new THREE.MeshLambertMaterial({color:0x141420, flatShading:true})); wL.position.set(-32, 0, 4); g.add(wL);
-      var wR = wL.clone(); wR.position.x = 32; g.add(wR);
-      var tw = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 14), matMain); tw.position.set(0, 9, 4); g.add(tw);
-      var core = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 12), matCore); core.position.set(0, 9, -4); g.add(core);
-      var coreGlow = new THREE.Mesh(new THREE.SphereGeometry(2, 16, 12), new THREE.MeshBasicMaterial({color:0x80f0ff})); coreGlow.position.copy(core.position); g.add(coreGlow);
-      return { mesh:g, hp:1700, maxHp:1700, core:core, coreGlow:coreGlow, t:0, alive:true, r:24, name:'MOTHERSHIP', drops:'plasma', shootCD:0.9 };
+      var matAcc  = new THREE.MeshLambertMaterial({color:0x14141c, flatShading:true});
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(80, 18, 44), matMain));
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(46, 5, 28), matAcc); wL.position.set(-50, 0, 6); g.add(wL);
+      var wR = wL.clone(); wR.position.x = 50; g.add(wR);
+      var tower = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 22), matMain);
+      tower.position.set(0, 14, 6); g.add(tower);
+      var spire = new THREE.Mesh(new THREE.ConeGeometry(6, 14, 6), matAcc);
+      spire.position.set(0, 28, 6); g.add(spire);
+      var wps = [];
+      wps.push(addWeakPoint(g, 0, 0, -22, 0x40e0ff, 3.5));   // proa (grande)
+      wps.push(addWeakPoint(g, -28, 0, 6, 0x40e0ff, 2.0));
+      wps.push(addWeakPoint(g,  28, 0, 6, 0x40e0ff, 2.0));
+      wps.push(addWeakPoint(g, -28, 0, -10, 0x40e0ff, 2.0));
+      wps.push(addWeakPoint(g,  28, 0, -10, 0x40e0ff, 2.0));
+      wps.push(addWeakPoint(g, 0, 18, -2, 0x80f0ff, 2.5));   // núcleo da torre
+      for (var ee=-1; ee<=1; ee+=2) {
+        var en = new THREE.Mesh(new THREE.CylinderGeometry(3, 2.4, 6, 12), matMain);
+        en.rotation.z = Math.PI/2; en.position.set(ee*14, -4, 22); g.add(en);
+        var fl = new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 8), new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:0.9}));
+        fl.position.set(ee*14, -4, 26); fl.scale.z = 1.8; g.add(fl);
+      }
+      return { mesh:g, hp:2200, maxHp:2200, core:wps[0].mesh, coreGlow:wps[0].mesh, weakPoints:wps, t:0, alive:true, r:38, name:'MOTHERSHIP', drops:'plasma', shootCD:0.7 };
     }
     var BOSS_FACTORIES = [makeBossA, makeBossB, makeBossC, makeBossD];
 
@@ -800,11 +1016,11 @@
     // ---- waves ----
     function isBossWave(idx) { return idx % 3 === 0; }
     function waveSpec(idx) {
-      // *muito* mais denso: começa cheio e cresce a cada wave
+      // arena LOTADA — combate denso desde a wave 1
       return {
-        fighters: 8 + idx*2,
-        drones:   6 + idx*2,
-        gunships: idx >= 2 ? 1 + Math.floor(idx*0.7) : 0
+        fighters: 14 + idx*3,
+        drones:   12 + idx*3,
+        gunships: 1 + Math.floor(idx*0.8)
       };
     }
     function spawnWaveEnemies() {
@@ -979,13 +1195,19 @@
         var d = dx*dx + dy*dy;
         if (d < 0.05 && d < bestD) { bestD = d; best = e; }
       }
-      if (boss && boss.alive) {
-        var wp = new THREE.Vector3(); boss.coreGlow.getWorldPosition(wp);
-        ndc.copy(wp).project(camera);
-        if (ndc.z <= 1) {
+      if (boss && boss.alive && boss.weakPoints) {
+        for (var wpi=0; wpi<boss.weakPoints.length; wpi++) {
+          var wp = boss.weakPoints[wpi];
+          if (!wp.alive) continue;
+          var wpPos = new THREE.Vector3(); wp.mesh.getWorldPosition(wpPos);
+          ndc.copy(wpPos).project(camera);
+          if (ndc.z > 1) continue;
           var dx2 = ndc.x - mouseX, dy2 = ndc.y - mouseY;
           var d2 = dx2*dx2 + dy2*dy2;
-          if (d2 < 0.05 && d2 < bestD) best = boss;
+          if (d2 < 0.05 && d2 < bestD) {
+            bestD = d2;
+            best = { isBoss:true, mesh: wp.mesh, coreGlow: wp.mesh };
+          }
         }
       }
       return best;
@@ -1011,7 +1233,7 @@
     function tick() {
       var dt = Math.min(0.05, clock.getDelta());
 
-      if (state === STATE.PLAY) {
+      if (state === STATE.PLAY && !paused) {
         // maneuver animation
         if (player.maneuver) {
           var m = player.maneuver;
@@ -1083,16 +1305,21 @@
         ship.position.copy(player.pos);
 
         var ppt = performance.now()*0.01;
-        ship.userData.engineGlow.scale.set(1 + Math.sin(ppt)*0.1, 1 + Math.sin(ppt)*0.1, 1.6 + (boosting ? 1.2 : 0.4));
+        var pulseS = 1 + Math.sin(ppt)*0.1;
+        var pulseZ = 1.6 + (boosting ? 1.2 : 0.4);
+        ship.userData.engineGlow.scale.set(pulseS, pulseS, pulseZ);
+        if (ship.userData.engineGlowR) ship.userData.engineGlowR.scale.set(pulseS, pulseS, pulseZ);
         if (player.invuln > 0) player.invuln -= dt;
 
-        // camera (no roll)
+        // camera: segue pitch+yaw do ship (sem roll), e usa o "up" local do ship
+        // pra que loops cheguem natural sem o horizonte virar de cabeça pra baixo
         var camRot = new THREE.Euler(player.pitch, player.yaw, 0, 'YXZ');
         var camOff = new THREE.Vector3(0, 1.6, 7).applyEuler(camRot);
         var camTarget = player.pos.clone().add(camOff);
         camera.position.lerp(camTarget, Math.min(1, dt*8));
+        var camUp = new THREE.Vector3(0, 1, 0).applyEuler(camRot);
+        camera.up.copy(camUp);
         var lookAhead = player.pos.clone().add(fwd.clone().multiplyScalar(40));
-        camera.up.set(0, 1, 0);
         camera.lookAt(lookAhead);
 
         // shooting
@@ -1132,12 +1359,28 @@
               hit = true; break;
             }
           }
-          if (!hit && boss && boss.alive) {
-            var corePos2 = new THREE.Vector3(); boss.coreGlow.getWorldPosition(corePos2);
-            if (b.mesh.position.distanceTo(corePos2) < 4.0) {
-              damageBoss(b.dmg);
-              spawnExplosion(b.mesh.position, b.color || 0xff8040, 0.6);
-              hit = true;
+          if (!hit && boss && boss.alive && boss.weakPoints) {
+            // tiros que acertam um weak point ativo dão dano cheio
+            for (var wpi=0; wpi<boss.weakPoints.length; wpi++) {
+              var wp = boss.weakPoints[wpi];
+              if (!wp.alive) continue;
+              var wpPos = new THREE.Vector3(); wp.mesh.getWorldPosition(wpPos);
+              var rad = wp.mesh.geometry.parameters.radius || 1.6;
+              if (b.mesh.position.distanceTo(wpPos) < rad + 0.8) {
+                damageBoss(b.dmg);
+                wp.hp -= b.dmg;
+                spawnExplosion(b.mesh.position, wp.color || 0xff8040, 0.6);
+                if (wp.hp <= 0) {
+                  wp.alive = false;
+                  wp.mesh.visible = false;
+                  wp.halo.visible = false;
+                  wp.housing.material = new THREE.MeshLambertMaterial({color:0x100808, flatShading:true});
+                  spawnExplosion(wpPos, wp.color, 1.4);
+                  damageBoss(80);  // bonus por destruir um wp
+                }
+                hit = true;
+                break;
+              }
             }
           }
           if (hit || b.life <= 0) {
@@ -1233,7 +1476,13 @@
           boss.mesh.position.addScaledVector(side3, 12*dt * Math.sin(boss.t*0.4));
           boss.mesh.position.y += Math.sin(boss.t*0.7)*0.3;
           boss.mesh.lookAt(ship.position);
-          boss.coreGlow.scale.setScalar(1 + Math.sin(boss.t*4)*0.2);
+          var pulse = 1 + Math.sin(boss.t*4)*0.25;
+          if (boss.weakPoints) {
+            for (var wpA=0; wpA<boss.weakPoints.length; wpA++) {
+              var wpB = boss.weakPoints[wpA];
+              if (wpB.alive) wpB.halo.scale.setScalar(pulse);
+            }
+          }
           boss.shootCD -= dt;
           if (boss.shootCD <= 0) {
             var bdir = ship.position.clone().sub(boss.mesh.position).normalize();
@@ -1294,8 +1543,7 @@
         var rx, ry;
         if (lk) {
           var wp = new THREE.Vector3();
-          if (lk === boss) lk.coreGlow.getWorldPosition(wp);
-          else wp.copy(lk.mesh.position);
+          lk.mesh.getWorldPosition(wp);
           wp.project(camera);
           rx = (wp.x*0.5+0.5) * window.innerWidth;
           ry = (-wp.y*0.5+0.5) * window.innerHeight;
