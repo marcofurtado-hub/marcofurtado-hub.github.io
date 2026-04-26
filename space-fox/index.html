@@ -144,7 +144,7 @@
   <button id="startBtn" type="button" disabled>CARREGANDO...</button>
   <div id="status">carregando Three.js...</div>
   <div class="controls">
-    <div><b>W / S</b> subir / descer (pitch)</div>
+    <div><b>W / S</b> descer / subir (flight-sim)</div>
     <div><b>A / D</b> virar esq / dir &nbsp;·&nbsp; <b>2× rápido</b> giro de barril (defende!)</div>
     <div><b>Q / E</b> rolar esq / dir</div>
     <div><b>SEGURE</b> qualquer direção = loop / 360 natural</div>
@@ -1539,8 +1539,9 @@
           }
         } else {
           var turn = 1.7;
-          if (keys['KeyW']) player.pitch += turn * dt;
-          if (keys['KeyS']) player.pitch -= turn * dt;
+          // flight-sim: W (frente) = nariz pra baixo = ship desce; S = ship sobe
+          if (keys['KeyW']) player.pitch -= turn * dt;
+          if (keys['KeyS']) player.pitch += turn * dt;
           if (keys['KeyA']) player.yaw   += turn * dt;
           if (keys['KeyD']) player.yaw   -= turn * dt;
           if (keys['KeyQ']) player.roll  += turn * dt;
