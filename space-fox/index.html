@@ -126,8 +126,8 @@
     <div><b>A / D</b> virar esq / dir &nbsp;·&nbsp; <b>2× rápido</b> giro de barril (defende!)</div>
     <div><b>Q / E</b> rolar esq / dir</div>
     <div><b>SEGURE</b> qualquer direção = loop / 360 natural</div>
-    <div><b>ESPAÇO / SHIFT</b> subir / descer (vertical)</div>
-    <div><b>ALT</b> turbo &nbsp;·&nbsp; <b>CLIQUE</b> atirar</div>
+    <div><b>ESPAÇO</b> TURBO (forte, recarga lenta)</div>
+    <div><b>CLIQUE</b> atirar &nbsp;·&nbsp; <b>ESC</b> pause</div>
     <div><b>1 — 5</b> trocar arma (libera matando boss)</div>
   </div>
 </div>
@@ -461,7 +461,7 @@
       shotCD: 0, invuln: 0,
       maneuver: null
     };
-    var SHIP_FORWARD_SPEED = 42, SHIP_BOOST_MULT = 2.0;
+    var SHIP_FORWARD_SPEED = 42, SHIP_BOOST_MULT = 3.6;
 
     // ---- input ----
     var keys = {};
@@ -826,16 +826,90 @@
         bobT: Math.random()*10
       };
     }
+    // ---- mini-bosses (chefões) — versões gigantes e tankudas dos inimigos base ----
+    function makeHeavyFighter() {
+      var f = makeFighter();
+      f.mesh.scale.setScalar(3.6);
+      // halo vermelho marcando que é um chefão
+      var halo = new THREE.Mesh(
+        new THREE.SphereGeometry(2.4, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xff3030, transparent:true, opacity:0.18})
+      );
+      f.mesh.add(halo);
+      f.hp = 320; f.maxHp = 320;
+      f.r = 7;
+      f.points = 1500;
+      f.shootCD = 0.6 + Math.random()*0.4;
+      f.type = 'heavy_fighter';
+      f.isMiniBoss = true;
+      return f;
+    }
+    function makeAssaultDrone() {
+      var f = makeDrone();
+      f.mesh.scale.setScalar(3.4);
+      var halo = new THREE.Mesh(
+        new THREE.SphereGeometry(1.7, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xff8030, transparent:true, opacity:0.22})
+      );
+      f.mesh.add(halo);
+      f.hp = 240; f.maxHp = 240;
+      f.r = 5.6;
+      f.points = 1200;
+      f.shootCD = 0.5 + Math.random()*0.3;
+      f.type = 'assault_drone';
+      f.isMiniBoss = true;
+      return f;
+    }
+    function makeBattlecruiser() {
+      var f = makeGunship();
+      f.mesh.scale.setScalar(2.6);
+      var halo = new THREE.Mesh(
+        new THREE.SphereGeometry(5, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xff5050, transparent:true, opacity:0.16})
+      );
+      f.mesh.add(halo);
+      f.hp = 420; f.maxHp = 420;
+      f.r = 9;
+      f.points = 2000;
+      f.shootCD = 1.1 + Math.random()*0.5;
+      f.type = 'battlecruiser';
+      f.isMiniBoss = true;
+      return f;
+    }
+
     function spawnEnemy(type, x, y, z) {
       var e;
       if (type === 'fighter')  e = makeFighter();
       else if (type === 'drone')   e = makeDrone();
       else if (type === 'gunship') e = makeGunship();
       else if (type === 'asteroid') e = makeAsteroid();
+      else if (type === 'heavy_fighter') e = makeHeavyFighter();
+      else if (type === 'assault_drone') e = makeAssaultDrone();
+      else if (type === 'battlecruiser') e = makeBattlecruiser();
       else return null;
       e.mesh.position.set(x, y, z);
       e.alive = true;
       scene.add(e.mesh); enemies.push(e); return e;
+    }
+
+    function spawnMiniBoss() {
+      var pool = ['heavy_fighter', 'assault_drone', 'battlecruiser'];
+      // dificuldade cresce: wave 1-2 = 1 mini-boss, wave 4-5 = 1 ou 2
+      var count = 1 + (waveIdx >= 4 ? Math.floor(Math.random()*2) : 0);
+      var fwdW = new THREE.Vector3(0, 0, -1).applyEuler(ship.rotation);
+      var fwdAng = Math.atan2(fwdW.z, fwdW.x);
+      for (var i=0; i<count; i++) {
+        var t = pool[Math.floor(Math.random()*pool.length)];
+        var ang = fwdAng + (Math.random()-0.5) * Math.PI * 0.8;
+        var d = 130 + Math.random()*80;
+        var sx = ship.position.x + Math.cos(ang)*d;
+        var sz = ship.position.z + Math.sin(ang)*d;
+        var sy = Math.max(40, Math.min(ARENA_H_MAX-30, ship.position.y + 10 + Math.random()*40));
+        var hd = Math.hypot(sx, sz);
+        if (hd > ARENA_R - 80) { var k2 = (ARENA_R - 80) / hd; sx *= k2; sz *= k2; }
+        spawnEnemy(t, sx, sy, sz);
+      }
+      SFX.warn();
     }
     // pre-populate the arena with poucos asteroides (não atrapalhar visão)
     (function () {
@@ -1039,13 +1113,15 @@
       var fwdW = new THREE.Vector3(0, 0, -1).applyEuler(ship.rotation);
       var fwdAng = Math.atan2(fwdW.z, fwdW.x);
       for (var t=0; t<types.length; t++) {
-        // cone frontal de ~180° (todo o quadrante visível) — não atrás do player
-        var ang = fwdAng + (Math.random() - 0.5) * Math.PI * 1.0;
+        // 70% spawn na frente (cone ±90°), 30% nas costas (cone ±70°)
+        var fromBehind = Math.random() < 0.30;
+        var center = fromBehind ? (fwdAng + Math.PI) : fwdAng;
+        var halfWidth = fromBehind ? Math.PI*0.4 : Math.PI*0.5;
+        var ang = center + (Math.random() - 0.5) * halfWidth * 2;
         var d = 80 + Math.random() * 200;
         var sx = ship.position.x + Math.cos(ang) * d;
         var sz = ship.position.z + Math.sin(ang) * d;
         var sy = Math.max(20, Math.min(ARENA_H_MAX-20, ship.position.y + (Math.random()-0.5) * 80));
-        // clamp inside arena
         var hd = Math.hypot(sx, sz);
         if (hd > ARENA_R - 50) { var k2 = (ARENA_R - 50) / hd; sx *= k2; sz *= k2; }
         spawnEnemy(types[t], sx, sy, sz);
@@ -1058,8 +1134,12 @@
         spawnBossForCycle();
       } else {
         spawnWaveEnemies();
+        spawnMiniBoss();          // chefão sempre acompanha a wave
         SFX.wave();
-        showBanner('WAVE ' + waveIdx, enemies.length + ' INIMIGOS');
+        // conta inimigos não-ambient pra mostrar no banner
+        var n = 0;
+        for (var i=0; i<enemies.length; i++) if (enemies[i].alive && !enemies[i].isAmbient) n++;
+        showBanner('WAVE ' + waveIdx, n + ' INIMIGOS');
       }
       document.getElementById('waveLabel').textContent = 'WAVE ' + waveIdx;
     }
@@ -1355,14 +1435,13 @@
           }
         }
 
+        // ESPAÇO = TURBO MUITO FORTE (3.6×) — drena rápido, recarga lenta
         var vert = 0;
-        if (keys['Space']) vert += 1;
-        if (keys['ShiftLeft'] || keys['ShiftRight']) vert -= 1;
         var boosting = false;
-        if (keys['AltLeft'] || keys['AltRight']) {
-          if (player.boost > 0) { boosting = true; player.boost -= 26*dt; }
+        if (keys['Space']) {
+          if (player.boost > 5) { boosting = true; player.boost -= 55*dt; }
         } else {
-          player.boost = Math.min(player.maxBoost, player.boost + 14*dt);
+          player.boost = Math.min(player.maxBoost, player.boost + 5.5*dt);
         }
 
         tmpEuler.set(player.pitch, player.yaw, player.roll, 'YXZ');
@@ -1489,7 +1568,7 @@
           if (!e4.alive) { enemies.splice(i3, 1); continue; }
           var toPlayer = ship.position.clone().sub(e4.mesh.position);
           var dist = toPlayer.length();
-          if (e4.type === 'fighter') {
+          if (e4.type === 'fighter' || e4.type === 'heavy_fighter') {
             // mais agressivo — engaja perto e fica perto
             var desired = 35;
             if (dist > desired+3) e4.mesh.position.addScaledVector(toPlayer.normalize(), 32*dt);
@@ -1505,7 +1584,7 @@
               e4.shootCD = 1.0 + Math.random()*0.9;
             }
             if (dist < e4.r + 1.6 && player.invuln <= 0) { damagePlayer(15); damageEnemy(e4, 9999); continue; }
-          } else if (e4.type === 'drone') {
+          } else if (e4.type === 'drone' || e4.type === 'assault_drone') {
             var t2 = (performance.now()/1000) - (e4.spawnT || 0);
             var side2 = new THREE.Vector3().crossVectors(toPlayer.normalize(), new THREE.Vector3(0,1,0));
             e4.mesh.position.addScaledVector(toPlayer.normalize(), 30*dt);
@@ -1528,7 +1607,7 @@
             if (dist < e4.r + 1.5 && player.invuln <= 0) {
               damagePlayer(20); damageEnemy(e4, 9999); continue;
             }
-          } else if (e4.type === 'gunship') {
+          } else if (e4.type === 'gunship' || e4.type === 'battlecruiser') {
             var desired2 = 70;
             if (dist > desired2+10) e4.mesh.position.addScaledVector(toPlayer.normalize(), 22*dt);
             else if (dist < desired2-10) e4.mesh.position.addScaledVector(toPlayer.normalize(), -14*dt);
