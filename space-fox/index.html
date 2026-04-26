@@ -131,11 +131,33 @@
   <div class="small">SOBREVIVA AS WAVES · CADA BOSS DROPA UMA NOVA ARMA</div>
 </div>
 
+<script>
+// Diagnostic / fallback running BEFORE the module so we know if it loaded at all.
+(function() {
+  const $f = document.getElementById('fatal');
+  function show(msg) { if ($f) { $f.style.display='block'; $f.textContent = msg; } }
+  // global error reporter (catches errors that happen before module-level handlers attach)
+  window.addEventListener('error', e => {
+    show('ERRO: ' + (e.message || (e.error && e.error.message) || 'desconhecido'));
+  });
+  window.addEventListener('unhandledrejection', e => {
+    show('ERRO: ' + (e.reason && e.reason.message ? e.reason.message : (e.reason || 'promise rejected')));
+  });
+  // Watchdog: if module hasn't claimed it loaded after 4s, complain.
+  window.__SF_LOADED = false;
+  setTimeout(() => {
+    if (!window.__SF_LOADED) {
+      show('Three.js não carregou. Verifique a conexão / bloqueador de scripts e tente atualizar.');
+    }
+  }, 4000);
+})();
+</script>
 <script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
+window.__SF_LOADED = true;
 
 // =====================================================================
 //  STATE
