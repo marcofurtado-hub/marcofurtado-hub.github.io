@@ -410,55 +410,69 @@
   // ============================================================
   //  SHOOTING
   // ============================================================
-  function spawnBullet(wx, wy, vx, vy, vz, dmg, color, kind) {
-    bullets.push({ wx:wx, wy:wy, wz:0, vx:vx||0, vy:vy||0, vz:vz, dmg:dmg, color:color, life:2.5, kind:kind||'beam' });
+  // distância forward onde a mira "vive" — bullets convergem nesse plano
+  var AIM_Z = 700;
+  var aimWX = 0, aimWY = 0;        // world coords da mira (atualizado por frame)
+
+  // shoot a bullet from origin (wx,wy,0) toward target world point
+  function spawnAimedBullet(ox, oy, targetWX, targetWY, dmg, color, spdMult, kind) {
+    var dx = targetWX - ox;
+    var dy = targetWY - oy;
+    var dz = AIM_Z;
+    var len = Math.hypot(dx, dy, dz) || 1;
+    var spd = 1400 * (spdMult||1);
+    bullets.push({
+      wx:ox, wy:oy, wz:0,
+      vx: dx/len*spd, vy: dy/len*spd, vz: dz/len*spd,
+      dmg:dmg, color:color, life:2.5, kind:kind||'beam'
+    });
   }
   function fireWeapon() {
     var w = getWeapon();
-    var spd = 1400; // forward (z) speed
+    var tx = aimWX, ty = aimWY;
     if (w.id === 'laser') {
-      if (weaponLevel === 1) spawnBullet(player.wx, player.wy - 6, 0, 0, spd, w.dmg, w.color);
+      if (weaponLevel === 1) spawnAimedBullet(player.wx, player.wy - 6, tx, ty, w.dmg, w.color);
       else if (weaponLevel === 2) {
-        spawnBullet(player.wx - 14, player.wy, 0, 0, spd, w.dmg, w.color);
-        spawnBullet(player.wx + 14, player.wy, 0, 0, spd, w.dmg, w.color);
+        spawnAimedBullet(player.wx - 14, player.wy, tx, ty, w.dmg, w.color);
+        spawnAimedBullet(player.wx + 14, player.wy, tx, ty, w.dmg, w.color);
       } else if (weaponLevel === 3) {
-        spawnBullet(player.wx, player.wy - 6, 0, 0, spd, w.dmg+4, w.color);
-        spawnBullet(player.wx - 18, player.wy + 4, 0, 0, spd, w.dmg, w.color);
-        spawnBullet(player.wx + 18, player.wy + 4, 0, 0, spd, w.dmg, w.color);
+        spawnAimedBullet(player.wx, player.wy - 6, tx, ty, w.dmg+4, w.color);
+        spawnAimedBullet(player.wx - 18, player.wy + 4, tx, ty, w.dmg, w.color);
+        spawnAimedBullet(player.wx + 18, player.wy + 4, tx, ty, w.dmg, w.color);
       } else {
-        spawnBullet(player.wx, player.wy - 6, 0, 0, spd, w.dmg+6, w.color);
-        spawnBullet(player.wx - 16, player.wy + 4, 0, 0, spd, w.dmg, w.color);
-        spawnBullet(player.wx + 16, player.wy + 4, 0, 0, spd, w.dmg, w.color);
-        spawnBullet(player.wx - 28, player.wy + 8, 0, 0, spd*0.95, w.dmg, w.color);
-        spawnBullet(player.wx + 28, player.wy + 8, 0, 0, spd*0.95, w.dmg, w.color);
+        spawnAimedBullet(player.wx, player.wy - 6, tx, ty, w.dmg+6, w.color);
+        spawnAimedBullet(player.wx - 16, player.wy + 4, tx, ty, w.dmg, w.color);
+        spawnAimedBullet(player.wx + 16, player.wy + 4, tx, ty, w.dmg, w.color);
+        spawnAimedBullet(player.wx - 28, player.wy + 8, tx, ty, w.dmg, w.color, 0.95);
+        spawnAimedBullet(player.wx + 28, player.wy + 8, tx, ty, w.dmg, w.color, 0.95);
       }
     } else if (w.id === 'twin') {
       var n = 1 + weaponLevel;
       for (var i=0; i<n; i++) {
         var off = (i - (n-1)/2) * 12;
-        spawnBullet(player.wx + off, player.wy, 0, 0, spd, w.dmg, w.color);
+        spawnAimedBullet(player.wx + off, player.wy, tx, ty, w.dmg, w.color);
       }
     } else if (w.id === 'spread') {
+      // spread: vary aim slightly per bullet (lateral fan)
       var n2 = 3 + weaponLevel;
       for (var i=0; i<n2; i++) {
         var off2 = (i - (n2-1)/2);
-        var vx = off2 * 100, vz = spd;
-        spawnBullet(player.wx, player.wy, vx, 0, vz, w.dmg, w.color);
+        spawnAimedBullet(player.wx, player.wy, tx + off2*120, ty + Math.abs(off2)*20, w.dmg, w.color);
       }
     } else if (w.id === 'beam') {
-      spawnBullet(player.wx - 12, player.wy, 0, 0, spd*1.2, w.dmg, w.color, 'thin');
-      spawnBullet(player.wx + 12, player.wy, 0, 0, spd*1.2, w.dmg, w.color, 'thin');
+      spawnAimedBullet(player.wx - 12, player.wy, tx, ty, w.dmg, w.color, 1.2, 'thin');
+      spawnAimedBullet(player.wx + 12, player.wy, tx, ty, w.dmg, w.color, 1.2, 'thin');
       if (weaponLevel >= 3) {
-        spawnBullet(player.wx - 26, player.wy + 6, 0, 0, spd*1.2, w.dmg, w.color, 'thin');
-        spawnBullet(player.wx + 26, player.wy + 6, 0, 0, spd*1.2, w.dmg, w.color, 'thin');
+        spawnAimedBullet(player.wx - 26, player.wy + 6, tx, ty, w.dmg, w.color, 1.2, 'thin');
+        spawnAimedBullet(player.wx + 26, player.wy + 6, tx, ty, w.dmg, w.color, 1.2, 'thin');
       }
-      if (weaponLevel >= 5) spawnBullet(player.wx, player.wy - 10, 0, 0, spd*1.4, w.dmg+6, w.color, 'thin');
+      if (weaponLevel >= 5) spawnAimedBullet(player.wx, player.wy - 10, tx, ty, w.dmg+6, w.color, 1.4, 'thin');
     } else if (w.id === 'mega') {
-      spawnBullet(player.wx, player.wy - 8, 0, 0, spd, w.dmg+10, w.color, 'big');
+      spawnAimedBullet(player.wx, player.wy - 8, tx, ty, w.dmg+10, w.color, 1.0, 'big');
       var arms = 2 + weaponLevel;
       for (var k=0; k<arms; k++) {
         var off3 = k - (arms-1)/2;
-        spawnBullet(player.wx, player.wy, off3*120, 0, spd*0.9, w.dmg, w.color);
+        spawnAimedBullet(player.wx, player.wy, tx + off3*150, ty, w.dmg, w.color, 0.9);
       }
     }
     if (SFX[w.sfx]) SFX[w.sfx](); else SFX.shoot();
@@ -1320,19 +1334,28 @@
   }
 
   function drawCursor() {
-    if (!useMouse || !mouseInside) return;
+    if (!mouseInside || state !== STATE.PLAY) return;
+    // Star Fox-style aim reticle: dois círculos concêntricos + cross + dot central
     ctx.save();
     ctx.strokeStyle = '#ffe040';
     ctx.lineWidth = 2;
-    ctx.shadowColor = '#ffe040'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(mouseX, mouseY, 16, 0, Math.PI*2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(mouseX, mouseY, 8, 0, Math.PI*2); ctx.stroke();
+    ctx.shadowColor = '#ffe040'; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(mouseX, mouseY, 22, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(mouseX, mouseY, 11, 0, Math.PI*2); ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#ffe040';
-    ctx.fillRect(mouseX-1, mouseY-22, 2, 10);
-    ctx.fillRect(mouseX-1, mouseY+12, 2, 10);
-    ctx.fillRect(mouseX-22, mouseY-1, 10, 2);
-    ctx.fillRect(mouseX+12, mouseY-1, 10, 2);
+    ctx.fillRect(mouseX-1, mouseY-30, 2, 12);
+    ctx.fillRect(mouseX-1, mouseY+18, 2, 12);
+    ctx.fillRect(mouseX-30, mouseY-1, 12, 2);
+    ctx.fillRect(mouseX+18, mouseY-1, 12, 2);
+    // dot central
+    ctx.beginPath(); ctx.arc(mouseX, mouseY, 2, 0, Math.PI*2); ctx.fill();
+    // linha tênue do player até a mira
+    var px = projectX(player.wx, 1.0), py = projectY(player.wy, 1.0);
+    ctx.strokeStyle = 'rgba(255,224,64,0.18)';
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(mouseX, mouseY); ctx.stroke();
     ctx.restore();
   }
 
@@ -1351,38 +1374,29 @@
     drawGroundGrid(dt);
 
     if (state === STATE.PLAY && !paused) {
-      // ==== player movement ====
-      var moveSpd = 360;
+      // ==== player movement (WASD/setas) — mouse não move a nave, só mira ====
+      var moveSpd = 380;
       var dxIn = 0, dyIn = 0;
-      if (useMouse && mouseInside) {
-        // move toward mouse pos in world coords
-        var tx = (mouseX - VPX), ty = (mouseY - VPY);
-        var diffX = tx - player.wx, diffY = ty - player.wy;
-        var len = Math.hypot(diffX, diffY);
-        if (len > 1) {
-          var move = Math.min(len, moveSpd * dt);
-          player.wx += diffX/len * move;
-          player.wy += diffY/len * move;
-        }
-        // bank toward x velocity
-        player.bank = Math.max(-1, Math.min(1, diffX / 80));
-      } else {
-        if (keys['KeyA'] || keys['ArrowLeft'])  dxIn -= 1;
-        if (keys['KeyD'] || keys['ArrowRight']) dxIn += 1;
-        if (keys['KeyW'] || keys['ArrowUp'])    dyIn -= 1;
-        if (keys['KeyS'] || keys['ArrowDown'])  dyIn += 1;
-        if (dxIn || dyIn) {
-          var n2 = Math.hypot(dxIn, dyIn);
-          player.wx += dxIn/n2 * moveSpd * dt;
-          player.wy += dyIn/n2 * moveSpd * dt;
-        }
-        // bank
-        var targetBank = dxIn;
-        player.bank += (targetBank - player.bank) * Math.min(1, dt*6);
+      if (keys['KeyA'] || keys['ArrowLeft'])  dxIn -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) dxIn += 1;
+      if (keys['KeyW'] || keys['ArrowUp'])    dyIn -= 1;
+      if (keys['KeyS'] || keys['ArrowDown'])  dyIn += 1;
+      if (dxIn || dyIn) {
+        var n2 = Math.hypot(dxIn, dyIn);
+        player.wx += dxIn/n2 * moveSpd * dt;
+        player.wy += dyIn/n2 * moveSpd * dt;
       }
-      // clamp inside view
+      var targetBank = dxIn;
+      player.bank += (targetBank - player.bank) * Math.min(1, dt*6);
+
+      // clamp: nave fica em primeiro plano, parte de baixo da tela
       player.wx = Math.max(-W/2 + 30, Math.min(W/2 - 30, player.wx));
-      player.wy = Math.max(-VPY + 30, Math.min(H - VPY - 40, player.wy));
+      player.wy = Math.max(-VPY*0.3, Math.min(H - VPY - 40, player.wy));
+
+      // ==== aim point: posição do mouse projetada pra coords mundo no plano AIM_Z ====
+      var aimScale = projectScale(AIM_Z);
+      aimWX = (mouseX - VPX) / aimScale;
+      aimWY = (mouseY - VPY) / aimScale;
       if (player.invuln > 0) player.invuln -= dt;
       if (player.flashT > 0) player.flashT -= dt;
 
