@@ -529,12 +529,8 @@
       g.add(glow);
       return g;
     }
-    var wingmates = [
-      { mesh: makeWingmate(0x2a4ea8, 0x6090ff), shotCD: 1.0, side: -1, name:'FALCO',  cls:'falco',  hp:80, maxHp:80, alive:true, r:1.6 },
-      { mesh: makeWingmate(0x2a8a4a, 0x60ff90), shotCD: 1.4, side:  1, name:'SLIPPY', cls:'slippy', hp:70, maxHp:70, alive:true, r:1.6 }
-    ];
-    scene.add(wingmates[0].mesh);
-    scene.add(wingmates[1].mesh);
+    // Wingmates desativados — vôo solo
+    var wingmates = [];
     function damageWingmate(wm, dmg) {
       if (!wm.alive) return;
       wm.hp -= dmg;
@@ -1529,14 +1525,54 @@
       $bossFill.style.width = Math.max(0, boss.hp/boss.maxHp*100) + '%';
       if (boss.hp <= 0) bossDie();
     }
+    function setShipFlashColor(hex) {
+      ship.traverse(function (obj) {
+        if (obj.material && obj.material.color) {
+          if (!obj.userData._origColor) obj.userData._origColor = obj.material.color.clone();
+          if (obj.material.emissive && !obj.userData._origEmissive) obj.userData._origEmissive = obj.material.emissive.clone();
+          if (hex === null) {
+            obj.material.color.copy(obj.userData._origColor);
+            if (obj.material.emissive) obj.material.emissive.copy(obj.userData._origEmissive);
+          } else {
+            obj.material.color.setHex(hex);
+            if (obj.material.emissive) obj.material.emissive.setHex(hex);
+          }
+        }
+      });
+    }
+    function doDamageGlitch() {
+      // GLITCH FORTE: estrobo vermelho/branco rápido na nave; tela mais suave
+      var seq = [
+        { ship:0xffffff, screen:'rgba(255,255,255,0.40)' },
+        { ship:0xff0000, screen:'rgba(255,40,40,0.42)'  },
+        { ship:0xffffff, screen:'rgba(255,255,255,0.28)' },
+        { ship:0xff0000, screen:'rgba(255,40,40,0.30)'  },
+        { ship:0xffffff, screen:'rgba(255,255,255,0.18)' },
+        { ship:0xff0000, screen:'rgba(255,40,40,0.18)'  },
+        { ship:null,     screen:''                       }
+      ];
+      var i = 0;
+      function step() {
+        if (i >= seq.length) return;
+        var s = seq[i++];
+        setShipFlashColor(s.ship);
+        $flash.style.background = s.screen;
+        setTimeout(step, 48);
+      }
+      step();
+    }
+
+    var screenShake = 0, shakeT = 0;
+    function addShake(amt) { screenShake = Math.max(screenShake, amt); shakeT = 0.3; }
+
     function damagePlayer(dmg) {
       if (player.invuln > 0) return;
       player.shield -= dmg;
-      player.invuln = 0.4;     // antes 1.0 — menos forgiving, dá pra morrer
+      player.invuln = 0.4;
       player.flashT = 0.2;
-      $flash.classList.add('hit');
-      setTimeout(function(){ $flash.classList.remove('hit'); }, 150);
+      doDamageGlitch();
       SFX.damage();
+      addShake(2.4);
       combo = 0; comboTimer = 0;
       if (Math.random() < 0.55) showQuip('damage');
       if (player.shield <= 0) playerDie();
@@ -1690,6 +1726,17 @@
         var boosting = (keys['ShiftLeft'] || keys['ShiftRight']) ? true : false;
         var fwdSpeed = FORWARD_SPEED * (boosting ? BOOST_MULT : 1.0);
         camera.position.z -= fwdSpeed * dt;
+        // CAMERA FRAME: arrasta todas as entidades junto com a câmera no eixo Z,
+        // assim o cenário voa mas os inimigos ficam dentro do seu campo de visão
+        // (o movimento Z individual de cada inimigo passa a ser RELATIVO à câmera)
+        var driftZ = fwdSpeed * dt;
+        for (var di=0; di<enemies.length; di++) if (enemies[di].alive) enemies[di].mesh.position.z -= driftZ;
+        if (boss && boss.alive) boss.mesh.position.z -= driftZ;
+        for (var di2=0; di2<bullets.length; di2++) bullets[di2].mesh.position.z -= driftZ;
+        for (var di3=0; di3<ebullets.length; di3++) ebullets[di3].mesh.position.z -= driftZ;
+        for (var di4=0; di4<powerups.length; di4++) powerups[di4].mesh.position.z -= driftZ;
+        for (var di5=0; di5<explosions.length; di5++) explosions[di5].group.position.z -= driftZ;
+
         // FOV expansion on boost
         var targetFOV = boosting ? BOOST_FOV : BASE_FOV;
         currentFOV += (targetFOV - currentFOV) * Math.min(1, dt*4);
