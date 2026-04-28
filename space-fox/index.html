@@ -428,8 +428,11 @@
       invuln: 0, shotCD: 0, flashT: 0
     };
     var FRAME_X = 28, FRAME_Y_MIN = -10, FRAME_Y_MAX = 14;
-    var FORWARD_SPEED = 45;          // camera moves -Z at this base speed
-    var BOOST_MULT = 2.4;
+    var FORWARD_SPEED = 70;          // camera moves -Z at this base speed (mais dinâmico)
+    var BOOST_MULT = 2.6;
+    var BASE_FOV = 72;
+    var BOOST_FOV = 92;
+    var currentFOV = BASE_FOV;
 
     // ===== INPUT =====
     var keys = {};
@@ -1324,6 +1327,13 @@
         var boosting = (keys['ShiftLeft'] || keys['ShiftRight']) ? true : false;
         var fwdSpeed = FORWARD_SPEED * (boosting ? BOOST_MULT : 1.0);
         camera.position.z -= fwdSpeed * dt;
+        // FOV expansion on boost = sensação de aceleração / túnel de velocidade
+        var targetFOV = boosting ? BOOST_FOV : BASE_FOV;
+        currentFOV += (targetFOV - currentFOV) * Math.min(1, dt*4);
+        if (Math.abs(camera.fov - currentFOV) > 0.05) {
+          camera.fov = currentFOV;
+          camera.updateProjectionMatrix();
+        }
         camera.lookAt(camera.position.x, 8, camera.position.z - 40);
 
         // ---- ship position relative to camera ----
@@ -1346,10 +1356,10 @@
         if (planetRef) planetRef.position.x = camera.position.x - 700;
         ground.position.x = camera.position.x;
         ground.position.z = camera.position.z;
-        // ESTEIRA: anima offset da textura na velocidade do voo (linhas voam em direção à câmera)
+        // ESTEIRA: anima offset Y da textura na velocidade do voo
+        // (linhas voam em direção à câmera, sem relação com X da nave — apenas movimento puro)
         if (groundMat.map) {
           groundMat.map.offset.y += (fwdSpeed / GROUND_TILE_WORLD) * dt;
-          groundMat.map.offset.x += -(player.offsetX * 0.0008); // leve parallax lateral
         }
         // mountains follow camera position so they're always around
         mountainsGroup.position.x = camera.position.x;
@@ -1430,8 +1440,8 @@
             // approach player by keeping z roughly 30-50 ahead, strafe in xy
             ee.mesh.position.x += Math.sin(ee.t*1.5 + k)*8*dt;
             ee.mesh.position.y += Math.cos(ee.t*1.0)*4*dt;
-            // close in slightly
-            ee.mesh.position.z += 14 * dt;
+            // close in slowly — dá tempo de mirar
+            ee.mesh.position.z += 4 * dt;
             // face player
             ee.mesh.lookAt(ship.position);
             // shoot
@@ -1444,11 +1454,11 @@
           } else if (ee.type === 'drone') {
             ee.mesh.position.x += Math.sin(ee.t*4)*16*dt;
             ee.mesh.position.y += Math.cos(ee.t*3)*8*dt;
-            ee.mesh.position.z += 28 * dt;       // dive faster
+            ee.mesh.position.z += 10 * dt;       // mais devagar
             ee.mesh.rotation.y += dt*4;
           } else if (ee.type === 'gunship') {
             ee.mesh.position.x += Math.sin(ee.t*0.7)*5*dt;
-            ee.mesh.position.z += 8 * dt;
+            ee.mesh.position.z += 2 * dt;
             ee.mesh.lookAt(ship.position);
             ee.shootCD -= dt;
             var distZ2 = camera.position.z - ee.mesh.position.z;
@@ -1467,11 +1477,11 @@
             ee.mesh.rotation.x += ee.spin.x * dt;
             ee.mesh.rotation.y += ee.spin.y * dt;
             ee.mesh.rotation.z += ee.spin.z * dt;
-            ee.mesh.position.z += 30 * dt;
+            ee.mesh.position.z += 12 * dt;        // mais devagar
           } else if (ee.type === 'mini') {
             ee.mesh.position.x += Math.sin(ee.t*0.6)*12*dt;
             ee.mesh.position.y += Math.cos(ee.t*0.7)*4*dt;
-            ee.mesh.position.z += 6 * dt;
+            ee.mesh.position.z += 1 * dt;
             ee.mesh.lookAt(ship.position);
             ee.shootCD -= dt;
             var distZ3 = camera.position.z - ee.mesh.position.z;
