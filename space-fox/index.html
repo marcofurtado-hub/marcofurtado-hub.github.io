@@ -232,7 +232,7 @@
     var state = STATE.TITLE;
     var paused = false;
     var score = 0, hiScore = parseInt(localStorage.getItem('sf3_hi') || '0', 10);
-    var lives = 3, bombs = 3;
+    var lives = 2, bombs = 2;
     var combo = 0, comboTimer = 0;
 
     var WEAPONS = [
@@ -1389,6 +1389,8 @@
         e.alive = false;
         spawnExplosion(e.mesh.position, e.type==='asteroid'?0xaa9966:0xffaa30, e.r/2.6);
         scene.remove(e.mesh);
+        // +5% de escudo por kill (recompensa por jogar agressivo)
+        player.shield = Math.min(player.maxShield, player.shield + player.maxShield * 0.05);
         var pts = e.points;
         combo++; comboTimer = 2.5;
         var mult = 1 + Math.floor(combo/5)*0.5;
@@ -1418,7 +1420,7 @@
     function damagePlayer(dmg) {
       if (player.invuln > 0) return;
       player.shield -= dmg;
-      player.invuln = 1.0;
+      player.invuln = 0.4;     // antes 1.0 — menos forgiving, dá pra morrer
       player.flashT = 0.2;
       $flash.classList.add('hit');
       setTimeout(function(){ $flash.classList.remove('hit'); }, 150);
