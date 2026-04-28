@@ -589,22 +589,56 @@
       beep(380, .06, 'sawtooth', .04, -200);
     }
 
-    // raycast aim — converte mouse para world position no plano da nave
+    // ---- mira: ray do mouse, encontra inimigo mais próximo no caminho ----
     var _ray = new THREE.Raycaster();
     var _mouseVec = new THREE.Vector2();
-    var _aimTargetWorld = new THREE.Vector3();
-    function computeAimTargetWorld(distance) {
+    var currentAimPoint = new THREE.Vector3(0, 8, -200);
+    var aimLocked = false;
+    function updateAim() {
       _mouseVec.x = (mouseX / window.innerWidth) * 2 - 1;
       _mouseVec.y = -((mouseY / window.innerHeight) * 2 - 1);
       _ray.setFromCamera(_mouseVec, camera);
-      _aimTargetWorld.copy(_ray.ray.origin).addScaledVector(_ray.ray.direction, distance || 80);
-      return _aimTargetWorld;
+      var origin = _ray.ray.origin;
+      var dir = _ray.ray.direction;
+      var bestT = Infinity;
+      var bestPoint = null;
+      var slack = 6; // tolerância — não precisa estar perfeitamente alinhado
+      function tryHit(pos, radius) {
+        var v = pos.clone().sub(origin);
+        var t = v.dot(dir);
+        if (t < 10) return;                                 // muito perto da câmera
+        var perpSq = v.lengthSq() - t*t;
+        if (perpSq < 0) perpSq = 0;
+        var perp = Math.sqrt(perpSq);
+        if (perp < radius + slack && t < bestT) {
+          bestT = t; bestPoint = pos;
+        }
+      }
+      for (var i=0; i<enemies.length; i++) {
+        if (!enemies[i].alive) continue;
+        tryHit(enemies[i].mesh.position, enemies[i].r);
+      }
+      if (boss && boss.alive) {
+        for (var k=0; k<boss.weakPoints.length; k++) {
+          var wp = boss.weakPoints[k];
+          if (!wp.alive) continue;
+          var p = new THREE.Vector3(); wp.mesh.getWorldPosition(p);
+          tryHit(p, (wp.mesh.geometry.parameters.radius || 2));
+        }
+      }
+      if (bestPoint) {
+        currentAimPoint.copy(bestPoint);
+        aimLocked = true;
+      } else {
+        currentAimPoint.copy(origin).addScaledVector(dir, 600);
+        aimLocked = false;
+      }
     }
 
     function fireWeapon() {
       var w = getWeapon();
-      // get aim target (60 units ahead)
-      var aim = computeAimTargetWorld(80).clone();
+      // aim target = ponto onde o mouse aponta no mundo (snap a inimigo se houver)
+      var aim = currentAimPoint.clone();
       var lp = new THREE.Vector3(); ship.userData.leftTip.getWorldPosition(lp);
       var rp = new THREE.Vector3(); ship.userData.rightTip.getWorldPosition(rp);
       var mid = lp.clone().add(rp).multiplyScalar(0.5);
@@ -846,96 +880,104 @@
     // ===== BOSSES =====
     var boss = null;
     var bossDefeated = 0;
+    // helper compartilhado pelos bosses
+    function makeWeakPointFactory(group, weakPoints) {
+      return function (rx, ry, rz, color, size, hp) {
+        var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:1.0, flatShading:true});
+        var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.6});
+        var housing = new THREE.Mesh(new THREE.SphereGeometry(size*1.4, 12, 8),
+          new THREE.MeshLambertMaterial({color:0x101018, flatShading:true}));
+        housing.position.set(rx, ry, rz); group.add(housing);
+        var core = new THREE.Mesh(new THREE.SphereGeometry(size, 16, 12), matCore);
+        core.position.set(rx, ry, rz); group.add(core);
+        var halo = new THREE.Mesh(new THREE.SphereGeometry(size*2.0, 16, 12), matGlow);
+        halo.position.set(rx, ry, rz); group.add(halo);
+        weakPoints.push({ mesh:core, halo:halo, housing:housing, hp:hp||220, alive:true, color:color });
+      };
+    }
+
     function makeBossA() {
+      // CARRIER — encouraçado plano, 3 weak points VERMELHOS na frente (lookAt → -Z = player)
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x444a66, flatShading:true});
       var matAcc  = new THREE.MeshLambertMaterial({color:0x222a40, flatShading:true});
       g.add(new THREE.Mesh(new THREE.BoxGeometry(60, 14, 38), matMain));
       var hullTop = new THREE.Mesh(new THREE.BoxGeometry(48, 5, 30), matAcc);
       hullTop.position.y = 9; g.add(hullTop);
-      var wL = new THREE.Mesh(new THREE.BoxGeometry(34, 3.6, 20), matMain); wL.position.set(-38, 0, 4); g.add(wL);
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(34, 3.6, 20), matMain); wL.position.set(-38, 0, -2); g.add(wL);
       var wR = wL.clone(); wR.position.x = 38; g.add(wR);
+      // bridge na FRENTE (-Z local)
       var bridge = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 14), matMain);
-      bridge.position.set(0, 14, 4); g.add(bridge);
+      bridge.position.set(0, 14, -4); g.add(bridge);
 
       var weakPoints = [];
-      function addWP(rx, ry, rz, color, size) {
-        var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:0.9, flatShading:true});
-        var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.55});
-        var housing = new THREE.Mesh(new THREE.SphereGeometry(size*1.4, 12, 8),
-          new THREE.MeshLambertMaterial({color:0x202028, flatShading:true}));
-        housing.position.set(rx, ry, rz); g.add(housing);
-        var core = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 10), matCore);
-        core.position.set(rx, ry, rz); g.add(core);
-        var halo = new THREE.Mesh(new THREE.SphereGeometry(size*1.7, 14, 10), matGlow);
-        halo.position.set(rx, ry, rz); g.add(halo);
-        weakPoints.push({ mesh:core, halo:halo, housing:housing, hp:200, alive:true, color:color });
-      }
-      addWP(0, 14, 4, 0xff4040, 2.4);
-      addWP(-22, 0, 0, 0xff4040, 1.8);
-      addWP( 22, 0, 0, 0xff4040, 1.8);
+      var addWP = makeWeakPointFactory(g, weakPoints);
+      // weak points na FACE FRONTAL (-Z local), bem visíveis e protrudindo
+      addWP(0, 9, -22, 0xff4040, 2.6, 220);    // núcleo central (saliente)
+      addWP(-30, 2, -14, 0xff4040, 2.0, 180);  // reator esquerdo (na asa esq frontal)
+      addWP( 30, 2, -14, 0xff4040, 2.0, 180);  // reator direito
 
-      // engines
+      // engines no FUNDO (+Z local), longe do player
       for (var ee=-1; ee<=1; ee+=2) {
         var en = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 1.8, 5, 10), matMain);
-        en.rotation.z = Math.PI/2; en.position.set(ee*10, -2, -16); g.add(en);
+        en.rotation.z = Math.PI/2; en.position.set(ee*10, -2, 16); g.add(en);
         var fl = new THREE.Mesh(new THREE.SphereGeometry(1.6, 10, 8),
           new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:0.85}));
-        fl.position.set(ee*10, -2, -19); fl.scale.z = 1.6; g.add(fl);
+        fl.position.set(ee*10, -2, 19); fl.scale.z = 1.6; g.add(fl);
       }
       return { mesh:g, hp:1000, maxHp:1000, weakPoints:weakPoints, t:0, alive:true, r:30, name:'CARRIER', drops:'twin', shootCD:1.0, shape:'carrier' };
     }
     function makeBossB() {
+      // CARMESIM — body simétrico em X com 5 weak points laranjas
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x6a2030, flatShading:true});
       var body = new THREE.Mesh(new THREE.OctahedronGeometry(13, 0), matMain);
       body.scale.set(1.7, 0.7, 1.2); g.add(body);
       var weakPoints = [];
-      function addWP(rx, ry, rz, color, size) {
-        var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:0.9, flatShading:true});
-        var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.55});
-        var core = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 10), matCore);
-        core.position.set(rx, ry, rz); g.add(core);
-        var halo = new THREE.Mesh(new THREE.SphereGeometry(size*1.7, 14, 10), matGlow);
-        halo.position.set(rx, ry, rz); g.add(halo);
-        weakPoints.push({ mesh:core, halo:halo, hp:240, alive:true, color:color });
-      }
+      var addWP = makeWeakPointFactory(g, weakPoints);
+      // 4 braços com weak points nas pontas
       for (var i=0; i<4; i++) {
         var a = (i/4)*Math.PI*2 + Math.PI/4;
         var arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.4, 14), matMain);
         arm.position.set(Math.cos(a)*8, 0, Math.sin(a)*8);
         arm.rotation.y = -a + Math.PI/2;
         g.add(arm);
-        addWP(Math.cos(a)*16, 0, Math.sin(a)*16, 0xff8030, 1.6);
+        addWP(Math.cos(a)*16, 0, Math.sin(a)*16, 0xff8030, 1.8, 200);
       }
-      addWP(0, 0, 6, 0xffaa30, 2.4);
+      // núcleo central na FRENTE (-Z local), bem grande e visível
+      addWP(0, 0, -10, 0xffaa30, 2.8, 280);
       return { mesh:g, hp:1500, maxHp:1500, weakPoints:weakPoints, t:0, alive:true, r:22, name:'CARMESIM', drops:'spread', shootCD:0.7, shape:'destroyer' };
     }
     function makeBossC() {
+      // MOTHERSHIP — gigante com 6 weak points cyan brilhantes na FRENTE
       var g = new THREE.Group();
       var matMain = new THREE.MeshLambertMaterial({color:0x303040, flatShading:true});
       var matAcc  = new THREE.MeshLambertMaterial({color:0x14141c, flatShading:true});
       g.add(new THREE.Mesh(new THREE.BoxGeometry(80, 18, 44), matMain));
-      var wL = new THREE.Mesh(new THREE.BoxGeometry(46, 5, 28), matAcc); wL.position.set(-50, 0, -6); g.add(wL);
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(46, 5, 28), matAcc); wL.position.set(-50, 0, -2); g.add(wL);
       var wR = wL.clone(); wR.position.x = 50; g.add(wR);
+      // tower na frente
       var tower = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 22), matMain);
       tower.position.set(0, 14, -6); g.add(tower);
       var weakPoints = [];
-      function addWP(rx, ry, rz, color, size) {
-        var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:0.9, flatShading:true});
-        var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.55});
-        var core = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 10), matCore);
-        core.position.set(rx, ry, rz); g.add(core);
-        var halo = new THREE.Mesh(new THREE.SphereGeometry(size*1.7, 14, 10), matGlow);
-        halo.position.set(rx, ry, rz); g.add(halo);
-        weakPoints.push({ mesh:core, halo:halo, hp:300, alive:true, color:color });
+      var addWP = makeWeakPointFactory(g, weakPoints);
+      // núcleo principal saliente na proa (-Z)
+      addWP(0, 0, -28, 0x40e0ff, 3.6, 400);
+      // 4 nas pontas das asas, voltados pra frente
+      addWP(-46, 4, -8, 0x40e0ff, 2.2, 240);
+      addWP( 46, 4, -8, 0x40e0ff, 2.2, 240);
+      addWP(-22, 4, -18, 0x40e0ff, 2.0, 220);
+      addWP( 22, 4, -18, 0x40e0ff, 2.0, 220);
+      // núcleo no topo da torre
+      addWP(0, 22, -10, 0x80f0ff, 2.6, 280);
+      // engines no FUNDO (+Z)
+      for (var ee=-1; ee<=1; ee+=2) {
+        var en = new THREE.Mesh(new THREE.CylinderGeometry(3, 2.4, 6, 12), matMain);
+        en.rotation.z = Math.PI/2; en.position.set(ee*14, -4, 22); g.add(en);
+        var fl = new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 8),
+          new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:0.9}));
+        fl.position.set(ee*14, -4, 26); fl.scale.z = 1.8; g.add(fl);
       }
-      addWP(0, 0, 22, 0x40e0ff, 3.2);
-      addWP(-28, 0, -6, 0x40e0ff, 2.0);
-      addWP( 28, 0, -6, 0x40e0ff, 2.0);
-      addWP(-28, 0, 10, 0x40e0ff, 2.0);
-      addWP( 28, 0, 10, 0x40e0ff, 2.0);
-      addWP(0, 18, 2, 0x80f0ff, 2.5);
       return { mesh:g, hp:2400, maxHp:2400, weakPoints:weakPoints, t:0, alive:true, r:38, name:'MOTHERSHIP', drops:'plasma', shootCD:0.7, shape:'mothership' };
     }
     var BOSS_LIST = [makeBossA, makeBossB, makeBossC];
@@ -1364,6 +1406,10 @@
         // mountains follow camera position so they're always around
         mountainsGroup.position.x = camera.position.x;
         mountainsGroup.position.z = camera.position.z;
+
+        // ---- aim (cada frame: ray cast contra inimigos pra mira automática) ----
+        updateAim();
+        $aim.classList.toggle('lock', aimLocked);
 
         // ---- shooting ----
         var shooting = mouseHeld || keys['Space'];
