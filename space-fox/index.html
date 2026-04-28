@@ -264,8 +264,9 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x080820);
-    scene.fog = new THREE.Fog(0x101840, 280, 1400);
+    // tom mais sério/realista — quase preto com leve azul
+    scene.background = new THREE.Color(0x05070d);
+    scene.fog = new THREE.Fog(0x06080f, 220, 1300);
 
     var camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.1, 4000);
     // Convention: forward = -Z (Three default). Camera will move in -Z over time.
@@ -335,14 +336,31 @@
     // The ground is a single big plane that follows the camera (toroidal scrolling effect via shader-like UV trick).
     // Approach: create a large plane mesh BIG, with a custom material that renders grid lines.
     var groundMat = (function () {
-      // Use a procedural canvas texture for grid
+      // textura tactical: grid dark blue, sub-grid mais escuro, leve ruído
       var c = document.createElement('canvas');
       c.width = 512; c.height = 512;
       var cx = c.getContext('2d');
-      cx.fillStyle = '#06061a';
+      // base dark steel
+      cx.fillStyle = '#06080e';
       cx.fillRect(0, 0, 512, 512);
-      // vertical and horizontal lines (neon magenta)
-      cx.strokeStyle = 'rgba(255,80,200,0.65)';
+      // ruído sutil
+      var img = cx.getImageData(0, 0, 512, 512);
+      for (var i=0; i<img.data.length; i+=4) {
+        var n = (Math.random() - 0.5) * 14;
+        img.data[i]   = Math.max(0, Math.min(255, img.data[i]   + n));
+        img.data[i+1] = Math.max(0, Math.min(255, img.data[i+1] + n));
+        img.data[i+2] = Math.max(0, Math.min(255, img.data[i+2] + n*1.2));
+      }
+      cx.putImageData(img, 0, 0);
+      // sub-grid (linhas finas)
+      cx.strokeStyle = 'rgba(50,80,110,0.32)';
+      cx.lineWidth = 1;
+      for (var s=0; s<=512; s+=16) {
+        cx.beginPath(); cx.moveTo(s, 0); cx.lineTo(s, 512); cx.stroke();
+        cx.beginPath(); cx.moveTo(0, s); cx.lineTo(512, s); cx.stroke();
+      }
+      // grid maior, militar dark teal
+      cx.strokeStyle = 'rgba(60,120,160,0.55)';
       cx.lineWidth = 2;
       var step = 64;
       for (var x=0; x<=512; x+=step) {
@@ -355,7 +373,7 @@
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(40, 40);
-      return new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity:0.82 });
+      return new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity:0.85 });
     })();
     var ground = new THREE.Mesh(new THREE.PlaneGeometry(8000, 8000), groundMat);
     ground.rotation.x = -Math.PI/2;
@@ -684,57 +702,390 @@
       src.connect(f).connect(g).connect(sfxGain);
       src.start();
     }
+    // ============================================================
+    //  SFX cinemáticos — camadas (sub-bass + ruído filtrado + osciladores)
+    // ============================================================
+    function noiseBuffer(c, dur, decay) {
+      decay = (decay === undefined) ? 1.0 : decay;
+      var buf = c.createBuffer(1, c.sampleRate*dur, c.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i=0; i<d.length; i++) {
+        var t = i / d.length;
+        d[i] = (Math.random()*2-1) * Math.pow(1 - t, decay);
+      }
+      return buf;
+    }
+    function pinkBuffer(c, dur) {
+      // 1/f noise — mais grave, rumble realista
+      var buf = c.createBuffer(1, c.sampleRate*dur, c.sampleRate);
+      var d = buf.getChannelData(0);
+      var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for (var i=0; i<d.length; i++) {
+        var w = Math.random()*2-1;
+        b0 = 0.99886*b0 + w*0.0555179;
+        b1 = 0.99332*b1 + w*0.0750759;
+        b2 = 0.96900*b2 + w*0.1538520;
+        b3 = 0.86650*b3 + w*0.3104856;
+        b4 = 0.55000*b4 + w*0.5329522;
+        b5 = -0.7616*b5 - w*0.0168980;
+        var t = i / d.length;
+        d[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11 * (1 - t);
+        b6 = w*0.115926;
+      }
+      return buf;
+    }
+    function osc(c, type, fStart, fEnd, dur, vol, attack) {
+      var t = c.currentTime;
+      var o = c.createOscillator(); o.type = type;
+      o.frequency.setValueAtTime(fStart, t);
+      if (fEnd !== fStart) o.frequency.exponentialRampToValueAtTime(Math.max(20, fEnd), t + dur);
+      var g = c.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + (attack||0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(sfxGain);
+      o.start(t); o.stop(t + dur + 0.02);
+      return { osc:o, gain:g };
+    }
+    function noiseHit(c, dur, vol, filterType, filterFreq, filterQ) {
+      var src = c.createBufferSource(); src.buffer = noiseBuffer(c, dur, 1);
+      var f = c.createBiquadFilter();
+      f.type = filterType || 'lowpass';
+      f.frequency.value = filterFreq || 1000;
+      if (filterQ !== undefined) f.Q.value = filterQ;
+      var g = c.createGain();
+      g.gain.setValueAtTime(vol, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      src.connect(f).connect(g).connect(sfxGain);
+      src.start();
+    }
+
     var SFX = {
-      shoot: function(){ beep(1500, .05, 'square', .04, -700); },
-      twin:  function(){ beep(1700, .04, 'square', .04, -800); setTimeout(function(){beep(1500,.04,'square',.03,-700);},25); },
-      spread:function(){ beep(900, .08, 'sawtooth', .05, -300); },
-      laser: function(){ beep(1900, .06, 'sine', .04, -1100); },
-      hit:   function(){ beep(220, .08, 'sawtooth', .07, -120); },
-      boom:  function(){ noiseBurst(.4, .18, 900); beep(120, .3, 'square', .12, -90); },
-      damage:function(){ beep(160, .25, 'sawtooth', .18, -90); },
-      pickup:function(){ beep(880, .07, 'square', .12); setTimeout(function(){beep(1320,.09,'square',.13);},60); },
-      powerup:function(){ beep(660,.08,'square',.12); setTimeout(function(){beep(880,.08,'square',.12);},90); setTimeout(function(){beep(1320,.18,'square',.14);},180); },
-      bomb:  function(){ noiseBurst(.7, .25, 600); beep(80, .5, 'square', .2, -30); },
-      warn:  function(){ beep(660, .18, 'square', .12); },
-      wave:  function(){ beep(330,.1,'square',.1); setTimeout(function(){beep(440,.1,'square',.12);},120); setTimeout(function(){beep(660,.18,'square',.14);},240); },
-      start: function(){ beep(440,.1,'square',.1); setTimeout(function(){beep(660,.1,'square',.1);},100); setTimeout(function(){beep(880,.18,'square',.12);},200); },
-      die:   function(){ noiseBurst(.6, .25, 400); beep(220,.5,'sawtooth',.14,-180); },
-      boss:  function(){ noiseBurst(.5, .25, 200); for (var i=0;i<3;i++) (function(d){ setTimeout(function(){beep(80+d*30,.4,'square',.16);}, d*120); })(i); }
+      // tiro do player: zap agudo com filter sweep + thump grave
+      shoot: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        // zap agudo (sawtooth filtrado)
+        var o = c.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(2400, t);
+        o.frequency.exponentialRampToValueAtTime(180, t + 0.05);
+        var f = c.createBiquadFilter(); f.type = 'bandpass';
+        f.frequency.setValueAtTime(2000, t);
+        f.frequency.exponentialRampToValueAtTime(700, t + 0.05);
+        f.Q.value = 3;
+        var g = c.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.10, t + 0.003);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+        o.connect(f).connect(g).connect(sfxGain);
+        o.start(t); o.stop(t + 0.08);
+        // thump grave (sub click)
+        osc(c, 'sine', 140, 50, 0.06, 0.08, 0.001);
+        // chiado de ar (noise alta)
+        noiseHit(c, 0.04, 0.05, 'highpass', 4000);
+      },
+      twin: function () {
+        SFX.shoot();
+        setTimeout(function () { SFX.shoot(); }, 30);
+      },
+      spread: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var o = c.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(900, t);
+        o.frequency.exponentialRampToValueAtTime(220, t + 0.10);
+        var f = c.createBiquadFilter(); f.type = 'bandpass';
+        f.frequency.value = 1200; f.Q.value = 3;
+        var g = c.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.12, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+        o.connect(f).connect(g).connect(sfxGain);
+        o.start(t); o.stop(t + 0.14);
+        noiseHit(c, 0.06, 0.06, 'bandpass', 1500, 2);
+      },
+      laser: function () {
+        var c = audio(); if (!c) return;
+        osc(c, 'sine', 2600, 800, 0.06, 0.08, 0.002);
+        noiseHit(c, 0.04, 0.04, 'highpass', 3000);
+      },
+
+      // hit metálico curto e seco
+      hit: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        // click curto agudo
+        noiseHit(c, 0.06, 0.18, 'highpass', 2000);
+        // body grave (sine drop)
+        osc(c, 'sine', 220, 70, 0.08, 0.12, 0.002);
+      },
+
+      // EXPLOSÃO PESADA: sub-bass profundo + pink noise rumble + crackle agudo
+      boom: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        // 1) sub-bass impact (sine 60→24)
+        var sub = c.createOscillator(); sub.type = 'sine';
+        sub.frequency.setValueAtTime(70, t);
+        sub.frequency.exponentialRampToValueAtTime(28, t + 0.7);
+        var sg = c.createGain();
+        sg.gain.setValueAtTime(0, t);
+        sg.gain.linearRampToValueAtTime(0.55, t + 0.005);
+        sg.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+        sub.connect(sg).connect(sfxGain);
+        sub.start(t); sub.stop(t + 0.9);
+        // 2) pink noise rumble (filtrado lowpass)
+        var ns = c.createBufferSource(); ns.buffer = pinkBuffer(c, 1.1);
+        var nf = c.createBiquadFilter(); nf.type='lowpass';
+        nf.frequency.setValueAtTime(900, t);
+        nf.frequency.exponentialRampToValueAtTime(200, t + 1.0);
+        var ng = c.createGain(); ng.gain.setValueAtTime(0.5, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+        ns.connect(nf).connect(ng).connect(sfxGain);
+        ns.start(t);
+        // 3) crackle agudo curto (white noise bandpass)
+        noiseHit(c, 0.18, 0.32, 'bandpass', 2400, 1.4);
+        // 4) "chunk" metálico (sawtooth low-pass curto)
+        osc(c, 'sawtooth', 200, 60, 0.12, 0.18, 0.005);
+      },
+
+      // dano cinematogr.: thud pesado + warning baixo
+      damage: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        // thud sub-bass
+        var sub = c.createOscillator(); sub.type = 'sine';
+        sub.frequency.setValueAtTime(85, t);
+        sub.frequency.exponentialRampToValueAtTime(32, t + 0.32);
+        var sg = c.createGain();
+        sg.gain.setValueAtTime(0, t);
+        sg.gain.linearRampToValueAtTime(0.42, t + 0.005);
+        sg.gain.exponentialRampToValueAtTime(0.001, t + 0.34);
+        sub.connect(sg).connect(sfxGain);
+        sub.start(t); sub.stop(t + 0.36);
+        // metallic warning (sawtooth filtrado)
+        var saw = c.createOscillator(); saw.type = 'sawtooth';
+        saw.frequency.setValueAtTime(220, t);
+        saw.frequency.exponentialRampToValueAtTime(110, t + 0.22);
+        var sf = c.createBiquadFilter(); sf.type='lowpass'; sf.frequency.value = 800;
+        var sg2 = c.createGain();
+        sg2.gain.setValueAtTime(0.16, t);
+        sg2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        saw.connect(sf).connect(sg2).connect(sfxGain);
+        saw.start(t); saw.stop(t + 0.32);
+        // crackle de impacto
+        noiseHit(c, 0.12, 0.16, 'bandpass', 1800, 1.5);
+      },
+
+      // pickup: dois tons sine quentes
+      pickup: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var freqs = [880, 1320];
+        for (var i=0; i<2; i++) {
+          var o = c.createOscillator(); o.type = 'sine';
+          o.frequency.setValueAtTime(freqs[i], t + i*0.04);
+          var g = c.createGain();
+          g.gain.setValueAtTime(0, t + i*0.04);
+          g.gain.linearRampToValueAtTime(0.13, t + i*0.04 + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.04 + 0.14);
+          o.connect(g).connect(sfxGain);
+          o.start(t + i*0.04); o.stop(t + i*0.04 + 0.16);
+        }
+      },
+
+      // powerup: arpeggio rising com sawtooth filtrado
+      powerup: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var notes = [440, 660, 880, 1320];
+        for (var i=0; i<notes.length; i++) {
+          var o = c.createOscillator(); o.type = 'sawtooth';
+          o.frequency.setValueAtTime(notes[i], t + i*0.07);
+          var f = c.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 1500;
+          var g = c.createGain();
+          g.gain.setValueAtTime(0, t + i*0.07);
+          g.gain.linearRampToValueAtTime(0.10, t + i*0.07 + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.07 + 0.22);
+          o.connect(f).connect(g).connect(sfxGain);
+          o.start(t + i*0.07); o.stop(t + i*0.07 + 0.24);
+        }
+      },
+
+      // bomba inteligente: explosão massiva 1.5s
+      bomb: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var sub = c.createOscillator(); sub.type = 'sine';
+        sub.frequency.setValueAtTime(85, t);
+        sub.frequency.exponentialRampToValueAtTime(28, t + 1.3);
+        var sg = c.createGain();
+        sg.gain.setValueAtTime(0, t);
+        sg.gain.linearRampToValueAtTime(0.7, t + 0.02);
+        sg.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        sub.connect(sg).connect(sfxGain);
+        sub.start(t); sub.stop(t + 1.55);
+        // blast: ruído branco filtro varrendo
+        var ns = c.createBufferSource(); ns.buffer = noiseBuffer(c, 1.2, 1.8);
+        var nf = c.createBiquadFilter(); nf.type='lowpass';
+        nf.frequency.setValueAtTime(2800, t);
+        nf.frequency.exponentialRampToValueAtTime(180, t + 1.0);
+        var ng = c.createGain(); ng.gain.setValueAtTime(0.55, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+        ns.connect(nf).connect(ng).connect(sfxGain);
+        ns.start(t);
+      },
+
+      // warning: pulso de alarme sério
+      warn: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var o = c.createOscillator(); o.type = 'square';
+        o.frequency.setValueAtTime(620, t);
+        var g = c.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.20, t + 0.01);
+        g.gain.linearRampToValueAtTime(0, t + 0.20);
+        o.connect(g).connect(sfxGain);
+        o.start(t); o.stop(t + 0.22);
+      },
+
+      // wave start: dois sines graves (tactical tone)
+      wave: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var notes = [220, 277];
+        for (var i=0; i<2; i++) {
+          var o = c.createOscillator(); o.type = 'sine';
+          o.frequency.setValueAtTime(notes[i], t + i*0.12);
+          var g = c.createGain();
+          g.gain.setValueAtTime(0, t + i*0.12);
+          g.gain.linearRampToValueAtTime(0.18, t + i*0.12 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.12 + 0.30);
+          o.connect(g).connect(sfxGain);
+          o.start(t + i*0.12); o.stop(t + i*0.12 + 0.32);
+        }
+      },
+
+      // game start: arpeggio sawtooth filtrado
+      start: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        var notes = [220, 330, 440, 660];
+        for (var i=0; i<notes.length; i++) {
+          var o = c.createOscillator(); o.type = 'sawtooth';
+          o.frequency.setValueAtTime(notes[i], t + i*0.06);
+          var f = c.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 1400;
+          var g = c.createGain();
+          g.gain.setValueAtTime(0, t + i*0.06);
+          g.gain.linearRampToValueAtTime(0.11, t + i*0.06 + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.06 + 0.42);
+          o.connect(f).connect(g).connect(sfxGain);
+          o.start(t + i*0.06); o.stop(t + i*0.06 + 0.45);
+        }
+      },
+
+      // morte do player: explosão massiva + descida dramática
+      die: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        // Multi-camada de explosão
+        SFX.boom();
+        // descida tonal
+        var o = c.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(440, t + 0.1);
+        o.frequency.exponentialRampToValueAtTime(50, t + 1.5);
+        var f = c.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 600;
+        var g = c.createGain();
+        g.gain.setValueAtTime(0.0, t + 0.1);
+        g.gain.linearRampToValueAtTime(0.22, t + 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        o.connect(f).connect(g).connect(sfxGain);
+        o.start(t + 0.1); o.stop(t + 1.6);
+      },
+
+      // boss spawn: 3 growls graves
+      boss: function () {
+        var c = audio(); if (!c) return;
+        var t = c.currentTime;
+        for (var i=0; i<3; i++) {
+          var o = c.createOscillator(); o.type = 'sawtooth';
+          o.frequency.setValueAtTime(60 + i*18, t + i*0.18);
+          var f = c.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 220;
+          var g = c.createGain();
+          g.gain.setValueAtTime(0, t + i*0.18);
+          g.gain.linearRampToValueAtTime(0.32, t + i*0.18 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.18 + 0.45);
+          o.connect(f).connect(g).connect(sfxGain);
+          o.start(t + i*0.18); o.stop(t + i*0.18 + 0.5);
+        }
+        // rumble pink noise
+        var ns = c.createBufferSource(); ns.buffer = pinkBuffer(c, 0.7);
+        var nf = c.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value = 350;
+        var ng = c.createGain(); ng.gain.setValueAtTime(0.32, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+        ns.connect(nf).connect(ng).connect(sfxGain);
+        ns.start(t);
+      }
     };
+    // ---- Música cinematográfica ambiente: bass drone + pad + melodia esparsa
     var musicStarted = false, musicTimer = null, musicIdx = 0, musicNext = 0;
     function startMusic() {
       var c = audio(); if (!c || musicStarted) return;
       musicStarted = true;
-      var melody = [220.0, 261.63, 329.63, 392.0, 440.0, 392.0, 329.63, 261.63];
-      var bass   = [110.0, 110.0, 130.81, 130.81, 146.83, 146.83, 110.0, 110.0];
-      var beat = 0.20;
+      // padrão lento, dramático em Dm — sub-bass + pads + melodia esparsa
+      var bass   = [55, 55, 65.41, 65.41, 73.42, 73.42, 55, 55];
+      var melody = [220, 261.63, 329.63, 220, 196, 261.63, 220, 261.63];
+      var beat = 0.40;     // bem mais devagar
       musicNext = c.currentTime + 0.05;
       musicTimer = setInterval(function () {
         if (!musicGain) return;
-        while (musicNext < c.currentTime + 0.3) {
-          var i = musicIdx % melody.length;
-          var f = melody[i];
-          var o = c.createOscillator(); o.type = 'square';
-          o.frequency.setValueAtTime(f, musicNext);
-          var g = c.createGain();
-          g.gain.setValueAtTime(0, musicNext);
-          g.gain.linearRampToValueAtTime(.08, musicNext + 0.01);
-          g.gain.exponentialRampToValueAtTime(.0006, musicNext + beat*0.85);
-          o.connect(g).connect(musicGain);
-          o.start(musicNext); o.stop(musicNext + beat);
+        while (musicNext < c.currentTime + 0.5) {
+          var i = musicIdx % bass.length;
+          // bass drone (sawtooth lowpass) — peso e gravidade
+          var bo = c.createOscillator(); bo.type = 'sawtooth';
+          bo.frequency.setValueAtTime(bass[i], musicNext);
+          var bf = c.createBiquadFilter(); bf.type='lowpass'; bf.frequency.value = 240;
+          var bg = c.createGain();
+          bg.gain.setValueAtTime(0, musicNext);
+          bg.gain.linearRampToValueAtTime(0.20, musicNext + 0.04);
+          bg.gain.exponentialRampToValueAtTime(0.0005, musicNext + beat*1.85);
+          bo.connect(bf).connect(bg).connect(musicGain);
+          bo.start(musicNext); bo.stop(musicNext + beat*1.9);
+          // sub-octave drone
+          var so = c.createOscillator(); so.type = 'sine';
+          so.frequency.setValueAtTime(bass[i] / 2, musicNext);
+          var sg2 = c.createGain();
+          sg2.gain.setValueAtTime(0, musicNext);
+          sg2.gain.linearRampToValueAtTime(0.10, musicNext + 0.04);
+          sg2.gain.exponentialRampToValueAtTime(0.0004, musicNext + beat*1.85);
+          so.connect(sg2).connect(musicGain);
+          so.start(musicNext); so.stop(musicNext + beat*1.9);
+          // pad lento (triangle, oitava abaixo da melodia)
           if (i % 2 === 0) {
-            var bo = c.createOscillator(); bo.type = 'triangle';
-            bo.frequency.setValueAtTime(bass[i], musicNext);
-            var bg = c.createGain();
-            bg.gain.setValueAtTime(0, musicNext);
-            bg.gain.linearRampToValueAtTime(.16, musicNext + 0.015);
-            bg.gain.exponentialRampToValueAtTime(.0006, musicNext + beat*1.7);
-            bo.connect(bg).connect(musicGain);
-            bo.start(musicNext); bo.stop(musicNext + beat*1.8);
+            var po = c.createOscillator(); po.type = 'triangle';
+            po.frequency.setValueAtTime(melody[i] / 2, musicNext);
+            var pg = c.createGain();
+            pg.gain.setValueAtTime(0, musicNext);
+            pg.gain.linearRampToValueAtTime(0.045, musicNext + 0.4);
+            pg.gain.exponentialRampToValueAtTime(0.0004, musicNext + beat*3.5);
+            po.connect(pg).connect(musicGain);
+            po.start(musicNext); po.stop(musicNext + beat*3.6);
+          }
+          // melodia esparsa (sine suave)
+          if (i % 4 === 1 || i % 4 === 3) {
+            var mo = c.createOscillator(); mo.type = 'sine';
+            mo.frequency.setValueAtTime(melody[i], musicNext);
+            var mg = c.createGain();
+            mg.gain.setValueAtTime(0, musicNext);
+            mg.gain.linearRampToValueAtTime(0.04, musicNext + 0.06);
+            mg.gain.exponentialRampToValueAtTime(0.0005, musicNext + beat*1.3);
+            mo.connect(mg).connect(musicGain);
+            mo.start(musicNext); mo.stop(musicNext + beat*1.4);
           }
           musicNext += beat; musicIdx++;
         }
-      }, 60);
+      }, 80);
     }
 
     // ===== PROJECTILES (3D) =====
@@ -886,35 +1237,76 @@
       color = color || 0xffaa30; scale = scale || 1;
       var g = new THREE.Group();
       var parts = [];
-      var n = 14 + Math.floor(scale*4);
+      // debris poligonal (mais quantidade e mais rápido)
+      var n = 22 + Math.floor(scale*8);
       for (var i=0; i<n; i++) {
         var m = new THREE.Mesh(
-          new THREE.TetrahedronGeometry(0.4 + Math.random()*0.5, 0),
+          new THREE.TetrahedronGeometry(0.4 + Math.random()*0.7, 0),
           new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:1})
         );
-        var dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).normalize().multiplyScalar(10 + Math.random()*14);
+        var dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).normalize().multiplyScalar(15 + Math.random()*22);
         parts.push({mesh:m, vel:dir});
         g.add(m);
       }
-      // smoke puffs
-      for (var s=0; s<6; s++) {
-        var sm = new THREE.Mesh(
-          new THREE.SphereGeometry(0.8 + Math.random()*0.6, 6, 4),
-          new THREE.MeshBasicMaterial({color:0x222022, transparent:true, opacity:0.85})
+      // sparks brancas curtas e ultra-rápidas
+      var nsk = 12 + Math.floor(scale*5);
+      for (var sp2=0; sp2<nsk; sp2++) {
+        var sk = new THREE.Mesh(
+          new THREE.BoxGeometry(0.15, 0.15, 0.15),
+          new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1})
         );
-        var dir2 = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).multiplyScalar(4);
+        var dirS = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).normalize().multiplyScalar(30 + Math.random()*22);
+        parts.push({mesh:sk, vel:dirS, spark:true});
+        g.add(sk);
+      }
+      // fumaça densa cinza escuro (sobe lentamente)
+      for (var s=0; s<10; s++) {
+        var sm = new THREE.Mesh(
+          new THREE.SphereGeometry(1.0 + Math.random()*0.8, 6, 4),
+          new THREE.MeshBasicMaterial({color:0x141416, transparent:true, opacity:0.92})
+        );
+        var dir2 = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).multiplyScalar(5);
         parts.push({mesh:sm, vel:dir2, smoke:true});
         g.add(sm);
       }
       g.position.copy(at); g.scale.setScalar(scale); scene.add(g);
-      var flash = new THREE.Mesh(new THREE.SphereGeometry(2.5, 12, 8),
-        new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.95}));
+      // flash branco grande
+      var flash = new THREE.Mesh(new THREE.SphereGeometry(3.4, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1.0}));
       g.add(flash);
-      var ring = new THREE.Mesh(new THREE.RingGeometry(0.6, 1.4, 28),
-        new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.85, side:THREE.DoubleSide}));
+      // anel de choque colorido
+      var ring = new THREE.Mesh(new THREE.RingGeometry(0.6, 1.4, 32),
+        new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
       g.add(ring);
-      explosions.push({ group:g, parts:parts, life:1.0, max:1.0, flash:flash, ring:ring });
+      // anel externo de fumaça
+      var ring2 = new THREE.Mesh(new THREE.RingGeometry(0.4, 1.0, 24),
+        new THREE.MeshBasicMaterial({color:0x202024, transparent:true, opacity:0.8, side:THREE.DoubleSide}));
+      g.add(ring2);
+      explosions.push({ group:g, parts:parts, life:1.4, max:1.4, flash:flash, ring:ring, ring2:ring2 });
       SFX.boom();
+      addShake(10 * scale);
+    }
+    var screenShake = 0, shakeT = 0;
+    function addShake(amt) { screenShake = Math.max(screenShake, amt); shakeT = 0.3; }
+    function spawnHitSpark(at, color) {
+      // mini-burst de centelhas em hits (não-letais)
+      var g = new THREE.Group();
+      var parts = [];
+      for (var i=0; i<6; i++) {
+        var sk = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 0.12, 0.12),
+          new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1})
+        );
+        var dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)).normalize().multiplyScalar(14 + Math.random()*8);
+        parts.push({mesh:sk, vel:dir, spark:true});
+        g.add(sk);
+      }
+      var fl = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6),
+        new THREE.MeshBasicMaterial({color:color||0xffe040, transparent:true, opacity:0.9}));
+      g.add(fl);
+      g.position.copy(at);
+      scene.add(g);
+      explosions.push({ group:g, parts:parts, life:0.32, max:0.32, flash:fl });
     }
 
     // ===== ENEMIES =====
@@ -1445,7 +1837,9 @@
     function damageEnemy(e, dmg) {
       if (!e.alive) return;
       e.hp -= dmg;
-      e.flashT = 0.08;
+      e.flashT = 0.10;
+      // spark em cada hit (mesmo não-letal)
+      spawnHitSpark(e.mesh.position, 0xffe040);
       if (e.hp <= 0) {
         e.alive = false;
         var ec = e.type==='asteroid'?0xaa9966:(e.type==='crate'?0xffe040:0xffaa30);
@@ -1490,11 +1884,12 @@
     function damagePlayer(dmg) {
       if (player.invuln > 0) return;
       player.shield -= dmg;
-      player.invuln = 0.4;     // antes 1.0 — menos forgiving, dá pra morrer
+      player.invuln = 0.4;
       player.flashT = 0.2;
       $flash.classList.add('hit');
       setTimeout(function(){ $flash.classList.remove('hit'); }, 150);
       SFX.damage();
+      addShake(2.0);     // shake pesado em cada dano
       combo = 0; comboTimer = 0;
       if (Math.random() < 0.55) showQuip('damage');
       if (player.shield <= 0) playerDie();
@@ -2016,23 +2411,32 @@
             var pp = ex.parts[ep];
             pp.mesh.position.addScaledVector(pp.vel, dt);
             if (pp.smoke) {
-              pp.vel.multiplyScalar(0.92);
-              pp.vel.y += 6*dt;
-              pp.mesh.scale.setScalar(1 + ek*1.4);
-              pp.mesh.material.opacity = (1-ek)*0.85;
+              pp.vel.multiplyScalar(0.93);
+              pp.vel.y += 8*dt;
+              pp.mesh.scale.setScalar(1 + ek*1.8);
+              pp.mesh.material.opacity = (1-ek)*0.92;
+            } else if (pp.spark) {
+              pp.vel.multiplyScalar(0.86);   // sparks decay rápido
+              pp.mesh.material.opacity = 1 - ek*1.6;
             } else {
               pp.vel.multiplyScalar(0.95);
-              pp.vel.y -= 18*dt;
+              pp.vel.y -= 22*dt;             // gravidade
               pp.mesh.material.opacity = 1 - ek;
               pp.mesh.rotation.x += dt*4;
               pp.mesh.rotation.y += dt*5;
             }
           }
-          ex.flash.scale.setScalar(1 + ek*5);
-          ex.flash.material.opacity = (1 - ek*1.4)*0.95;
+          if (ex.flash) {
+            ex.flash.scale.setScalar(1 + ek*5.5);
+            ex.flash.material.opacity = (1 - ek*1.5);
+          }
           if (ex.ring) {
-            ex.ring.scale.setScalar(1 + ek*9);
+            ex.ring.scale.setScalar(1 + ek*11);
             ex.ring.material.opacity = (1-ek)*0.85;
+          }
+          if (ex.ring2) {
+            ex.ring2.scale.setScalar(1 + ek*14);
+            ex.ring2.material.opacity = (1-ek)*0.7;
           }
           if (ex.life <= 0) {
             scene.remove(ex.group);
@@ -2057,7 +2461,19 @@
         rebuildHUD();
       }
 
-      renderer.render(scene, camera);
+      // screen shake (offset suave da câmera)
+      if (shakeT > 0) {
+        shakeT -= rawDt;
+        var s = screenShake * (shakeT > 0 ? 1 : 0);
+        var prevX = camera.position.x, prevY = camera.position.y;
+        camera.position.x += (Math.random()-0.5) * s * 0.3;
+        camera.position.y += (Math.random()-0.5) * s * 0.3;
+        renderer.render(scene, camera);
+        camera.position.x = prevX; camera.position.y = prevY;
+        if (shakeT <= 0) screenShake = 0;
+      } else {
+        renderer.render(scene, camera);
+      }
       requestAnimationFrame(tick);
     }
 
