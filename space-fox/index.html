@@ -452,7 +452,7 @@
     document.addEventListener('keyup', function (e) { keys[e.code] = false; });
     document.addEventListener('mousemove', function (e) {
       mouseX = e.clientX; mouseY = e.clientY;
-      $aim.style.transform = 'translate(' + mouseX + 'px,' + mouseY + 'px)';
+      // reticle posicionado pelo tick (segue currentAimPoint em 3D, não o mouse direto)
     });
     document.addEventListener('mousedown', function (e) { if (e.button === 0) mouseHeld = true; });
     document.addEventListener('mouseup',   function (e) { if (e.button === 0) mouseHeld = false; });
@@ -1410,6 +1410,16 @@
         // ---- aim (cada frame: ray cast contra inimigos pra mira automática) ----
         updateAim();
         $aim.classList.toggle('lock', aimLocked);
+        // o reticle segue o ponto de mira em 3D (projetado pra tela) —
+        // quando trava no inimigo, a mira "navega" no mundo junto com ele
+        var _projAim = currentAimPoint.clone().project(camera);
+        if (_projAim.z < 1) {
+          var rsx = (_projAim.x*0.5+0.5) * window.innerWidth;
+          var rsy = (-_projAim.y*0.5+0.5) * window.innerHeight;
+          $aim.style.transform = 'translate(' + rsx + 'px,' + rsy + 'px)';
+        } else {
+          $aim.style.transform = 'translate(' + mouseX + 'px,' + mouseY + 'px)';
+        }
 
         // ---- shooting ----
         var shooting = mouseHeld || keys['Space'];
@@ -1437,23 +1447,30 @@
             }
           }
           if (!hit && boss && boss.alive) {
+            // 1) tenta acertar weak points (crítico — dano dobrado)
             for (var w=0; w<boss.weakPoints.length; w++) {
               var wp = boss.weakPoints[w];
               if (!wp.alive) continue;
               var wpPos = new THREE.Vector3(); wp.mesh.getWorldPosition(wpPos);
               if (b.mesh.position.distanceTo(wpPos) < (wp.mesh.geometry.parameters.radius + 2.5)) {
-                wp.hp -= b.dmg;
-                damageBoss(b.dmg);
-                spawnExplosion(b.mesh.position, wp.color, 0.4);
+                wp.hp -= b.dmg * 2;
+                damageBoss(b.dmg * 2);
+                spawnExplosion(b.mesh.position, wp.color, 0.5);
                 if (wp.hp <= 0) {
                   wp.alive = false;
                   wp.mesh.visible = false;
                   wp.halo.visible = false;
-                  spawnExplosion(wpPos, wp.color, 1.4);
-                  damageBoss(80);
+                  spawnExplosion(wpPos, wp.color, 1.6);
+                  damageBoss(120);
                 }
                 hit = true; break;
               }
+            }
+            // 2) corpo do boss (hitbox grande, dano reduzido)
+            if (!hit && b.mesh.position.distanceTo(boss.mesh.position) < boss.r) {
+              damageBoss(b.dmg * 0.4);
+              spawnExplosion(b.mesh.position, 0x888899, 0.25);
+              hit = true;
             }
           }
           if (hit) {
