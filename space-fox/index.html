@@ -815,16 +815,17 @@
       var dir = _ray.ray.direction;
       var bestT = Infinity;
       var bestPoint = null;
-      var slack = 6; // tolerância — não precisa estar perfeitamente alinhado
+      var bestPerp = 0, bestRadius = 0;
+      var slack = 4;       // tolerância menor (antes 6) — área de assistência mais apertada
       function tryHit(pos, radius) {
         var v = pos.clone().sub(origin);
         var t = v.dot(dir);
-        if (t < 10) return;                                 // muito perto da câmera
+        if (t < 10) return;
         var perpSq = v.lengthSq() - t*t;
         if (perpSq < 0) perpSq = 0;
         var perp = Math.sqrt(perpSq);
         if (perp < radius + slack && t < bestT) {
-          bestT = t; bestPoint = pos;
+          bestT = t; bestPoint = pos; bestPerp = perp; bestRadius = radius;
         }
       }
       for (var i=0; i<enemies.length; i++) {
@@ -840,7 +841,13 @@
         }
       }
       if (bestPoint) {
-        currentAimPoint.copy(bestPoint);
+        // assistência SUAVE: puxa parcialmente em direção ao inimigo, sem grudar
+        // pull = 1.0 quando bem em cima, → 0.25 na borda da área de assistência
+        var rangeFull = bestRadius + slack;
+        var pull = 1 - (bestPerp / rangeFull);   // 0..1
+        pull = 0.25 + pull * 0.45;                // máximo 0.70 de assistência (era 1.0)
+        var mousePoint = origin.clone().addScaledVector(dir, bestT);
+        currentAimPoint.copy(mousePoint).lerp(bestPoint, pull);
         aimLocked = true;
       } else {
         currentAimPoint.copy(origin).addScaledVector(dir, 600);
