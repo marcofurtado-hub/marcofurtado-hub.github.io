@@ -78,6 +78,29 @@
   #pause .val{color:#ffe040;font-size:14px;font-weight:bold;min-width:40px;text-align:right}
   #pause p{color:#cfe;font-size:13px;letter-spacing:3px;margin-top:18px}
 
+  /* ----- progress bar (rota da campanha) ----- */
+  #progress{position:absolute;top:118px;left:50%;transform:translateX(-50%);width:60%;max-width:680px;height:38px;pointer-events:none;font-size:9px;letter-spacing:2px;color:#88aabb}
+  #progress .line{position:absolute;left:0;right:0;top:14px;height:3px;background:linear-gradient(90deg,#1a4a6a 0%,#2a6a90 50%,#1a4a6a 100%);box-shadow:0 0 6px rgba(64,224,255,.4)}
+  #progress .lineFill{position:absolute;left:0;top:14px;height:3px;background:linear-gradient(90deg,#40e0ff,#80f0ff);box-shadow:0 0 8px #40e0ff;transition:width .4s}
+  #progress .cp{position:absolute;top:14px;width:18px;height:18px;margin:-9px 0 0 -9px;background:#1a4a6a;border:2px solid #5a8aaa;border-radius:50%;transition:all .3s}
+  #progress .cp.complete{background:#40e0ff;border-color:#80f0ff;box-shadow:0 0 14px #40e0ff}
+  #progress .cp.final{width:26px;height:26px;margin:-13px 0 0 -13px;background:#5a2030;border-color:#ff4040;box-shadow:0 0 12px rgba(255,64,64,.4)}
+  #progress .cp.final.complete{background:#ffe040;border-color:#fff;box-shadow:0 0 18px #ffe040}
+  #progress .label{position:absolute;top:24px;text-align:center;white-space:nowrap;transform:translateX(-50%);text-shadow:0 0 4px rgba(0,0,0,0.9)}
+  #progress .marker{position:absolute;top:7px;width:0;height:0;margin-left:-7px;border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid #ffe040;filter:drop-shadow(0 0 6px #ffe040);transition:left .3s}
+
+  /* wingmate status (mini barras de HP) */
+  #wingstatus{position:absolute;top:10px;right:175px;display:flex;flex-direction:column;gap:4px;font-size:10px;letter-spacing:2px}
+  #wingstatus .wm{display:flex;align-items:center;gap:6px}
+  #wingstatus .wm .name{min-width:50px;text-align:right}
+  #wingstatus .wm .bar{width:90px;height:5px;background:#0a1a2a;border:1px solid #1a4a6a;overflow:hidden}
+  #wingstatus .wm .bar i{display:block;height:100%;background:linear-gradient(90deg,#40ff60,#80ffa0);transition:width .15s}
+  #wingstatus .wm.falco .name{color:#80b0ff}
+  #wingstatus .wm.falco .bar i{background:linear-gradient(90deg,#4080ff,#80b0ff)}
+  #wingstatus .wm.dead{opacity:.4}
+  #wingstatus .wm.dead .name{color:#ff4040;text-decoration:line-through}
+  #wingstatus .wm.dead .bar i{background:#ff4040;width:0!important}
+
   /* ----- quips (Star Fox 64 chatter) ----- */
   #quips{position:fixed;left:18px;bottom:80px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:5;max-width:380px}
   .quip{background:rgba(0,8,16,.78);border:2px solid #40e0ff;padding:8px 14px;font-family:'Courier New',monospace;color:#cfe;letter-spacing:2px;font-size:13px;box-shadow:0 0 14px rgba(64,224,255,.45);animation:quipIn .3s ease-out, quipOut .4s ease-in 2.4s forwards}
@@ -119,6 +142,19 @@
   <div id="lives"></div>
   <div id="boss-bar"><div class="name" id="bossName">BOSS</div><div class="bar"><i id="bossFill" style="width:100%"></i></div></div>
   <div id="combo"><span>COMBO </span><span class="x" id="comboX">×1</span></div>
+  <div id="progress">
+    <div class="line"></div>
+    <div class="lineFill" id="progressFill"></div>
+    <div class="cp" id="cp0" style="left:0%"></div><div class="label" style="left:0%">INÍCIO</div>
+    <div class="cp" id="cp1" style="left:33.3%"></div><div class="label" style="left:33.3%">CARRIER</div>
+    <div class="cp" id="cp2" style="left:66.6%"></div><div class="label" style="left:66.6%">CARMESIM</div>
+    <div class="cp final" id="cp3" style="left:100%"></div><div class="label" style="left:100%">MOTHERSHIP</div>
+    <div class="marker" id="progressMarker" style="left:0%"></div>
+  </div>
+  <div id="wingstatus">
+    <div class="wm falco" id="wmFalco"><span class="name">FALCO</span><div class="bar"><i style="width:100%"></i></div></div>
+    <div class="wm slippy" id="wmSlippy"><span class="name">SLIPPY</span><div class="bar"><i style="width:100%"></i></div></div>
+  </div>
   <div id="warn">!! BOSS !!</div>
   <div id="banner"><div class="l" id="bannerL">WAVE 1</div><div class="b" id="bannerB">COMEÇAR</div></div>
 </div>
@@ -459,11 +495,32 @@
       return g;
     }
     var wingmates = [
-      { mesh: makeWingmate(0x2a4ea8, 0x6090ff), shotCD: 1.0, side: -1, name: 'FALCO',  cls:'falco' },
-      { mesh: makeWingmate(0x2a8a4a, 0x60ff90), shotCD: 1.4, side:  1, name: 'SLIPPY', cls:'slippy' }
+      { mesh: makeWingmate(0x2a4ea8, 0x6090ff), shotCD: 1.0, side: -1, name:'FALCO',  cls:'falco',  hp:80, maxHp:80, alive:true, r:1.6 },
+      { mesh: makeWingmate(0x2a8a4a, 0x60ff90), shotCD: 1.4, side:  1, name:'SLIPPY', cls:'slippy', hp:70, maxHp:70, alive:true, r:1.6 }
     ];
     scene.add(wingmates[0].mesh);
     scene.add(wingmates[1].mesh);
+    function damageWingmate(wm, dmg) {
+      if (!wm.alive) return;
+      wm.hp -= dmg;
+      if (wm.hp <= 0) {
+        wm.alive = false;
+        spawnExplosion(wm.mesh.position, 0xff8030, 1.6);
+        scene.remove(wm.mesh);
+        showQuip(wm.cls === 'falco' ? 'falcoDown' : 'slippyDown', true);
+      }
+      updateWingHUD();
+    }
+    function updateWingHUD() {
+      for (var wi=0; wi<wingmates.length; wi++) {
+        var wm = wingmates[wi];
+        var el = document.getElementById('wm' + (wm.cls==='falco'?'Falco':'Slippy'));
+        if (!el) continue;
+        el.classList.toggle('dead', !wm.alive);
+        var fill = el.querySelector('.bar i');
+        fill.style.width = (wm.alive ? Math.max(0, wm.hp/wm.maxHp*100) : 0) + '%';
+      }
+    }
 
     // ---- QUIPS (chatter Star Fox-style) ----
     var $quips = document.getElementById('quips');
@@ -477,7 +534,9 @@
       bossSpawn:[['PEPPY','WATCH OUT, FOX!'], ['FALCO','THIS GUY\'S MINE!'], ['SLIPPY','HE\'S A BIG ONE!']],
       power:    [['SLIPPY','POWER UP!'], ['PEPPY','PICK THAT UP!'], ['FALCO','NICE!']],
       kill:     [['FALCO','TARGET DOWN!'], ['SLIPPY','SCRATCH ONE!'], ['PEPPY','EXCELLENT!']],
-      wingHelp: [['FALCO','I\'LL COVER YA!'], ['SLIPPY','I GOT YOUR BACK!']]
+      wingHelp: [['FALCO','I\'LL COVER YA!'], ['SLIPPY','I GOT YOUR BACK!']],
+      falcoDown:[['FALCO','I\'M HIT! BAILING OUT!'], ['FALCO','THIS IS FALCO! I\'M GOING DOWN!']],
+      slippyDown:[['SLIPPY','HEEEELP MEEE!!'], ['SLIPPY','I CAN\'T HOLD ON!!']]
     };
     function showQuip(kind, force) {
       var now = performance.now()/1000;
@@ -696,12 +755,14 @@
       bullets.push({ mesh:m, vel: dir.clone().multiplyScalar(speed), life:2.0, dmg:dmg, color:color, kind:kind||'beam' });
     }
     function spawnEnemyBullet(from, toward, dmg, speed) {
-      dmg = dmg || 10; speed = speed || 60;
+      // dificuldade: tiros inimigos doem MUITO mais (era 10, agora ~22 base)
+      dmg = (dmg || 10) * 2.0;
+      speed = (speed || 60) * 1.2;
       var dir = toward.clone().sub(from).normalize();
       var m = new THREE.Mesh(bulletGeo, new THREE.MeshBasicMaterial({color:0xff3030}));
       m.position.copy(from);
       m.lookAt(from.clone().add(dir));
-      m.scale.set(0.85, 0.85, 0.85);
+      m.scale.set(0.95, 0.95, 0.95);
       scene.add(m);
       ebullets.push({ mesh:m, vel: dir.multiplyScalar(speed), life:5.0, dmg:dmg });
       beep(380, .06, 'sawtooth', .04, -200);
@@ -1276,6 +1337,23 @@
       $waveLabel.textContent = waveIdx;
       $lives.innerHTML = '';
       for (var i=0; i<lives; i++) { var d = document.createElement('div'); d.className='life'; $lives.appendChild(d); }
+      updateProgressBar();
+      updateWingHUD();
+    }
+
+    function updateProgressBar() {
+      // map waveIdx → percentual: wave 5 = 33%, wave 10 = 66%, wave 15 = 100%
+      var prog = Math.min(100, (waveIdx / 15) * 100);
+      var $f = document.getElementById('progressFill');
+      var $m = document.getElementById('progressMarker');
+      if ($f) $f.style.width = prog + '%';
+      if ($m) $m.style.left = prog + '%';
+      // marca checkpoints de boss completos
+      var cp0 = document.getElementById('cp0'); if (cp0) cp0.classList.add('complete');
+      for (var i=1; i<=3; i++) {
+        var el = document.getElementById('cp' + i);
+        if (el) el.classList.toggle('complete', bossDefeated >= i);
+      }
     }
     function showBanner(label, big) {
       $bannerL.textContent = label; $bannerB.textContent = big;
@@ -1379,7 +1457,7 @@
     // ===== POWER-UPS APPLY =====
     function applyPowerup(type) {
       if (type === 'P') { levelUpWeapon(); popText('POWER UP!', '#ffe040'); }
-      else if (type === 'S') { player.shield = Math.min(player.maxShield, player.shield+35); SFX.pickup(); popText('+ESCUDO', '#40e0ff'); }
+      else if (type === 'S') { player.shield = Math.min(player.maxShield, player.shield+22); SFX.pickup(); popText('+ESCUDO', '#40e0ff'); }
       else if (type === 'X') { bombs = Math.min(5, bombs+1); SFX.pickup(); popText('+BOMBA', '#ff80ff'); }
       else if (type === 'L') { lives = Math.min(5, lives+1); SFX.pickup(); popText('+1UP', '#80ff80'); }
       showQuip('power');
@@ -1513,17 +1591,28 @@
           8 + player.offsetY,
           camera.position.z - 18
         );
-        // manobra: barrel roll (Z) ou loop (X), full 2π em ~0.7s/1s, ease-in-out
+        // manobra: barrel roll (rotação no eixo Z) ou loop (TRAJETÓRIA circular real)
         if (player.maneuver) {
           var m = player.maneuver;
           m.t += dt;
           var k = Math.min(1, m.t / m.dur);
           var eased = k * k * (3 - 2*k);
-          var fullAng = m.dir * Math.PI * 2 * eased;
           if (m.kind === 'roll') {
-            ship.rotation.set(player.pitch, 0, player.bank + fullAng);
+            // barrel roll: full 2π no eixo Z, ship gira no próprio eixo
+            var rollAng = m.dir * Math.PI * 2 * eased;
+            ship.rotation.set(player.pitch, 0, player.bank + rollAng);
           } else {
-            ship.rotation.set(player.pitch + fullAng, 0, player.bank);
+            // LOOP: trajetória circular real no plano vertical YZ.
+            // dir=+1 (W) loop pra cima (sobe e volta); dir=-1 (S) loop pra baixo
+            var R = 9;
+            var absTh = eased * Math.PI * 2;            // 0..2π
+            var dirL = m.dir;
+            var loopY = dirL * R * (1 - Math.cos(absTh));     // up=positivo, down=negativo
+            var loopZ = -R * Math.sin(absTh);                  // ambos vão pra frente no meio
+            var pitchAdd = dirL * absTh;                       // pitch acompanha a tangente
+            ship.position.y += loopY;
+            ship.position.z += loopZ;
+            ship.rotation.set(player.pitch + pitchAdd, 0, player.bank);
           }
           if (k >= 1) player.maneuver = null;
         } else {
@@ -1540,6 +1629,7 @@
         // wingmates voam ao seu lado e atiram em alvos próximos
         for (var wi=0; wi<wingmates.length; wi++) {
           var wm = wingmates[wi];
+          if (!wm.alive) continue;
           var bob = Math.sin(performance.now()*0.002 + wi)*0.4;
           var wmX = camera.position.x + wm.side * 9 + Math.sin(performance.now()*0.001 + wi)*0.6;
           var wmY = 8 + bob;
@@ -1664,11 +1754,26 @@
           eb.mesh.position.addScaledVector(eb.vel, dt);
           eb.life -= dt;
           if (eb.life <= 0) { scene.remove(eb.mesh); ebullets.splice(i2, 1); continue; }
-          if (eb.mesh.position.distanceTo(ship.position) < 1.6 && player.invuln <= 0) {
+          // hit player
+          if (eb.mesh.position.distanceTo(ship.position) < 1.8 && player.invuln <= 0) {
             damagePlayer(eb.dmg);
             spawnExplosion(eb.mesh.position, 0xff4040, 0.3);
             scene.remove(eb.mesh); ebullets.splice(i2, 1);
+            continue;
           }
+          // hit wingmate
+          var wmHit = false;
+          for (var wj=0; wj<wingmates.length; wj++) {
+            var w2 = wingmates[wj];
+            if (!w2.alive) continue;
+            if (eb.mesh.position.distanceTo(w2.mesh.position) < w2.r + 1.0) {
+              damageWingmate(w2, eb.dmg);
+              spawnExplosion(eb.mesh.position, 0xff8030, 0.25);
+              scene.remove(eb.mesh); ebullets.splice(i2, 1);
+              wmHit = true; break;
+            }
+          }
+          if (wmHit) continue;
         }
 
         // ---- update enemies ----
@@ -1751,9 +1856,9 @@
             applyFlash(ee.mesh, false);
           }
 
-          // collide with player
+          // collide with player (mais punitivo agora)
           if (ee.mesh.position.distanceTo(ship.position) < ee.r + 1.4 && player.invuln <= 0) {
-            damagePlayer(ee.type === 'asteroid' ? 25 : (ee.type==='mini'?30:18));
+            damagePlayer(ee.type === 'asteroid' ? 35 : (ee.type==='mini'?45:28));
             if (ee.type !== 'mini') {
               damageEnemy(ee, 9999);
               continue;
@@ -1794,7 +1899,7 @@
             }
             boss.shootCD = 1.0;
           }
-          if (boss.mesh.position.distanceTo(ship.position) < boss.r + 1) damagePlayer(20);
+          if (boss.mesh.position.distanceTo(ship.position) < boss.r + 1) damagePlayer(35);
         }
 
         // ---- powerups ----
