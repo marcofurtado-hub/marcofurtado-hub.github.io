@@ -309,6 +309,8 @@
     ground.rotation.x = -Math.PI/2;
     ground.position.y = -30;
     scene.add(ground);
+    // textura repete a cada 200 unidades de mundo
+    var GROUND_TILE_WORLD = 200;
 
     // distant horizon "mountains" — a low-poly silhouette (cones) that follows camera
     var mountainsGroup = new THREE.Group();
@@ -606,7 +608,7 @@
 
       function shootFrom(start, target, color, speedMult, dmg, kind) {
         var dir = target.clone().sub(start).normalize();
-        spawnBullet(start, dir, color, 180 * (speedMult||1), dmg, kind);
+        spawnBullet(start, dir, color, 380 * (speedMult||1), dmg, kind);
       }
 
       if (w.id === 'laser') {
@@ -724,7 +726,7 @@
       eng.position.set(0, 0, -1.7); eng.scale.z = 1.4;
       g.add(eng);
       g.scale.setScalar(1.4);
-      return { mesh:g, hp:30, maxHp:30, type:'fighter', shootCD:0.8+Math.random()*1.0, points:200, r:2.6 };
+      return { mesh:g, hp:14, maxHp:14, type:'fighter', shootCD:0.8+Math.random()*1.0, points:200, r:3.4 };
     }
     function makeDrone() {
       var g = new THREE.Group();
@@ -742,7 +744,7 @@
       var eye = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), new THREE.MeshBasicMaterial({color:0xffaa30}));
       eye.position.set(0, 0.45, 0); g.add(eye);
       g.scale.setScalar(1.5);
-      return { mesh:g, hp:18, maxHp:18, type:'drone', shootCD:0.7+Math.random()*0.8, points:120, r:2.2, spawnT:performance.now()/1000 };
+      return { mesh:g, hp:9, maxHp:9, type:'drone', shootCD:0.7+Math.random()*0.8, points:120, r:2.8, spawnT:performance.now()/1000 };
     }
     function makeGunship() {
       var g = new THREE.Group();
@@ -761,7 +763,7 @@
       bL.rotation.x = Math.PI/2; bL.position.set(-2.0, -0.3, 2.6); g.add(bL);
       var bR = bL.clone(); bR.position.x = 2.0; g.add(bR);
       g.scale.setScalar(1.3);
-      return { mesh:g, hp:80, maxHp:80, type:'gunship', shootCD:1.4+Math.random()*0.8, points:400, r:4.5 };
+      return { mesh:g, hp:42, maxHp:42, type:'gunship', shootCD:1.4+Math.random()*0.8, points:400, r:5.5 };
     }
     function makeAsteroid() {
       var sz = 1.6 + Math.random()*1.8;
@@ -773,7 +775,7 @@
         pos.setXYZ(i, pos.getX(i)*k, pos.getY(i)*k, pos.getZ(i)*k);
       }
       body.geometry.computeVertexNormals();
-      return { mesh:body, hp:14+Math.floor(sz*4), maxHp:14+Math.floor(sz*4), type:'asteroid', shootCD:0, points:80, r:sz*1.05,
+      return { mesh:body, hp:8+Math.floor(sz*2), maxHp:8+Math.floor(sz*2), type:'asteroid', shootCD:0, points:80, r:sz*1.3,
         spin: new THREE.Vector3((Math.random()-0.5)*1.5,(Math.random()-0.5)*1.5,(Math.random()-0.5)*1.5) };
     }
     function makeMini() {
@@ -784,8 +786,8 @@
         new THREE.MeshBasicMaterial({color:0xff3030, transparent:true, opacity:0.18})
       );
       f.mesh.add(halo);
-      f.hp = 320; f.maxHp = 320;
-      f.r = 6;
+      f.hp = 180; f.maxHp = 180;
+      f.r = 8;
       f.points = 1500;
       f.shootCD = 0.5 + Math.random()*0.5;
       f.type = 'mini';
@@ -1341,9 +1343,14 @@
 
         // ---- update background that follows camera ----
         if (starsRef) starsRef.position.copy(camera.position);
-        if (planetRef) planetRef.position.x = camera.position.x - 700; // keep relatively still
+        if (planetRef) planetRef.position.x = camera.position.x - 700;
         ground.position.x = camera.position.x;
         ground.position.z = camera.position.z;
+        // ESTEIRA: anima offset da textura na velocidade do voo (linhas voam em direção à câmera)
+        if (groundMat.map) {
+          groundMat.map.offset.y += (fwdSpeed / GROUND_TILE_WORLD) * dt;
+          groundMat.map.offset.x += -(player.offsetX * 0.0008); // leve parallax lateral
+        }
         // mountains follow camera position so they're always around
         mountainsGroup.position.x = camera.position.x;
         mountainsGroup.position.z = camera.position.z;
@@ -1367,7 +1374,7 @@
             for (var j=0; j<enemies.length; j++) {
               var e = enemies[j];
               if (!e.alive) continue;
-              if (b.mesh.position.distanceTo(e.mesh.position) < e.r + 0.6) {
+              if (b.mesh.position.distanceTo(e.mesh.position) < e.r + 1.8) {
                 damageEnemy(e, b.dmg);
                 hit = true; break;
               }
@@ -1378,7 +1385,7 @@
               var wp = boss.weakPoints[w];
               if (!wp.alive) continue;
               var wpPos = new THREE.Vector3(); wp.mesh.getWorldPosition(wpPos);
-              if (b.mesh.position.distanceTo(wpPos) < (wp.mesh.geometry.parameters.radius + 0.8)) {
+              if (b.mesh.position.distanceTo(wpPos) < (wp.mesh.geometry.parameters.radius + 2.5)) {
                 wp.hp -= b.dmg;
                 damageBoss(b.dmg);
                 spawnExplosion(b.mesh.position, wp.color, 0.4);
