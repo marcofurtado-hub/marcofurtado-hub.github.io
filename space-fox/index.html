@@ -77,6 +77,19 @@
   #pause input[type=range]::-moz-range-thumb{width:18px;height:18px;background:#ffe040;border-radius:50%;cursor:pointer;border:none;box-shadow:0 0 8px #ffe040}
   #pause .val{color:#ffe040;font-size:14px;font-weight:bold;min-width:40px;text-align:right}
   #pause p{color:#cfe;font-size:13px;letter-spacing:3px;margin-top:18px}
+
+  /* ----- quips (Star Fox 64 chatter) ----- */
+  #quips{position:fixed;left:18px;bottom:80px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:5;max-width:380px}
+  .quip{background:rgba(0,8,16,.78);border:2px solid #40e0ff;padding:8px 14px;font-family:'Courier New',monospace;color:#cfe;letter-spacing:2px;font-size:13px;box-shadow:0 0 14px rgba(64,224,255,.45);animation:quipIn .3s ease-out, quipOut .4s ease-in 2.4s forwards}
+  .quip b{color:#ffe040;margin-right:6px;text-shadow:0 0 6px rgba(255,224,64,.6)}
+  .quip.falco{border-color:#4080ff}
+  .quip.falco b{color:#80b0ff}
+  .quip.slippy{border-color:#40ff60}
+  .quip.slippy b{color:#80ff80}
+  .quip.peppy{border-color:#ff8030}
+  .quip.peppy b{color:#ffaa30}
+  @keyframes quipIn{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+  @keyframes quipOut{to{opacity:0;transform:translateY(-12px)}}
 </style>
 </head>
 <body>
@@ -111,6 +124,7 @@
 </div>
 
 <div id="aim"><div class="ring"></div><div class="ring2"></div><div class="dot"></div><div class="v"></div><div class="h"></div></div>
+<div id="quips"></div>
 <div id="flash"></div>
 
 <div id="screen">
@@ -421,6 +435,73 @@
     var ship = makeShip();
     scene.add(ship);
 
+    // ---- WINGMATES (Falco azul, Slippy verde) ----
+    function makeWingmate(bodyColor, accentColor) {
+      var g = new THREE.Group();
+      var matBody = new THREE.MeshLambertMaterial({color:bodyColor, flatShading:true});
+      var matAcc  = new THREE.MeshLambertMaterial({color:accentColor, flatShading:true});
+      var matDark = new THREE.MeshLambertMaterial({color:0x222a3a, flatShading:true});
+      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.4, 1.8, 4), matBody);
+      nose.rotation.x = -Math.PI/2; nose.position.z = -1.5;
+      g.add(nose);
+      var fuse = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 2.4), matBody);
+      g.add(fuse);
+      var wL = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 0.9), matBody);
+      wL.position.set(-1.0, -0.05, -0.1); g.add(wL);
+      var wR = wL.clone(); wR.position.x = 1.0; g.add(wR);
+      var stripL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 0.25), matAcc);
+      stripL.position.set(-1.0, 0.04, -0.1); g.add(stripL);
+      var stripR = stripL.clone(); stripR.position.x = 1.0; g.add(stripR);
+      var glow = new THREE.Mesh(new THREE.SphereGeometry(0.30, 10, 6),
+        new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:.85}));
+      glow.scale.z = 1.6; glow.position.set(0, 0, 1.2);
+      g.add(glow);
+      return g;
+    }
+    var wingmates = [
+      { mesh: makeWingmate(0x2a4ea8, 0x6090ff), shotCD: 1.0, side: -1, name: 'FALCO',  cls:'falco' },
+      { mesh: makeWingmate(0x2a8a4a, 0x60ff90), shotCD: 1.4, side:  1, name: 'SLIPPY', cls:'slippy' }
+    ];
+    scene.add(wingmates[0].mesh);
+    scene.add(wingmates[1].mesh);
+
+    // ---- QUIPS (chatter Star Fox-style) ----
+    var $quips = document.getElementById('quips');
+    var lastQuipT = 0, lastQuipKind = '';
+    var QUIPS = {
+      damage:   [['PEPPY','HOLD ON, FOX!'], ['SLIPPY','I CAN\'T SHAKE HIM!'], ['FALCO','GET A GRIP, FOX!']],
+      barrel:   [['PEPPY','DO A BARREL ROLL!'], ['FALCO','NICE MOVE!'], ['SLIPPY','SHOW \'EM!']],
+      loop:     [['FALCO','LOOP DE LOOP!'], ['PEPPY','SHOWBOATING, EH FOX?'], ['SLIPPY','FANCY!']],
+      combo:    [['FALCO','LOOKING GOOD, FOX!'], ['SLIPPY','THAT\'S OUR BOY!'], ['PEPPY','KEEP IT UP!']],
+      bossKill: [['FALCO','GOT \'IM!'], ['PEPPY','MISSION COMPLETE!'], ['SLIPPY','HE\'S TOAST!']],
+      bossSpawn:[['PEPPY','WATCH OUT, FOX!'], ['FALCO','THIS GUY\'S MINE!'], ['SLIPPY','HE\'S A BIG ONE!']],
+      power:    [['SLIPPY','POWER UP!'], ['PEPPY','PICK THAT UP!'], ['FALCO','NICE!']],
+      kill:     [['FALCO','TARGET DOWN!'], ['SLIPPY','SCRATCH ONE!'], ['PEPPY','EXCELLENT!']],
+      wingHelp: [['FALCO','I\'LL COVER YA!'], ['SLIPPY','I GOT YOUR BACK!']]
+    };
+    function showQuip(kind, force) {
+      var now = performance.now()/1000;
+      if (!force && lastQuipKind === kind && (now - lastQuipT) < 4) return;
+      if (!force && (now - lastQuipT) < 1.2) return;
+      var arr = QUIPS[kind]; if (!arr) return;
+      var pick = arr[Math.floor(Math.random()*arr.length)];
+      var who = pick[0], text = pick[1];
+      var el = document.createElement('div');
+      el.className = 'quip ' + who.toLowerCase();
+      el.innerHTML = '<b>' + who + ':</b> ' + text;
+      $quips.appendChild(el);
+      setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 2900);
+      lastQuipT = now; lastQuipKind = kind;
+    }
+
+    // ---- SLOW-MO ----
+    var timeScale = 1.0;
+    var timeScaleTarget = 1.0;
+    function slowMo(amount, duration) {
+      timeScaleTarget = amount;
+      setTimeout(function(){ timeScaleTarget = 1.0; }, duration*1000);
+    }
+
     // ===== PLAYER STATE (offsets relative to camera) =====
     var player = {
       offsetX: 0, offsetY: 0,        // [-FRAME, +FRAME]
@@ -445,6 +526,7 @@
       player.maneuver = { kind:kind, dir:dir, t:0, dur:dur };
       player.invuln = Math.max(player.invuln, dur + 0.15);
       SFX.pickup();
+      showQuip(kind === 'roll' ? 'barrel' : 'loop');
     }
     function detectDoubleTap(code) {
       var key = code;
@@ -1026,6 +1108,7 @@
       scene.add(boss.mesh);
       showWarn(2.0); SFX.boss();
       showBanner('BOSS', boss.name);
+      showQuip('bossSpawn', true);
       $bossbar.style.display = 'block';
       $bossName.textContent = boss.name;
       $bossFill.style.width = '100%';
@@ -1033,6 +1116,9 @@
     function bossDie() {
       if (!boss) return;
       boss.alive = false;
+      // SLOW MOTION dramático na morte do boss
+      slowMo(0.25, 1.6);
+      showQuip('bossKill', true);
       var b = boss;
       var n = 0;
       var id = setInterval(function () {
@@ -1230,6 +1316,8 @@
         var mult = 1 + Math.floor(combo/5)*0.5;
         pts = Math.floor(pts*mult);
         score += pts;
+        // combo milestones — chatter quando dispara
+        if (combo === 10 || combo === 25 || combo === 50) showQuip('combo', true);
         // drop
         var roll = Math.random();
         var drop = null;
@@ -1258,6 +1346,7 @@
       setTimeout(function(){ $flash.classList.remove('hit'); }, 150);
       SFX.damage();
       combo = 0; comboTimer = 0;
+      if (Math.random() < 0.55) showQuip('damage');
       if (player.shield <= 0) playerDie();
     }
     function playerDie() {
@@ -1293,6 +1382,7 @@
       else if (type === 'S') { player.shield = Math.min(player.maxShield, player.shield+35); SFX.pickup(); popText('+ESCUDO', '#40e0ff'); }
       else if (type === 'X') { bombs = Math.min(5, bombs+1); SFX.pickup(); popText('+BOMBA', '#ff80ff'); }
       else if (type === 'L') { lives = Math.min(5, lives+1); SFX.pickup(); popText('+1UP', '#80ff80'); }
+      showQuip('power');
       rebuildHUD();
     }
     function tryBomb() {
@@ -1377,7 +1467,10 @@
     // ===== MAIN LOOP =====
     var clock = new THREE.Clock();
     function tick() {
-      var dt = Math.min(0.05, clock.getDelta());
+      var rawDt = Math.min(0.05, clock.getDelta());
+      // smooth timeScale (slow-mo dramático)
+      timeScale += (timeScaleTarget - timeScale) * Math.min(1, rawDt*8);
+      var dt = rawDt * timeScale;
 
       if (state === STATE.PLAY && !paused) {
         // ---- player input ----
@@ -1443,6 +1536,41 @@
         var pulseZ = 1.6 + (boosting ? 1.0 : 0.4);
         ship.userData.engL.scale.set(pulse, pulse, pulseZ);
         ship.userData.engR.scale.set(pulse, pulse, pulseZ);
+
+        // wingmates voam ao seu lado e atiram em alvos próximos
+        for (var wi=0; wi<wingmates.length; wi++) {
+          var wm = wingmates[wi];
+          var bob = Math.sin(performance.now()*0.002 + wi)*0.4;
+          var wmX = camera.position.x + wm.side * 9 + Math.sin(performance.now()*0.001 + wi)*0.6;
+          var wmY = 8 + bob;
+          var wmZ = camera.position.z - 12;
+          wm.mesh.position.set(wmX, wmY, wmZ);
+          // banking visual baseado no input do player (acompanha o estilo)
+          wm.mesh.rotation.set(0, 0, player.bank * 0.6);
+          // disparo
+          wm.shotCD -= dt;
+          if (wm.shotCD <= 0) {
+            // procura inimigo mais próximo na frente
+            var bestE = null, bestD = 250;
+            for (var ei=0; ei<enemies.length; ei++) {
+              var e = enemies[ei];
+              if (!e.alive) continue;
+              var dz = wmZ - e.mesh.position.z;
+              if (dz < 30) continue; // só alvos à frente
+              var d = wm.mesh.position.distanceTo(e.mesh.position);
+              if (d < bestD) { bestD = d; bestE = e; }
+            }
+            if (bestE) {
+              var dir = bestE.mesh.position.clone().sub(wm.mesh.position).normalize();
+              spawnBullet(wm.mesh.position.clone(), dir,
+                wm.cls === 'falco' ? 0x60a0ff : 0x60ff80, 380, 8, 'thin');
+              wm.shotCD = 0.7 + Math.random()*0.4;
+              if (Math.random() < 0.06) showQuip('wingHelp');
+            } else {
+              wm.shotCD = 0.4;
+            }
+          }
+        }
 
         // ---- update background that follows camera ----
         if (starsRef) starsRef.position.copy(camera.position);
