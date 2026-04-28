@@ -78,8 +78,9 @@
   #pause .val{color:#ffe040;font-size:14px;font-weight:bold;min-width:40px;text-align:right}
   #pause p{color:#cfe;font-size:13px;letter-spacing:3px;margin-top:18px}
 
-  /* ----- COCKPIT (primeira pessoa) ----- */
-  #cockpit{position:fixed;inset:0;pointer-events:none;z-index:3}
+  /* ----- COCKPIT (primeira pessoa) — desativado em chase cam ----- */
+  #cockpit{display:none}
+  #cockpit.show{display:block;position:fixed;inset:0;pointer-events:none;z-index:3}
   /* moldura superior */
   #cockpit .frameTop{position:absolute;left:0;right:0;top:0;height:90px;background:linear-gradient(to bottom,rgba(10,12,18,0.95) 0%,rgba(20,24,34,0.85) 60%,rgba(0,0,0,0) 100%);clip-path:polygon(0 0,100% 0,100% 30%,80% 100%,20% 100%,0 30%)}
   /* moldura inferior — dashboard */
@@ -604,10 +605,10 @@
       invuln: 0, shotCD: 0, flashT: 0
     };
     var FRAME_X = 28, FRAME_Y_MIN = -10, FRAME_Y_MAX = 14;
-    var FORWARD_SPEED = 70;
-    var BOOST_MULT = 2.6;
-    var BASE_FOV = 72;
-    var BOOST_FOV = 92;
+    var FORWARD_SPEED = 130;        // muito mais rápido — cenário voando
+    var BOOST_MULT = 2.4;
+    var BASE_FOV = 88;              // wide
+    var BOOST_FOV = 108;
     var currentFOV = BASE_FOV;
 
     // ---- duplo-tap para manobras (barrel roll / loop) ----
@@ -1696,24 +1697,19 @@
           camera.fov = currentFOV;
           camera.updateProjectionMatrix();
         }
-        // PRIMEIRA PESSOA: câmera fica DENTRO da cabine (na posição da nave)
-        camera.position.x = player.offsetX;
-        camera.position.y = 8 + player.offsetY;
-        // bank da câmera: tilta o horizonte ao banking do player (sensação de cabine)
-        var camUp = new THREE.Vector3(0, 1, 0);
-        camUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), player.bank * 0.45);
-        camUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), player.pitch * 0.3);
-        camera.up.copy(camUp);
-        camera.lookAt(camera.position.x, camera.position.y, camera.position.z - 40);
+        // CHASE CAM próxima: câmera segue a nave levemente; nave em primeiro plano
+        camera.position.x = player.offsetX * 0.35;
+        camera.position.y = 8 + player.offsetY * 0.35 + 1.2;       // levemente acima
+        camera.up.set(0, 1, 0);
+        camera.lookAt(player.offsetX * 0.6, 8 + player.offsetY * 0.6, camera.position.z - 40);
 
-        // nave fica invisível em primeira pessoa, mas posição é mantida
-        // (pra wingmates calcularem offset, e wing tips emitirem tiros)
+        // ship bem perto da câmera (~7 unidades à frente — ocupa parte do quadro)
         ship.position.set(
-          camera.position.x,
-          camera.position.y,
-          camera.position.z - 4
+          player.offsetX,
+          8 + player.offsetY,
+          camera.position.z - 7
         );
-        ship.visible = false;
+        ship.visible = true;
         // manobra: barrel roll (rotação no eixo Z) ou loop (TRAJETÓRIA circular real)
         if (player.maneuver) {
           var m = player.maneuver;
