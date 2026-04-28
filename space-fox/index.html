@@ -120,8 +120,10 @@
   <div id="status">carregando Three.js...</div>
   <div class="controls">
     <div><b>WASD / SETAS</b> mover a nave (no quadro)</div>
-    <div><b>MOUSE</b> mira (reticle livre, Star Fox 64)</div>
+    <div><b>MOUSE</b> mira (Star Fox 64 reticle 3D)</div>
     <div><b>CLIQUE / ESPAÇO</b> atirar</div>
+    <div><b>2× A / D</b> giro de barril (defende!)</div>
+    <div><b>2× W / S</b> loop (defende!)</div>
     <div><b>SHIFT</b> turbo &nbsp;·&nbsp; <b>X</b> bomba &nbsp;·&nbsp; <b>ESC</b> pause</div>
   </div>
   <div class="small">PEGUE POWER-UPS · DEFENDA O SETOR LYLAT</div>
@@ -428,17 +430,47 @@
       invuln: 0, shotCD: 0, flashT: 0
     };
     var FRAME_X = 28, FRAME_Y_MIN = -10, FRAME_Y_MAX = 14;
-    var FORWARD_SPEED = 70;          // camera moves -Z at this base speed (mais dinâmico)
+    var FORWARD_SPEED = 70;
     var BOOST_MULT = 2.6;
     var BASE_FOV = 72;
     var BOOST_FOV = 92;
     var currentFOV = BASE_FOV;
+
+    // ---- duplo-tap para manobras (barrel roll / loop) ----
+    var TAP_WINDOW = 0.32;
+    var lastTap = { KeyA:0, KeyD:0, KeyW:0, KeyS:0 };
+    function startManeuver(kind, dir) {
+      if (player.maneuver) return;
+      var dur = (kind === 'roll') ? 0.7 : 1.0;
+      player.maneuver = { kind:kind, dir:dir, t:0, dur:dur };
+      player.invuln = Math.max(player.invuln, dur + 0.15);
+      SFX.pickup();
+    }
+    function detectDoubleTap(code) {
+      var key = code;
+      if (code === 'ArrowLeft') key = 'KeyA';
+      else if (code === 'ArrowRight') key = 'KeyD';
+      else if (code === 'ArrowUp') key = 'KeyW';
+      else if (code === 'ArrowDown') key = 'KeyS';
+      if (lastTap[key] === undefined) return;
+      var now = performance.now()/1000;
+      if (lastTap[key] && (now - lastTap[key]) < TAP_WINDOW) {
+        if (key === 'KeyA') startManeuver('roll',  1);   // roll esquerda
+        else if (key === 'KeyD') startManeuver('roll', -1);  // roll direita
+        else if (key === 'KeyW') startManeuver('loop',  1);  // loop pra cima
+        else if (key === 'KeyS') startManeuver('loop', -1);  // loop pra baixo
+        lastTap[key] = 0;
+      } else {
+        lastTap[key] = now;
+      }
+    }
 
     // ===== INPUT =====
     var keys = {};
     var mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
     var mouseHeld = false;
     document.addEventListener('keydown', function (e) {
+      var firstPress = !keys[e.code] && !e.repeat;
       keys[e.code] = true;
       if (e.code === 'Space') e.preventDefault();
       if (e.code === 'Escape') togglePause();
@@ -448,6 +480,10 @@
       }
       if (e.code === 'KeyR' && (state === STATE.DEAD || state === STATE.WIN)) window.location.reload();
       if (e.code === 'KeyX' && state === STATE.PLAY && !paused) tryBomb();
+      // duplo-tap em A/D = barrel roll, W/S = loop
+      if (firstPress && state === STATE.PLAY && !paused) {
+        detectDoubleTap(e.code);
+      }
     });
     document.addEventListener('keyup', function (e) { keys[e.code] = false; });
     document.addEventListener('mousemove', function (e) {
@@ -1384,7 +1420,22 @@
           8 + player.offsetY,
           camera.position.z - 18
         );
-        ship.rotation.set(player.pitch, 0, player.bank);
+        // manobra: barrel roll (Z) ou loop (X), full 2π em ~0.7s/1s, ease-in-out
+        if (player.maneuver) {
+          var m = player.maneuver;
+          m.t += dt;
+          var k = Math.min(1, m.t / m.dur);
+          var eased = k * k * (3 - 2*k);
+          var fullAng = m.dir * Math.PI * 2 * eased;
+          if (m.kind === 'roll') {
+            ship.rotation.set(player.pitch, 0, player.bank + fullAng);
+          } else {
+            ship.rotation.set(player.pitch + fullAng, 0, player.bank);
+          }
+          if (k >= 1) player.maneuver = null;
+        } else {
+          ship.rotation.set(player.pitch, 0, player.bank);
+        }
 
         // engine pulse
         var ppt = performance.now() * 0.01;
