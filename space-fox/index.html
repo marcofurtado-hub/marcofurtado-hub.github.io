@@ -78,6 +78,26 @@
   #pause .val{color:#ffe040;font-size:14px;font-weight:bold;min-width:40px;text-align:right}
   #pause p{color:#cfe;font-size:13px;letter-spacing:3px;margin-top:18px}
 
+  /* ----- COCKPIT (primeira pessoa) ----- */
+  #cockpit{position:fixed;inset:0;pointer-events:none;z-index:3}
+  /* moldura superior */
+  #cockpit .frameTop{position:absolute;left:0;right:0;top:0;height:90px;background:linear-gradient(to bottom,rgba(10,12,18,0.95) 0%,rgba(20,24,34,0.85) 60%,rgba(0,0,0,0) 100%);clip-path:polygon(0 0,100% 0,100% 30%,80% 100%,20% 100%,0 30%)}
+  /* moldura inferior — dashboard */
+  #cockpit .dashboard{position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(to top,rgba(8,10,16,0.98) 0%,rgba(18,22,32,0.92) 50%,rgba(0,0,0,0) 100%)}
+  #cockpit .dashboard::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,#40e0ff,transparent);box-shadow:0 0 8px rgba(64,224,255,0.5)}
+  /* corner panels (canto inferior esquerdo/direito) */
+  #cockpit .cornerL{position:absolute;left:0;bottom:0;width:32%;height:170px;background:linear-gradient(135deg,rgba(20,24,32,0.96) 0%,rgba(30,36,48,0.85) 100%);clip-path:polygon(0 100%,0 0,100% 100%);border-right:1px solid rgba(64,224,255,0.18)}
+  #cockpit .cornerR{position:absolute;right:0;bottom:0;width:32%;height:170px;background:linear-gradient(225deg,rgba(20,24,32,0.96) 0%,rgba(30,36,48,0.85) 100%);clip-path:polygon(100% 100%,100% 0,0 100%);border-left:1px solid rgba(64,224,255,0.18)}
+  /* pilares laterais (struts da cabine) */
+  #cockpit .strutL{position:absolute;left:0;top:0;bottom:0;width:30px;background:linear-gradient(to right,rgba(12,14,20,0.96),rgba(0,0,0,0));border-right:1px solid rgba(64,224,255,0.12);box-shadow:inset -1px 0 4px rgba(0,0,0,0.4)}
+  #cockpit .strutR{position:absolute;right:0;top:0;bottom:0;width:30px;background:linear-gradient(to left,rgba(12,14,20,0.96),rgba(0,0,0,0));border-left:1px solid rgba(64,224,255,0.12);box-shadow:inset 1px 0 4px rgba(0,0,0,0.4)}
+  /* glass tint sutil */
+  #cockpit .glass{position:absolute;inset:30px 30px 160px 30px;background:radial-gradient(ellipse at center,rgba(120,180,220,0.04) 0%,rgba(40,60,80,0.05) 80%,rgba(0,0,0,0.12) 100%);pointer-events:none}
+  /* dashboard sub-elementos: indicadores luminosos */
+  #cockpit .dash-led{position:absolute;bottom:80px;width:6px;height:6px;border-radius:50%;background:#40e0ff;box-shadow:0 0 8px #40e0ff;opacity:.7;animation:ledBlink 2s infinite}
+  #cockpit .dash-led:nth-child(odd){animation-delay:.7s}
+  @keyframes ledBlink{50%{opacity:.3}}
+
   /* ----- progress bar (rota da campanha) ----- */
   #progress{position:absolute;top:118px;left:50%;transform:translateX(-50%);width:60%;max-width:680px;height:38px;pointer-events:none;font-size:9px;letter-spacing:2px;color:#88aabb}
   #progress .line{position:absolute;left:0;right:0;top:14px;height:3px;background:linear-gradient(90deg,#1a4a6a 0%,#2a6a90 50%,#1a4a6a 100%);box-shadow:0 0 6px rgba(64,224,255,.4)}
@@ -159,6 +179,20 @@
   <div id="banner"><div class="l" id="bannerL">WAVE 1</div><div class="b" id="bannerB">COMEÇAR</div></div>
 </div>
 
+<div id="cockpit">
+  <div class="strutL"></div>
+  <div class="strutR"></div>
+  <div class="frameTop"></div>
+  <div class="glass"></div>
+  <div class="cornerL"></div>
+  <div class="cornerR"></div>
+  <div class="dashboard">
+    <div class="dash-led" style="left:14%"></div>
+    <div class="dash-led" style="left:22%"></div>
+    <div class="dash-led" style="right:14%;background:#ff4040;box-shadow:0 0 8px #ff4040"></div>
+    <div class="dash-led" style="right:22%;background:#40ff80;box-shadow:0 0 8px #40ff80"></div>
+  </div>
+</div>
 <div id="aim"><div class="ring"></div><div class="ring2"></div><div class="dot"></div><div class="v"></div><div class="h"></div></div>
 <div id="quips"></div>
 <div id="flash"></div>
@@ -1648,21 +1682,31 @@
         var boosting = (keys['ShiftLeft'] || keys['ShiftRight']) ? true : false;
         var fwdSpeed = FORWARD_SPEED * (boosting ? BOOST_MULT : 1.0);
         camera.position.z -= fwdSpeed * dt;
-        // FOV expansion on boost = sensação de aceleração / túnel de velocidade
+        // FOV expansion on boost
         var targetFOV = boosting ? BOOST_FOV : BASE_FOV;
         currentFOV += (targetFOV - currentFOV) * Math.min(1, dt*4);
         if (Math.abs(camera.fov - currentFOV) > 0.05) {
           camera.fov = currentFOV;
           camera.updateProjectionMatrix();
         }
-        camera.lookAt(camera.position.x, 8, camera.position.z - 40);
+        // PRIMEIRA PESSOA: câmera fica DENTRO da cabine (na posição da nave)
+        camera.position.x = player.offsetX;
+        camera.position.y = 8 + player.offsetY;
+        // bank da câmera: tilta o horizonte ao banking do player (sensação de cabine)
+        var camUp = new THREE.Vector3(0, 1, 0);
+        camUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), player.bank * 0.45);
+        camUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), player.pitch * 0.3);
+        camera.up.copy(camUp);
+        camera.lookAt(camera.position.x, camera.position.y, camera.position.z - 40);
 
-        // ---- ship position relative to camera ----
+        // nave fica invisível em primeira pessoa, mas posição é mantida
+        // (pra wingmates calcularem offset, e wing tips emitirem tiros)
         ship.position.set(
-          camera.position.x + player.offsetX,
-          8 + player.offsetY,
-          camera.position.z - 18
+          camera.position.x,
+          camera.position.y,
+          camera.position.z - 4
         );
+        ship.visible = false;
         // manobra: barrel roll (rotação no eixo Z) ou loop (TRAJETÓRIA circular real)
         if (player.maneuver) {
           var m = player.maneuver;
