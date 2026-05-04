@@ -694,10 +694,13 @@
       engHot.rotation.x = Math.PI/2;
       engHot.position.set(0, 0, 1.28);
       g.add(engHot);
-      // halo pink suave
+      // halo pink — ADDITIVE blending pra brilhar (não mancha laranja)
       var engHalo = new THREE.Mesh(
-        new THREE.SphereGeometry(0.70, 14, 10),
-        new THREE.MeshBasicMaterial({color:0xff40a0, transparent:true, opacity:0.42})
+        new THREE.SphereGeometry(0.45, 14, 10),
+        new THREE.MeshBasicMaterial({
+          color:0xff40a0, transparent:true, opacity:0.85,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        })
       );
       engHalo.position.set(0, 0, 1.30);
       g.add(engHalo);
@@ -1242,8 +1245,11 @@
       var f = makeFighter();
       f.mesh.scale.setScalar(3.2);
       var halo = new THREE.Mesh(
-        new THREE.SphereGeometry(2.2, 14, 10),
-        new THREE.MeshBasicMaterial({color:0xff3030, transparent:true, opacity:0.18})
+        new THREE.SphereGeometry(1.6, 14, 10),
+        new THREE.MeshBasicMaterial({
+          color:0xff3030, transparent:true, opacity:0.6,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        })
       );
       f.mesh.add(halo);
       f.hp = 180; f.maxHp = 180;
@@ -1292,10 +1298,13 @@
         lbl.rotation.set.apply(lbl.rotation, faces[fi].rot);
         g.add(lbl);
       }
-      // halo
+      // halo amarelo — additive
       var halo = new THREE.Mesh(
-        new THREE.SphereGeometry(2.2, 12, 8),
-        new THREE.MeshBasicMaterial({color:0xffe040, transparent:true, opacity:0.18})
+        new THREE.SphereGeometry(1.5, 12, 8),
+        new THREE.MeshBasicMaterial({
+          color:0xffe040, transparent:true, opacity:0.6,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        })
       );
       g.add(halo);
       return { mesh:g, hp:6, maxHp:6, type:'crate', shootCD:0, points:50, r:2.0 };
@@ -1343,10 +1352,13 @@
           new THREE.MeshLambertMaterial({map:tex, emissive:0x402020, emissiveIntensity:0.5, flatShading:true})
         );
         g.add(box);
-        // halo vermelho
+        // halo vermelho — ADDITIVE pra não criar mancha laranja com o chão
         var halo = new THREE.Mesh(
-          new THREE.SphereGeometry(2.4, 14, 10),
-          new THREE.MeshBasicMaterial({color:0xff4040, transparent:true, opacity:0.22})
+          new THREE.SphereGeometry(1.6, 14, 10),
+          new THREE.MeshBasicMaterial({
+            color:0xff4040, transparent:true, opacity:0.7,
+            blending: THREE.AdditiveBlending, depthWrite: false
+          })
         );
         g.add(halo);
       } else {
@@ -1380,7 +1392,10 @@
     function makeWeakPointFactory(group, weakPoints) {
       return function (rx, ry, rz, color, size, hp) {
         var matCore = new THREE.MeshLambertMaterial({color:color, emissive:color, emissiveIntensity:1.0, flatShading:true});
-        var matGlow = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.6});
+        var matGlow = new THREE.MeshBasicMaterial({
+          color:color, transparent:true, opacity:0.85,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        });
         var housing = new THREE.Mesh(new THREE.SphereGeometry(size*1.4, 12, 8),
           new THREE.MeshLambertMaterial({color:0x101018, flatShading:true}));
         housing.position.set(rx, ry, rz); group.add(housing);
