@@ -609,30 +609,23 @@
       var matBlueDk= new THREE.MeshLambertMaterial({color:0x1a3a96, flatShading:true});
       var matRed   = new THREE.MeshLambertMaterial({color:0xff2030, flatShading:true, emissive:0xff2030, emissiveIntensity:1.0});
 
-      // nariz cônico branco, pontudo na frente
-      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.42, 3.2, 4), matWhite);
+      // CORPO: triângulo branco bem pequeno, só pra ter o "centro" da nave
+      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.32, 2.2, 4), matWhite);
       nose.rotation.x = -Math.PI/2;
-      nose.position.z = -1.2;
+      nose.position.z = -0.6;
       g.add(nose);
-      // fuselage central pequena
-      var fuse = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 1.6), matWhite);
-      fuse.position.z = 0.5;
+      var fuse = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 1.2), matWhite);
+      fuse.position.z = 0.3;
       g.add(fuse);
-      // cockpit detalhe (silver triangle on top)
-      var cock = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.9, 3), matSilver);
-      cock.rotation.x = -Math.PI/2;
-      cock.position.set(0, 0.22, 0.0);
-      g.add(cock);
 
-      // ===== ASAS GIGANTES BLUE (swept-back triangle, do tipo do ref) =====
+      // ===== ASAS GIGANTES BLUE — pontas SHARP triangulares, igual à referência =====
       function makeWingShape(side) {
-        // side = +1 direita, -1 esquerda
+        // pontas sharp (não retângular) — apenas 3 vértices: root frente, root trás, ponta sharp
         var s = new THREE.Shape();
-        s.moveTo(0, -0.7);             // root frente
-        s.lineTo(side * 4.6, 1.4);     // ponta lateral (longe e atrás)
-        s.lineTo(side * 4.6, 1.9);     // ponta back edge
-        s.lineTo(side * 0.5, 0.9);     // root back
-        s.lineTo(0, -0.7);
+        s.moveTo(0, -0.9);             // root frente
+        s.lineTo(side * 5.2, 1.6);     // PONTA SHARP única
+        s.lineTo(side * 0.45, 1.0);    // root back
+        s.lineTo(0, -0.9);
         return s;
       }
       var wingGeoR = new THREE.ExtrudeGeometry(makeWingShape(+1), { depth:0.22, bevelEnabled:false });
@@ -673,11 +666,12 @@
       addWingEdge(-1);
 
       // ===== LEDs vermelhas nas pontas das asas =====
-      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6), new THREE.MeshBasicMaterial({color:0xff3040}));
-      ledR.position.set(4.4, 0, 1.7);
+      var ledMat = new THREE.MeshBasicMaterial({color:0xff3040});
+      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 6), ledMat);
+      ledR.position.set(5.0, 0.05, 1.5);
       g.add(ledR);
-      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6), new THREE.MeshBasicMaterial({color:0xff3040}));
-      ledL.position.set(-4.4, 0, 1.7);
+      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 6), ledMat);
+      ledL.position.set(-5.0, 0.05, 1.5);
       g.add(ledL);
 
       // ===== ENGINE VERMELHA CENTRAL — destaque do ship =====
@@ -704,8 +698,8 @@
       g.add(engHalo);
 
       // tip emitters (bullets saem das pontas das asas)
-      var lTip = new THREE.Object3D(); lTip.position.set(-4.4, 0, 0.6); g.add(lTip);
-      var rTip = new THREE.Object3D(); rTip.position.set( 4.4, 0, 0.6); g.add(rTip);
+      var lTip = new THREE.Object3D(); lTip.position.set(-5.0, 0, 0.5); g.add(lTip);
+      var rTip = new THREE.Object3D(); rTip.position.set( 5.0, 0, 0.5); g.add(rTip);
 
       g.userData = { engL: engCore, engR: engHalo, leftTip: lTip, rightTip: rTip };
       return g;
@@ -1580,7 +1574,8 @@
     }
     function spawnFormation(seed, diff) {
       if (state !== STATE.PLAY) return;
-      var z = 240 + Math.random()*80;
+      // mais perto pra combate fluido — antes 240+80, agora 130+50
+      var z = 130 + Math.random()*50;
       var hp = Math.floor(diff*0.3);
       var r = seed;
       if (r < 0.30) {
@@ -1757,20 +1752,35 @@
       $bossFill.style.width = Math.max(0, boss.hp/boss.maxHp*100) + '%';
       if (boss.hp <= 0) bossDie();
     }
-    function setShipFlashColor(hex) {
+    // captura os materiais únicos da nave UMA SÓ VEZ (antes de qualquer flash bagunçar)
+    var shipMatOrigs = [];
+    (function () {
+      var seenMats = [];
       ship.traverse(function (obj) {
         if (obj.material && obj.material.color) {
-          if (!obj.userData._origColor) obj.userData._origColor = obj.material.color.clone();
-          if (obj.material.emissive && !obj.userData._origEmissive) obj.userData._origEmissive = obj.material.emissive.clone();
-          if (hex === null) {
-            obj.material.color.copy(obj.userData._origColor);
-            if (obj.material.emissive) obj.material.emissive.copy(obj.userData._origEmissive);
-          } else {
-            obj.material.color.setHex(hex);
-            if (obj.material.emissive) obj.material.emissive.setHex(hex);
-          }
+          var alreadySeen = false;
+          for (var s=0; s<seenMats.length; s++) if (seenMats[s] === obj.material) { alreadySeen = true; break; }
+          if (alreadySeen) return;
+          seenMats.push(obj.material);
+          shipMatOrigs.push({
+            mat: obj.material,
+            colorHex: obj.material.color.getHex(),
+            emissiveHex: obj.material.emissive ? obj.material.emissive.getHex() : null
+          });
         }
       });
+    })();
+    function setShipFlashColor(hex) {
+      for (var i=0; i<shipMatOrigs.length; i++) {
+        var rec = shipMatOrigs[i];
+        if (hex === null) {
+          rec.mat.color.setHex(rec.colorHex);
+          if (rec.emissiveHex !== null) rec.mat.emissive.setHex(rec.emissiveHex);
+        } else {
+          rec.mat.color.setHex(hex);
+          if (rec.emissiveHex !== null) rec.mat.emissive.setHex(hex);
+        }
+      }
     }
     function doDamageGlitch() {
       // GLITCH FORTE: estrobo vermelho/branco rápido na nave; tela mais suave
@@ -2211,9 +2221,9 @@
           ee.flashT = Math.max(0, (ee.flashT||0) - dt);
 
           if (ee.type === 'fighter') {
-            // RAMP: pausa visual ~3s, depois acelera passando pelo player
-            var rampF = Math.min(1, ee.t / 3.0);
-            var approachF = 5 + 55 * rampF * rampF;
+            // RAMP curto: aproxima logo, com aceleração visível
+            var rampF = Math.min(1, ee.t / 1.8);
+            var approachF = 18 + 60 * rampF;
             ee.mesh.position.x += Math.sin(ee.t*1.5 + k)*8*dt;
             ee.mesh.position.y += Math.cos(ee.t*1.0)*4*dt;
             ee.mesh.position.z += approachF * dt;
@@ -2225,8 +2235,8 @@
               ee.shootCD = 0.6 + Math.random()*0.5;
             }
           } else if (ee.type === 'drone') {
-            var rampD = Math.min(1, ee.t / 1.5);
-            var approachD = 10 + 80 * rampD;
+            var rampD = Math.min(1, ee.t / 1.0);
+            var approachD = 30 + 90 * rampD;
             ee.mesh.position.x += Math.sin(ee.t*4)*16*dt;
             ee.mesh.position.y += Math.cos(ee.t*3)*8*dt;
             ee.mesh.position.z += approachD * dt;
@@ -2238,8 +2248,8 @@
               ee.shootCD = 0.5 + Math.random()*0.4;
             }
           } else if (ee.type === 'gunship') {
-            var rampG = Math.min(1, ee.t / 4.0);
-            var approachG = 3 + 32 * rampG;
+            var rampG = Math.min(1, ee.t / 2.5);
+            var approachG = 14 + 38 * rampG;
             ee.mesh.position.x += Math.sin(ee.t*0.7)*5*dt;
             ee.mesh.position.z += approachG * dt;
             ee.mesh.lookAt(ship.position);
@@ -2260,17 +2270,17 @@
           } else if (ee.type === 'crate') {
             ee.mesh.rotation.y += dt*1.2;
             ee.mesh.rotation.x += dt*0.6;
-            var rampC = Math.min(1, ee.t / 3.0);
-            ee.mesh.position.z += (5 + 35 * rampC) * dt;
+            var rampC = Math.min(1, ee.t / 2.0);
+            ee.mesh.position.z += (15 + 40 * rampC) * dt;
           } else if (ee.type === 'asteroid') {
             ee.mesh.rotation.x += ee.spin.x * dt;
             ee.mesh.rotation.y += ee.spin.y * dt;
             ee.mesh.rotation.z += ee.spin.z * dt;
-            var rampA = Math.min(1, ee.t / 2.5);
-            ee.mesh.position.z += (8 + 55 * rampA) * dt;
+            var rampA = Math.min(1, ee.t / 1.8);
+            ee.mesh.position.z += (22 + 65 * rampA) * dt;
           } else if (ee.type === 'mini') {
-            var rampM = Math.min(1, ee.t / 5.0);
-            var approachM = 2 + 22 * rampM;
+            var rampM = Math.min(1, ee.t / 3.0);
+            var approachM = 8 + 28 * rampM;
             ee.mesh.position.x += Math.sin(ee.t*0.6)*12*dt;
             ee.mesh.position.y += Math.cos(ee.t*0.7)*4*dt;
             ee.mesh.position.z += approachM * dt;
