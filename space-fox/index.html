@@ -110,8 +110,9 @@
   #progress .label{position:absolute;top:24px;text-align:center;white-space:nowrap;transform:translateX(-50%);text-shadow:0 0 4px rgba(0,0,0,0.9)}
   #progress .marker{position:absolute;top:7px;width:0;height:0;margin-left:-7px;border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid #ffe040;filter:drop-shadow(0 0 6px #ffe040);transition:left .3s}
 
-  /* wingmate status (mini barras de HP) */
-  #wingstatus{position:absolute;top:10px;right:175px;display:flex;flex-direction:column;gap:4px;font-size:10px;letter-spacing:2px}
+  /* wingmate status — desativado */
+  #wingstatus{display:none}
+  #wingstatus_disabled{position:absolute;top:10px;right:175px;display:flex;flex-direction:column;gap:4px;font-size:10px;letter-spacing:2px}
   #wingstatus .wm{display:flex;align-items:center;gap:6px}
   #wingstatus .wm .name{min-width:50px;text-align:right}
   #wingstatus .wm .bar{width:90px;height:5px;background:#0a1a2a;border:1px solid #1a4a6a;overflow:hidden}
@@ -299,8 +300,36 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x080820);
-    scene.fog = new THREE.Fog(0x101840, 280, 1400);
+    scene.background = new THREE.Color(0x180228);
+    scene.fog = new THREE.Fog(0x6a1860, 320, 1500);
+
+    // RETROWAVE SKY DOME: esfera invertida com vertex-color gradient (roxo→magenta→pink→laranja)
+    var skyDome;
+    (function () {
+      var SKY_R = 2200;
+      var skyGeo = new THREE.SphereGeometry(SKY_R, 32, 24);
+      var pos = skyGeo.attributes.position;
+      var col = new Float32Array(pos.count * 3);
+      var cTop = new THREE.Color(0x0a0024);
+      var cMid = new THREE.Color(0x4a1070);
+      var cMag = new THREE.Color(0xa030a0);
+      var cPink= new THREE.Color(0xff4080);
+      var cHor = new THREE.Color(0xff8060);
+      var temp = new THREE.Color();
+      for (var i=0; i<pos.count; i++) {
+        var y = pos.getY(i) / SKY_R;     // -1..1 (zenith=1, nadir=-1)
+        if (y > 0.55)      temp.lerpColors(cMid, cTop, (y - 0.55) / 0.45);
+        else if (y > 0.20) temp.lerpColors(cMag, cMid, (y - 0.20) / 0.35);
+        else if (y > 0.00) temp.lerpColors(cPink, cMag, y / 0.20);
+        else if (y > -0.10) temp.lerpColors(cHor, cPink, (y + 0.10) / 0.10);
+        else                temp.copy(cHor);
+        col[i*3] = temp.r; col[i*3+1] = temp.g; col[i*3+2] = temp.b;
+      }
+      skyGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      var skyMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, depthWrite: false, fog: false });
+      skyDome = new THREE.Mesh(skyGeo, skyMat);
+      scene.add(skyDome);
+    })();
 
     var camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.1, 4000);
     // Convention: forward = -Z (Three default). Camera will move in -Z over time.
@@ -313,84 +342,162 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Lights
-    scene.add(new THREE.HemisphereLight(0xa0c8ff, 0x303060, 0.85));
-    var sun = new THREE.DirectionalLight(0xffe0c0, 1.05);
-    sun.position.set(60, 120, -80);
+    // Lights — sunset retrowave
+    scene.add(new THREE.HemisphereLight(0xff80c0, 0x301850, 0.95));
+    var sun = new THREE.DirectionalLight(0xff80a0, 1.0);
+    sun.position.set(0, 50, -200);   // luz vinda do horizonte (sol baixo)
     scene.add(sun);
-    var fill = new THREE.PointLight(0x4060ff, 0.5, 600);
-    fill.position.set(0, 30, -40);
-    scene.add(fill);
+    var fillCyan = new THREE.PointLight(0x40e0ff, 0.6, 400);
+    fillCyan.position.set(0, 20, -30);
+    scene.add(fillCyan);
+    var fillPink = new THREE.PointLight(0xff60a0, 0.5, 600);
+    fillPink.position.set(0, 60, -300);
+    scene.add(fillPink);
 
-    // ===== STARFIELD =====
+    var starsRef = null;
+    var planetRef = null;
+
+    // ===== ESTRELAS DISCRETAS no topo do céu =====
     (function () {
-      var N = 1500;
+      var N = 350;
       var geo = new THREE.BufferGeometry();
       var pos = new Float32Array(N*3);
       for (var i=0; i<N; i++) {
-        var r = 1500 + Math.random()*800;
+        var r = 1500 + Math.random()*600;
         var t = Math.random()*Math.PI*2;
-        var p = (Math.random()-0.5)*Math.PI*1.3;
+        var p = 0.2 + Math.random()*0.7;     // só na metade superior do céu
         pos[i*3]   = Math.cos(t)*Math.cos(p)*r;
         pos[i*3+1] = Math.sin(p)*r;
         pos[i*3+2] = Math.sin(t)*Math.cos(p)*r;
       }
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      var stars = new THREE.Points(geo, new THREE.PointsMaterial({size:2.0, color:0xeef0ff, sizeAttenuation:false}));
+      var stars = new THREE.Points(geo, new THREE.PointsMaterial({size:1.5, color:0xfff0ff, sizeAttenuation:false, transparent:true, opacity:0.7}));
       scene.add(stars);
-      // make stars follow camera so they don't appear to move (parallax illusion)
       starsRef = stars;
     })();
-    var starsRef;
 
-    // big distant planet
+    // ===== SOL RETROWAVE (semicírculo no horizonte com listras) =====
     (function () {
-      var planet = new THREE.Mesh(
-        new THREE.SphereGeometry(380, 24, 18),
-        new THREE.MeshLambertMaterial({color:0x2a6a3a, flatShading:true, emissive:0x081020, emissiveIntensity:0.4})
+      var c = document.createElement('canvas');
+      c.width = 512; c.height = 512;
+      var cx = c.getContext('2d');
+      cx.clearRect(0,0,512,512);
+      var grad = cx.createRadialGradient(256, 256, 40, 256, 256, 240);
+      grad.addColorStop(0.00, '#fff8a0');
+      grad.addColorStop(0.35, '#ffe040');
+      grad.addColorStop(0.62, '#ff60a0');
+      grad.addColorStop(0.92, '#ff3060');
+      grad.addColorStop(1.00, 'rgba(255,40,80,0)');
+      cx.fillStyle = grad;
+      cx.beginPath(); cx.arc(256, 256, 240, 0, Math.PI*2); cx.fill();
+      // listras horizontais clássicas synthwave (cortando o sol abaixo do meio)
+      cx.globalCompositeOperation = 'destination-out';
+      var stripes = [
+        {y:268, h:5}, {y:282, h:7}, {y:300, h:9}, {y:322, h:12},
+        {y:348, h:15}, {y:380, h:20}, {y:418, h:28}
+      ];
+      for (var s=0; s<stripes.length; s++) {
+        cx.fillRect(0, stripes[s].y, 512, stripes[s].h);
+      }
+      cx.globalCompositeOperation = 'source-over';
+      var tex = new THREE.CanvasTexture(c);
+      var sun = new THREE.Mesh(
+        new THREE.PlaneGeometry(420, 420),
+        new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false})
       );
-      planet.position.set(-700, 350, -1700);
-      scene.add(planet);
-      var ring = new THREE.Mesh(
-        new THREE.RingGeometry(450, 560, 48, 1),
-        new THREE.MeshBasicMaterial({color:0xffaa30, side:THREE.DoubleSide, transparent:true, opacity:.32})
-      );
-      ring.position.copy(planet.position);
-      ring.rotation.x = Math.PI/2 - 0.4; ring.rotation.z = 0.3;
-      scene.add(ring);
-      var moon = new THREE.Mesh(new THREE.SphereGeometry(70, 14, 10),
-        new THREE.MeshLambertMaterial({color:0xc0c4cc, flatShading:true}));
-      moon.position.set(900, 460, -1500);
-      scene.add(moon);
-      planetRef = planet;
+      sun.position.set(0, 100, -1700);
+      sun.userData.isSun = true;
+      scene.add(sun);
+      planetRef = sun;          // reuso o ref pra ele seguir a camera no eixo X
     })();
-    var planetRef;
+
+    // ===== NUVENS retrowave: STREAKS longos finos rosados (sem fog pra não sumirem) =====
+    var cloudsRef = new THREE.Group();
+    (function () {
+      function makeCloudStreakTexture(color1, color2) {
+        var c = document.createElement('canvas');
+        c.width = 256; c.height = 32;
+        var cx = c.getContext('2d');
+        var grad = cx.createLinearGradient(0, 0, 256, 0);
+        grad.addColorStop(0.00, 'rgba(0,0,0,0)');
+        grad.addColorStop(0.15, color1);
+        grad.addColorStop(0.50, color2);
+        grad.addColorStop(0.85, color1);
+        grad.addColorStop(1.00, 'rgba(0,0,0,0)');
+        cx.fillStyle = grad;
+        cx.fillRect(0, 0, 256, 32);
+        // wisps de irregularidade
+        cx.globalCompositeOperation = 'destination-out';
+        for (var i=0; i<8; i++) {
+          var x = Math.random()*256;
+          var w = 30 + Math.random()*60;
+          var h = 12 + Math.random()*16;
+          cx.fillStyle = 'rgba(0,0,0,'+(0.4 + Math.random()*0.5)+')';
+          cx.beginPath(); cx.ellipse(x, 16, w, h, 0, 0, Math.PI*2); cx.fill();
+        }
+        return new THREE.CanvasTexture(c);
+      }
+      var palette = [
+        ['rgba(255,80,160,0.85)', 'rgba(255,140,200,0.95)'],
+        ['rgba(200,60,180,0.75)', 'rgba(255,110,200,0.92)'],
+        ['rgba(255,100,200,0.85)', 'rgba(255,180,220,0.95)'],
+        ['rgba(180,40,140,0.7)',  'rgba(220,80,180,0.9)']
+      ];
+      for (var c=0; c<22; c++) {
+        var pal = palette[Math.floor(Math.random()*palette.length)];
+        var tex = makeCloudStreakTexture(pal[0], pal[1]);
+        var w = 280 + Math.random()*240;
+        var h = 35 + Math.random()*40;
+        var streak = new THREE.Mesh(
+          new THREE.PlaneGeometry(w, h),
+          new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, fog:false, side:THREE.DoubleSide})
+        );
+        var ang = Math.random()*Math.PI*2;
+        var dist = 700 + Math.random()*400;
+        streak.position.set(Math.cos(ang)*dist, 180 + Math.random()*340, Math.sin(ang)*dist);
+        streak.lookAt(0, streak.position.y, 0);    // sempre encara o centro (wraparound)
+        streak.rotation.z = (Math.random()-0.5) * 0.15;  // leve inclinação
+        cloudsRef.add(streak);
+      }
+    })();
+    scene.add(cloudsRef);
 
     // ===== GROUND (infinite-feeling neon grid) =====
     // The ground is a single big plane that follows the camera (toroidal scrolling effect via shader-like UV trick).
     // Approach: create a large plane mesh BIG, with a custom material that renders grid lines.
     var groundMat = (function () {
-      // Use a procedural canvas texture for grid
       var c = document.createElement('canvas');
       c.width = 512; c.height = 512;
       var cx = c.getContext('2d');
-      cx.fillStyle = '#06061a';
+      // base: gradient roxo escuro pra profundidade
+      var bg = cx.createRadialGradient(256, 256, 30, 256, 256, 360);
+      bg.addColorStop(0, '#1a0440');
+      bg.addColorStop(1, '#06021a');
+      cx.fillStyle = bg;
       cx.fillRect(0, 0, 512, 512);
-      // vertical and horizontal lines (neon magenta)
-      cx.strokeStyle = 'rgba(255,80,200,0.65)';
-      cx.lineWidth = 2;
       var step = 64;
-      for (var x=0; x<=512; x+=step) {
-        cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, 512); cx.stroke();
-      }
-      for (var y=0; y<=512; y+=step) {
-        cx.beginPath(); cx.moveTo(0, y); cx.lineTo(512, y); cx.stroke();
+      // grid principal magenta
+      cx.strokeStyle = 'rgba(255,80,200,0.85)';
+      cx.lineWidth = 2.5;
+      for (var x=0; x<=512; x+=step) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, 512); cx.stroke(); }
+      for (var y=0; y<=512; y+=step) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(512, y); cx.stroke(); }
+      // grid secundário cyan (sub-divisões mais sutis)
+      cx.strokeStyle = 'rgba(80,200,255,0.35)';
+      cx.lineWidth = 1;
+      for (var x2=32; x2<=512; x2+=step) { cx.beginPath(); cx.moveTo(x2, 0); cx.lineTo(x2, 512); cx.stroke(); }
+      for (var y2=32; y2<=512; y2+=step) { cx.beginPath(); cx.moveTo(0, y2); cx.lineTo(512, y2); cx.stroke(); }
+      // pontos brilhantes nos cruzamentos principais
+      cx.fillStyle = 'rgba(255,150,255,0.95)';
+      for (var px=0; px<=512; px+=step) {
+        for (var py=0; py<=512; py+=step) {
+          cx.fillRect(px-1.5, py-1.5, 3, 3);
+        }
       }
       var tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(40, 40);
-      return new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity:0.82 });
+      return new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity:0.92 });
     })();
     var ground = new THREE.Mesh(new THREE.PlaneGeometry(8000, 8000), groundMat);
     ground.rotation.x = -Math.PI/2;
@@ -399,108 +506,208 @@
     // textura repete a cada 200 unidades de mundo
     var GROUND_TILE_WORLD = 200;
 
-    // distant horizon "mountains" — a low-poly silhouette (cones) that follows camera
+    // RETROWAVE MOUNTAINS — multicamadas: base roxa profunda, mid magenta, peaks rosa brilhante
     var mountainsGroup = new THREE.Group();
     (function () {
-      var matM = new THREE.MeshLambertMaterial({color:0x2a1840, flatShading:true});
-      for (var i=0; i<26; i++) {
-        var ang = (i/26)*Math.PI*2;
-        var dist = 700;
-        var size = 90 + Math.random()*120;
-        var h = 60 + Math.random()*120;
-        var m = new THREE.Mesh(new THREE.ConeGeometry(size, h, 5+Math.floor(Math.random()*3)), matM);
+      var matBase = new THREE.MeshLambertMaterial({color:0x2a0a48, flatShading:true, emissive:0x100020, emissiveIntensity:0.35});
+      var matMid  = new THREE.MeshLambertMaterial({color:0x6a1e8a, flatShading:true, emissive:0x200030, emissiveIntensity:0.5});
+      var matPeak = new THREE.MeshLambertMaterial({color:0xff70c0, flatShading:true, emissive:0x80205a, emissiveIntensity:0.8});
+      // camada de fundo (montanhas distantes maiores e mais escuras)
+      for (var i=0; i<22; i++) {
+        var ang = (i/22)*Math.PI*2 + Math.random()*0.1;
+        var dist = 880 + Math.random()*200;
+        var size = 140 + Math.random()*180;
+        var h = 140 + Math.random()*240;
+        var rot = Math.random()*Math.PI;
+        var m = new THREE.Mesh(new THREE.ConeGeometry(size, h, 4 + Math.floor(Math.random()*3)), matBase);
         m.position.set(Math.cos(ang)*dist, h/2 - 30, Math.sin(ang)*dist);
-        m.rotation.y = Math.random()*Math.PI;
+        m.rotation.y = rot;
         mountainsGroup.add(m);
+      }
+      // camada da frente (montanhas com peaks rosa visíveis)
+      for (var j=0; j<28; j++) {
+        var ang2 = (j/28)*Math.PI*2 + Math.random()*0.15;
+        var dist2 = 650 + Math.random()*150;
+        var size2 = 110 + Math.random()*130;
+        var h2 = 100 + Math.random()*170;
+        var sides = 4 + Math.floor(Math.random()*3);
+        var rot2 = Math.random()*Math.PI;
+        var mid = new THREE.Mesh(new THREE.ConeGeometry(size2, h2, sides), matMid);
+        mid.position.set(Math.cos(ang2)*dist2, h2/2 - 30, Math.sin(ang2)*dist2);
+        mid.rotation.y = rot2;
+        mountainsGroup.add(mid);
+        // peak rosa no topo
+        var peak = new THREE.Mesh(new THREE.ConeGeometry(size2*0.55, h2*0.42, sides), matPeak);
+        peak.position.set(Math.cos(ang2)*dist2, h2*0.78 - 30, Math.sin(ang2)*dist2);
+        peak.rotation.y = rot2;
+        mountainsGroup.add(peak);
       }
     })();
     scene.add(mountainsGroup);
 
+    // ===== SKYSCRAPERS RETROWAVE — torres com janelas neon piscando =====
+    var skyscrapersGroup = new THREE.Group();
+    (function () {
+      function makeSkyscraperTexture(accent) {
+        var c = document.createElement('canvas');
+        c.width = 32; c.height = 256;
+        var cx = c.getContext('2d');
+        cx.fillStyle = '#08021a'; cx.fillRect(0,0,32,256);
+        // janelas neon
+        var colors = ['#ff40c0', '#40c0ff', '#a040ff', '#ff8040', accent];
+        for (var y=0; y<14; y++) {
+          for (var x=0; x<3; x++) {
+            if (Math.random() < 0.72) {
+              var col = colors[Math.floor(Math.random()*colors.length)];
+              cx.fillStyle = col;
+              cx.fillRect(x*10+3, y*18+6, 4, 11);
+              // glow leve
+              cx.globalAlpha = 0.35;
+              cx.fillRect(x*10+1, y*18+4, 8, 15);
+              cx.globalAlpha = 1;
+            }
+          }
+        }
+        // antena no topo
+        cx.fillStyle = '#ff40a0'; cx.fillRect(15, 0, 2, 14);
+        var tex = new THREE.CanvasTexture(c);
+        return tex;
+      }
+      // torres em volta da arena, mais densas em frente
+      var positions = [];
+      // 14 torres, espaçadas entre 0 e 360°
+      for (var i=0; i<14; i++) {
+        positions.push({
+          ang: (i/14)*Math.PI*2 + (Math.random()-0.5)*0.3,
+          dist: 540 + Math.random()*220,
+          h: 110 + Math.random()*200,
+          w: 22 + Math.random()*22,
+          accent: ['#ff40c0','#40c0ff','#a040ff'][i % 3]
+        });
+      }
+      for (var k=0; k<positions.length; k++) {
+        var p = positions[k];
+        var tex = makeSkyscraperTexture(p.accent);
+        // material com a textura nas 4 faces laterais
+        var matSides = new THREE.MeshBasicMaterial({map:tex});
+        var matTop = new THREE.MeshBasicMaterial({color:0x14082a});
+        var mats = [matSides, matSides, matTop, matTop, matSides, matSides];
+        var box = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, p.w), mats);
+        box.position.set(Math.cos(p.ang)*p.dist, p.h/2 - 30, Math.sin(p.ang)*p.dist);
+        skyscrapersGroup.add(box);
+      }
+    })();
+    scene.add(skyscrapersGroup);
+
     // ===== PLAYER SHIP (Arwing-ish 3D) =====
     function makeShip() {
+      // RETROWAVE ARWING: corpo branco pequeno, asas BLUE GIGANTES swept-back, engine VERMELHO central
       var g = new THREE.Group();
-      var matWhite = new THREE.MeshLambertMaterial({color:0xeef0f6, flatShading:true});
-      var matBlue  = new THREE.MeshLambertMaterial({color:0x2255aa, flatShading:true});
-      var matCock  = new THREE.MeshPhongMaterial({color:0x101830, flatShading:true, shininess:60, specular:0x60c0ff, emissive:0x102540, emissiveIntensity:0.4});
-      var matDark  = new THREE.MeshLambertMaterial({color:0x222a3a, flatShading:true});
-      var matGold  = new THREE.MeshLambertMaterial({color:0xffaa30, flatShading:true, emissive:0x442000, emissiveIntensity:0.6});
-      var matRed   = new THREE.MeshLambertMaterial({color:0xc02020, flatShading:true});
+      var matWhite = new THREE.MeshLambertMaterial({color:0xeaedf2, flatShading:true});
+      var matSilver= new THREE.MeshLambertMaterial({color:0x9098a8, flatShading:true});
+      var matBlue  = new THREE.MeshLambertMaterial({color:0x4080ff, flatShading:true, emissive:0x10204a, emissiveIntensity:0.6});
+      var matBlueDk= new THREE.MeshLambertMaterial({color:0x1a3a96, flatShading:true});
+      var matRed   = new THREE.MeshLambertMaterial({color:0xff2030, flatShading:true, emissive:0xff2030, emissiveIntensity:1.0});
 
-      // nose cone (forward = -Z)
-      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.55, 2.4, 5), matWhite);
-      nose.rotation.x = -Math.PI/2; nose.position.z = -2.0;
+      // nariz cônico branco, pontudo na frente
+      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.42, 3.2, 4), matWhite);
+      nose.rotation.x = -Math.PI/2;
+      nose.position.z = -1.2;
       g.add(nose);
-      // fuselage
-      var fuse = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 3.4), matWhite);
+      // fuselage central pequena
+      var fuse = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 1.6), matWhite);
+      fuse.position.z = 0.5;
       g.add(fuse);
-      // cockpit
-      var cock = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 10, 0, Math.PI*2, 0, Math.PI/2), matCock);
-      cock.position.set(0, 0.36, -0.3); cock.scale.set(0.95, 0.7, 1.6);
+      // cockpit detalhe (silver triangle on top)
+      var cock = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.9, 3), matSilver);
+      cock.rotation.x = -Math.PI/2;
+      cock.position.set(0, 0.22, 0.0);
       g.add(cock);
-      // red stripe
-      var stripL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.4, 2.2), matRed);
-      stripL.position.set(-0.62, 0, 0); g.add(stripL);
-      var stripR = stripL.clone(); stripR.position.x = 0.62; g.add(stripR);
-      // wings (delta) — extruded
-      var ws = new THREE.Shape();
-      ws.moveTo(0, 0); ws.lineTo(2.6, 0.5); ws.lineTo(2.6, 0.95); ws.lineTo(0.4, 1.05); ws.lineTo(0, 0);
-      var wingGeo = new THREE.ExtrudeGeometry(ws, { depth: 0.18, bevelEnabled: false });
-      wingGeo.translate(0, -0.5, -0.2);
-      var wL = new THREE.Mesh(wingGeo, matWhite);
-      wL.rotation.y = Math.PI; g.add(wL);
-      var wR = new THREE.Mesh(wingGeo, matWhite);
-      g.add(wR);
-      // wing blue stripes
-      var wsL = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 0.32), matBlue);
-      wsL.position.set(-1.3, 0.04, -0.3); g.add(wsL);
-      var wsR = wsL.clone(); wsR.position.x = 1.3; g.add(wsR);
-      // wing-tip cannons
-      var lasMat = new THREE.MeshLambertMaterial({color:0x141a26, flatShading:true});
-      function makeCannon(x) {
-        var grp = new THREE.Group();
-        var cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.3, 8), lasMat);
-        cyl.rotation.x = Math.PI/2;
-        grp.add(cyl);
-        var tip = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.10, 0.36, 8), matGold);
-        tip.rotation.x = Math.PI/2; tip.position.z = -0.78;
-        grp.add(tip);
-        grp.position.set(x, -0.40, -0.45);
-        return grp;
-      }
-      g.add(makeCannon(-2.1));
-      g.add(makeCannon( 2.1));
-      // tip emitters (positions where bullets spawn from)
-      var lTip = new THREE.Object3D(); lTip.position.set(-2.1, -0.40, -1.15); g.add(lTip);
-      var rTip = new THREE.Object3D(); rTip.position.set( 2.1, -0.40, -1.15); g.add(rTip);
-      // tail fin
-      var fin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.95, 1.4), matGold);
-      fin.position.set(0, 0.52, 1.4); g.add(fin);
-      // dual engines + glow
-      function makeEngine(x) {
-        var grp = new THREE.Group();
-        var nz = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.9, 12), matDark);
-        nz.rotation.x = Math.PI/2;
-        grp.add(nz);
-        var glow = new THREE.Mesh(new THREE.SphereGeometry(0.40, 12, 8), new THREE.MeshBasicMaterial({color:0x60e0ff, transparent:true, opacity:.92}));
-        glow.scale.z = 1.8; glow.position.z = 0.7;
-        grp.add(glow);
-        var hot = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 6), new THREE.MeshBasicMaterial({color:0xffffff}));
-        hot.scale.z = 1.0; hot.position.z = 0.6;
-        grp.add(hot);
-        grp.position.set(x, 0, 1.7);
-        grp.userData = { glow:glow };
-        return grp;
-      }
-      var engL = makeEngine(-0.5);
-      var engR = makeEngine( 0.5);
-      g.add(engL); g.add(engR);
-      // wing-tip LEDs
-      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 6), new THREE.MeshBasicMaterial({color:0xff4040}));
-      ledL.position.set(-2.7, 0, -0.4); g.add(ledL);
-      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 6), new THREE.MeshBasicMaterial({color:0x40ff40}));
-      ledR.position.set( 2.7, 0, -0.4); g.add(ledR);
 
-      g.userData = { engL:engL.userData.glow, engR:engR.userData.glow, leftTip:lTip, rightTip:rTip };
+      // ===== ASAS GIGANTES BLUE (swept-back triangle, do tipo do ref) =====
+      function makeWingShape(side) {
+        // side = +1 direita, -1 esquerda
+        var s = new THREE.Shape();
+        s.moveTo(0, -0.7);             // root frente
+        s.lineTo(side * 4.6, 1.4);     // ponta lateral (longe e atrás)
+        s.lineTo(side * 4.6, 1.9);     // ponta back edge
+        s.lineTo(side * 0.5, 0.9);     // root back
+        s.lineTo(0, -0.7);
+        return s;
+      }
+      var wingGeoR = new THREE.ExtrudeGeometry(makeWingShape(+1), { depth:0.22, bevelEnabled:false });
+      var wingGeoL = new THREE.ExtrudeGeometry(makeWingShape(-1), { depth:0.22, bevelEnabled:false });
+      var wR = new THREE.Mesh(wingGeoR, matBlue);
+      wR.rotation.x = -Math.PI/2;     // deita no plano XZ
+      wR.position.y = -0.05;
+      g.add(wR);
+      var wL = new THREE.Mesh(wingGeoL, matBlue);
+      wL.rotation.x = -Math.PI/2;
+      wL.position.y = -0.05;
+      g.add(wL);
+
+      // detalhes nas asas: faixas brancas centrais (highlights)
+      function addWingHighlight(side) {
+        var hl = new THREE.Mesh(
+          new THREE.BoxGeometry(2.5, 0.06, 0.30),
+          matWhite
+        );
+        hl.position.set(side * 1.6, 0.08, 0.6);
+        hl.rotation.y = side * 0.32;     // alinha com o sweep
+        g.add(hl);
+      }
+      addWingHighlight(+1);
+      addWingHighlight(-1);
+
+      // detalhes azul escuro na borda traseira (sombra da asa)
+      function addWingEdge(side) {
+        var e = new THREE.Mesh(
+          new THREE.BoxGeometry(3.2, 0.05, 0.18),
+          matBlueDk
+        );
+        e.position.set(side * 2.0, 0.06, 1.3);
+        e.rotation.y = side * 0.3;
+        g.add(e);
+      }
+      addWingEdge(+1);
+      addWingEdge(-1);
+
+      // ===== LEDs vermelhas nas pontas das asas =====
+      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6), new THREE.MeshBasicMaterial({color:0xff3040}));
+      ledR.position.set(4.4, 0, 1.7);
+      g.add(ledR);
+      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6), new THREE.MeshBasicMaterial({color:0xff3040}));
+      ledL.position.set(-4.4, 0, 1.7);
+      g.add(ledL);
+
+      // ===== ENGINE VERMELHA CENTRAL — destaque do ship =====
+      var engCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.55, 16, 12),
+        new THREE.MeshBasicMaterial({color:0xff2040})
+      );
+      engCore.scale.z = 1.8;
+      engCore.position.set(0, 0, 1.5);
+      g.add(engCore);
+      // hot center brilhante
+      var engHot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.25, 12, 8),
+        new THREE.MeshBasicMaterial({color:0xffe8e0})
+      );
+      engHot.position.set(0, 0, 1.4);
+      g.add(engHot);
+      // halo amplo (orange/pink)
+      var engHalo = new THREE.Mesh(
+        new THREE.SphereGeometry(1.05, 16, 12),
+        new THREE.MeshBasicMaterial({color:0xff5070, transparent:true, opacity:0.42})
+      );
+      engHalo.position.set(0, 0, 1.5);
+      g.add(engHalo);
+
+      // tip emitters (bullets saem das pontas das asas)
+      var lTip = new THREE.Object3D(); lTip.position.set(-4.4, 0, 0.6); g.add(lTip);
+      var rTip = new THREE.Object3D(); rTip.position.set( 4.4, 0, 0.6); g.add(rTip);
+
+      g.userData = { engL: engCore, engR: engHalo, leftTip: lTip, rightTip: rTip };
       return g;
     }
     var ship = makeShip();
@@ -1116,26 +1323,52 @@
     // ===== POWER-UPS =====
     var powerups = [];
     function spawnPowerup(at, type) {
-      var color = type === 'P' ? 0xffe040 : type === 'S' ? 0x40e0ff : type === 'X' ? 0xff80ff : 0x80ff80;
+      var color = type === 'P' ? 0xffe040 :
+                  type === 'S' ? 0x40e0ff :
+                  type === 'X' ? 0xff80ff :
+                  type === 'H' ? 0xff3030 :
+                  0x80ff80;
       var g = new THREE.Group();
-      var hex = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(1.0, 0),
-        new THREE.MeshBasicMaterial({color:color})
-      );
-      g.add(hex);
-      // letter via small canvas texture
-      var c = document.createElement('canvas'); c.width = 64; c.height = 64;
-      var cx = c.getContext('2d');
-      cx.fillStyle = 'rgba(0,0,0,0)'; cx.fillRect(0,0,64,64);
-      cx.fillStyle = '#000'; cx.font = 'bold 38px monospace'; cx.textAlign='center'; cx.textBaseline='middle';
-      cx.fillText(type, 32, 36);
-      var tex = new THREE.CanvasTexture(c);
-      var label = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({map:tex, transparent:true}));
-      label.position.z = 1.05;
-      g.add(label);
-      var label2 = label.clone();
-      label2.rotation.y = Math.PI; label2.position.z = -1.05;
-      g.add(label2);
+      if (type === 'H') {
+        // MEDKIT: caixa branca com cruz vermelha em cada face
+        var c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        var cx = c.getContext('2d');
+        cx.fillStyle = '#ffffff'; cx.fillRect(0,0,64,64);
+        cx.strokeStyle = '#cccccc'; cx.lineWidth = 4; cx.strokeRect(2,2,60,60);
+        cx.fillStyle = '#ff2020';
+        cx.fillRect(22, 6, 20, 52);
+        cx.fillRect(6, 22, 52, 20);
+        var tex = new THREE.CanvasTexture(c);
+        var box = new THREE.Mesh(
+          new THREE.BoxGeometry(2.0, 2.0, 2.0),
+          new THREE.MeshLambertMaterial({map:tex, emissive:0x402020, emissiveIntensity:0.5, flatShading:true})
+        );
+        g.add(box);
+        // halo vermelho
+        var halo = new THREE.Mesh(
+          new THREE.SphereGeometry(2.4, 14, 10),
+          new THREE.MeshBasicMaterial({color:0xff4040, transparent:true, opacity:0.22})
+        );
+        g.add(halo);
+      } else {
+        var hex = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.0, 0),
+          new THREE.MeshBasicMaterial({color:color})
+        );
+        g.add(hex);
+        var c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        var cx = c.getContext('2d');
+        cx.fillStyle = 'rgba(0,0,0,0)'; cx.fillRect(0,0,64,64);
+        cx.fillStyle = '#000'; cx.font = 'bold 38px monospace'; cx.textAlign='center'; cx.textBaseline='middle';
+        cx.fillText(type, 32, 36);
+        var tex = new THREE.CanvasTexture(c);
+        var label = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({map:tex, transparent:true}));
+        label.position.z = 1.05;
+        g.add(label);
+        var label2 = label.clone();
+        label2.rotation.y = Math.PI; label2.position.z = -1.05;
+        g.add(label2);
+      }
       g.position.copy(at);
       scene.add(g);
       powerups.push({ mesh:g, type:type, t:0, color:color });
@@ -1497,8 +1730,7 @@
           score += 50; popText('+50', '#ffe040');
           return;     // crate não dá +5% nem combo (é loot)
         }
-        // +5% de escudo por kill (recompensa por jogar agressivo)
-        player.shield = Math.min(player.maxShield, player.shield + player.maxShield * 0.05);
+        // sem auto-regen — pegue medkits (caixa branca com cruz vermelha) pra recuperar
         var pts = e.points;
         combo++; comboTimer = 2.5;
         var mult = 1 + Math.floor(combo/5)*0.5;
@@ -1564,6 +1796,7 @@
 
     var screenShake = 0, shakeT = 0;
     function addShake(amt) { screenShake = Math.max(screenShake, amt); shakeT = 0.3; }
+    var medkitTimer = 8;       // top-level pra ser acessível no tick
 
     function damagePlayer(dmg) {
       if (player.invuln > 0) return;
@@ -1578,16 +1811,24 @@
       if (player.shield <= 0) playerDie();
     }
     function playerDie() {
-      spawnExplosion(ship.position, 0xff8030, 2.0);
+      if (state !== STATE.PLAY) return;
+      spawnExplosion(ship.position, 0xff8030, 2.6);
+      // explosões secundárias dramáticas
+      for (var di=1; di<=4; di++) {
+        (function (d) {
+          setTimeout(function () {
+            var off = new THREE.Vector3((Math.random()-0.5)*4, (Math.random()-0.5)*2, (Math.random()-0.5)*4);
+            spawnExplosion(ship.position.clone().add(off), 0xffaa30, 1.4);
+          }, d*120);
+        })(di);
+      }
       ship.visible = false;
       SFX.die();
-      lives--; rebuildHUD();
-      if (lives <= 0) setTimeout(function(){ gameOver(false); }, 1400);
-      else setTimeout(function () {
-        player.shield = player.maxShield; player.invuln = 2.5;
-        player.offsetX = 0; player.offsetY = 0;
-        ship.visible = true;
-      }, 1500);
+      addShake(6);
+      lives = 0;
+      rebuildHUD();
+      // GAME OVER imediato — saúde 0 = fim de jogo (rogue-like)
+      setTimeout(function(){ gameOver(false); }, 1400);
     }
     function gameOver(won) {
       state = won ? STATE.WIN : STATE.DEAD;
@@ -1608,6 +1849,7 @@
     function applyPowerup(type) {
       if (type === 'P') { levelUpWeapon(); popText('POWER UP!', '#ffe040'); }
       else if (type === 'S') { player.shield = Math.min(player.maxShield, player.shield+22); SFX.pickup(); popText('+ESCUDO', '#40e0ff'); }
+      else if (type === 'H') { player.shield = Math.min(player.maxShield, player.shield+35); SFX.pickup(); popText('+SAÚDE', '#ff4040'); }
       else if (type === 'X') { bombs = Math.min(5, bombs+1); SFX.pickup(); popText('+BOMBA', '#ff80ff'); }
       else if (type === 'L') { lives = Math.min(5, lives+1); SFX.pickup(); popText('+1UP', '#80ff80'); }
       showQuip('power');
@@ -1668,7 +1910,8 @@
       $screen.classList.add('hidden');
       $hud.style.display = 'block';
       $aim.style.display = 'block';
-      score = 0; lives = 3; bombs = 3;
+      score = 0; lives = 1; bombs = 2;
+      medkitTimer = 1.5;     // primeiro medkit logo no começo
       currentWeaponIdx = 0; weaponLevel = 1; powerMeter = 0;
       bossDefeated = 0; waveIdx = 0; waveActive = false;
       // remove all enemies/bullets
@@ -1828,19 +2071,37 @@
           }
         }
 
-        // ---- update background that follows camera ----
+        // ---- background follows camera ----
         if (starsRef) starsRef.position.copy(camera.position);
-        if (planetRef) planetRef.position.x = camera.position.x - 700;
+        if (skyDome) skyDome.position.copy(camera.position);
+        if (planetRef) {
+          // sol fixo no horizonte centralizado
+          planetRef.position.x = camera.position.x;
+          planetRef.position.z = camera.position.z - 1700;
+        }
         ground.position.x = camera.position.x;
         ground.position.z = camera.position.z;
-        // ESTEIRA: anima offset Y da textura na velocidade do voo
-        // (linhas voam em direção à câmera, sem relação com X da nave — apenas movimento puro)
         if (groundMat.map) {
           groundMat.map.offset.y += (fwdSpeed / GROUND_TILE_WORLD) * dt;
         }
-        // mountains follow camera position so they're always around
         mountainsGroup.position.x = camera.position.x;
         mountainsGroup.position.z = camera.position.z;
+        skyscrapersGroup.position.x = camera.position.x;
+        skyscrapersGroup.position.z = camera.position.z;
+        if (cloudsRef) {
+          cloudsRef.position.x = camera.position.x;
+          cloudsRef.position.z = camera.position.z;
+        }
+
+        // ---- AUTO-SPAWN de medkits a cada ~7s ----
+        medkitTimer -= dt;
+        if (medkitTimer <= 0) {
+          var mx = (Math.random()-0.5) * 32;
+          var my = 8 + (Math.random()-0.5) * 16;
+          var mz = camera.position.z - 200 - Math.random()*80;
+          spawnPowerup(new THREE.Vector3(mx, my, mz), 'H');
+          medkitTimer = 7 + Math.random()*4;
+        }
 
         // ---- aim (cada frame: ray cast contra inimigos pra mira automática) ----
         updateAim();
@@ -1950,22 +2211,26 @@
           ee.flashT = Math.max(0, (ee.flashT||0) - dt);
 
           if (ee.type === 'fighter') {
+            // RAMP: pausa visual ~3s, depois acelera passando pelo player
+            var rampF = Math.min(1, ee.t / 3.0);
+            var approachF = 5 + 55 * rampF * rampF;
             ee.mesh.position.x += Math.sin(ee.t*1.5 + k)*8*dt;
             ee.mesh.position.y += Math.cos(ee.t*1.0)*4*dt;
-            ee.mesh.position.z += 4 * dt;
+            ee.mesh.position.z += approachF * dt;
             ee.mesh.lookAt(ship.position);
             ee.shootCD -= dt;
             var distZ = camera.position.z - ee.mesh.position.z;
             if (ee.shootCD <= 0 && distZ > 30 && distZ < 220) {
               spawnEnemyShot(ee);
-              ee.shootCD = 0.6 + Math.random()*0.5;     // antes 1.4 + 1.2 — atira muito mais
+              ee.shootCD = 0.6 + Math.random()*0.5;
             }
           } else if (ee.type === 'drone') {
+            var rampD = Math.min(1, ee.t / 1.5);
+            var approachD = 10 + 80 * rampD;
             ee.mesh.position.x += Math.sin(ee.t*4)*16*dt;
             ee.mesh.position.y += Math.cos(ee.t*3)*8*dt;
-            ee.mesh.position.z += 10 * dt;
+            ee.mesh.position.z += approachD * dt;
             ee.mesh.rotation.y += dt*4;
-            // drones agora atiram também — kamikaze armado
             ee.shootCD -= dt;
             var distZ_d = camera.position.z - ee.mesh.position.z;
             if (ee.shootCD <= 0 && distZ_d > 30 && distZ_d < 200) {
@@ -1973,8 +2238,10 @@
               ee.shootCD = 0.5 + Math.random()*0.4;
             }
           } else if (ee.type === 'gunship') {
+            var rampG = Math.min(1, ee.t / 4.0);
+            var approachG = 3 + 32 * rampG;
             ee.mesh.position.x += Math.sin(ee.t*0.7)*5*dt;
-            ee.mesh.position.z += 2 * dt;
+            ee.mesh.position.z += approachG * dt;
             ee.mesh.lookAt(ship.position);
             ee.shootCD -= dt;
             var distZ2 = camera.position.z - ee.mesh.position.z;
@@ -1991,19 +2258,22 @@
               ee.shootCD = 1.2;     // antes 2.5
             }
           } else if (ee.type === 'crate') {
-            // gira lentamente, drift suave em direção ao player
             ee.mesh.rotation.y += dt*1.2;
             ee.mesh.rotation.x += dt*0.6;
-            ee.mesh.position.z += 6 * dt;
+            var rampC = Math.min(1, ee.t / 3.0);
+            ee.mesh.position.z += (5 + 35 * rampC) * dt;
           } else if (ee.type === 'asteroid') {
             ee.mesh.rotation.x += ee.spin.x * dt;
             ee.mesh.rotation.y += ee.spin.y * dt;
             ee.mesh.rotation.z += ee.spin.z * dt;
-            ee.mesh.position.z += 12 * dt;        // mais devagar
+            var rampA = Math.min(1, ee.t / 2.5);
+            ee.mesh.position.z += (8 + 55 * rampA) * dt;
           } else if (ee.type === 'mini') {
+            var rampM = Math.min(1, ee.t / 5.0);
+            var approachM = 2 + 22 * rampM;
             ee.mesh.position.x += Math.sin(ee.t*0.6)*12*dt;
             ee.mesh.position.y += Math.cos(ee.t*0.7)*4*dt;
-            ee.mesh.position.z += 1 * dt;
+            ee.mesh.position.z += approachM * dt;
             ee.mesh.lookAt(ship.position);
             ee.shootCD -= dt;
             var distZ3 = camera.position.z - ee.mesh.position.z;
@@ -2087,7 +2357,7 @@
           pu.t += dt;
           pu.mesh.rotation.y += dt*2;
           // they drift toward camera (so player can pick them up)
-          pu.mesh.position.z += 25 * dt;
+          pu.mesh.position.z += 35 * dt;       // velocidade relativa de aproximação
           if (pu.mesh.position.distanceTo(ship.position) < 2.4) {
             applyPowerup(pu.type);
             spawnExplosion(pu.mesh.position, pu.color, 0.4);
