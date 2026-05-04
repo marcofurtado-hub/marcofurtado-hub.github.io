@@ -609,97 +609,104 @@
       var matBlueDk= new THREE.MeshLambertMaterial({color:0x1a3a96, flatShading:true});
       var matRed   = new THREE.MeshLambertMaterial({color:0xff2030, flatShading:true, emissive:0xff2030, emissiveIntensity:1.0});
 
-      // CORPO: triângulo branco bem pequeno, só pra ter o "centro" da nave
-      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.32, 2.2, 4), matWhite);
-      nose.rotation.x = -Math.PI/2;
-      nose.position.z = -0.6;
-      g.add(nose);
-      var fuse = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 1.2), matWhite);
-      fuse.position.z = 0.3;
-      g.add(fuse);
+      // ===== CORPO: WEDGE LONGO branco, sharp nose, mais largo no meio =====
+      var matWhiteD = new THREE.MeshLambertMaterial({color:0xb0b6c4, flatShading:true});
+      var bodyShape = new THREE.Shape();
+      bodyShape.moveTo(0, -2.6);       // SHARP NOSE frente
+      bodyShape.lineTo(0.85, 0.4);     // mid-side
+      bodyShape.lineTo(0.45, 1.2);     // back-right
+      bodyShape.lineTo(-0.45, 1.2);    // back-left
+      bodyShape.lineTo(-0.85, 0.4);    // mid-side esq
+      bodyShape.lineTo(0, -2.6);
+      var bodyGeo = new THREE.ExtrudeGeometry(bodyShape, { depth:0.55, bevelEnabled:false });
+      var body = new THREE.Mesh(bodyGeo, matWhite);
+      body.rotation.x = -Math.PI/2;
+      body.position.y = -0.30;
+      g.add(body);
+      // ridge no topo (linha central elevada)
+      var ridgeShape = new THREE.Shape();
+      ridgeShape.moveTo(0, -2.4);
+      ridgeShape.lineTo(0.18, 0.3);
+      ridgeShape.lineTo(0.18, 1.05);
+      ridgeShape.lineTo(-0.18, 1.05);
+      ridgeShape.lineTo(-0.18, 0.3);
+      ridgeShape.lineTo(0, -2.4);
+      var ridgeGeo = new THREE.ExtrudeGeometry(ridgeShape, { depth:0.30, bevelEnabled:false });
+      var ridge = new THREE.Mesh(ridgeGeo, matWhiteD);
+      ridge.rotation.x = -Math.PI/2;
+      ridge.position.y = 0.18;
+      g.add(ridge);
 
-      // ===== ASAS GIGANTES BLUE — pontas SHARP triangulares, igual à referência =====
+      // ===== ASAS HORIZONTAIS BLUE (sharp tip, swept back, atras do meio do corpo) =====
       function makeWingShape(side) {
-        // pontas sharp (não retângular) — apenas 3 vértices: root frente, root trás, ponta sharp
         var s = new THREE.Shape();
-        s.moveTo(0, -0.9);             // root frente
-        s.lineTo(side * 5.2, 1.6);     // PONTA SHARP única
-        s.lineTo(side * 0.45, 1.0);    // root back
-        s.lineTo(0, -0.9);
+        s.moveTo(0, 0.3);                 // root frente
+        s.lineTo(side * 4.2, 1.3);        // SHARP TIP outward+back
+        s.lineTo(side * 0.5, 1.15);       // root back
+        s.lineTo(0, 0.3);
         return s;
       }
-      var wingGeoR = new THREE.ExtrudeGeometry(makeWingShape(+1), { depth:0.22, bevelEnabled:false });
-      var wingGeoL = new THREE.ExtrudeGeometry(makeWingShape(-1), { depth:0.22, bevelEnabled:false });
+      var wingGeoR = new THREE.ExtrudeGeometry(makeWingShape(+1), { depth:0.18, bevelEnabled:false });
+      var wingGeoL = new THREE.ExtrudeGeometry(makeWingShape(-1), { depth:0.18, bevelEnabled:false });
       var wR = new THREE.Mesh(wingGeoR, matBlue);
-      wR.rotation.x = -Math.PI/2;     // deita no plano XZ
-      wR.position.y = -0.05;
+      wR.rotation.x = -Math.PI/2;
+      wR.position.y = -0.10;
       g.add(wR);
       var wL = new THREE.Mesh(wingGeoL, matBlue);
       wL.rotation.x = -Math.PI/2;
-      wL.position.y = -0.05;
+      wL.position.y = -0.10;
       g.add(wL);
 
-      // detalhes nas asas: faixas brancas centrais (highlights)
-      function addWingHighlight(side) {
-        var hl = new THREE.Mesh(
-          new THREE.BoxGeometry(2.5, 0.06, 0.30),
-          matWhite
-        );
-        hl.position.set(side * 1.6, 0.08, 0.6);
-        hl.rotation.y = side * 0.32;     // alinha com o sweep
-        g.add(hl);
+      // ===== FINS VERTICAIS BLUE (tip sharp pra cima, levemente angulados pra fora) =====
+      function makeVFinShape(side) {
+        var s = new THREE.Shape();
+        s.moveTo(0, 0);                   // base frente
+        s.lineTo(side * 0.55, 2.3);       // SHARP TIP UP
+        s.lineTo(side * 0.18, 0);         // base trás (largura)
+        s.lineTo(0, 0);
+        return s;
       }
-      addWingHighlight(+1);
-      addWingHighlight(-1);
+      var finGeoR = new THREE.ExtrudeGeometry(makeVFinShape(+1), { depth:0.16, bevelEnabled:false });
+      var finGeoL = new THREE.ExtrudeGeometry(makeVFinShape(-1), { depth:0.16, bevelEnabled:false });
+      var fR = new THREE.Mesh(finGeoR, matBlue);
+      fR.position.set(0.42, 0.05, 0.45);
+      fR.rotation.z = -0.12;             // angula pra fora
+      g.add(fR);
+      var fL = new THREE.Mesh(finGeoL, matBlue);
+      fL.position.set(-0.42, 0.05, 0.45);
+      fL.rotation.z = 0.12;
+      g.add(fL);
 
-      // detalhes azul escuro na borda traseira (sombra da asa)
-      function addWingEdge(side) {
-        var e = new THREE.Mesh(
-          new THREE.BoxGeometry(3.2, 0.05, 0.18),
-          matBlueDk
-        );
-        e.position.set(side * 2.0, 0.06, 1.3);
-        e.rotation.y = side * 0.3;
-        g.add(e);
-      }
-      addWingEdge(+1);
-      addWingEdge(-1);
-
-      // ===== LEDs vermelhas nas pontas das asas =====
-      var ledMat = new THREE.MeshBasicMaterial({color:0xff3040});
-      var ledR = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 6), ledMat);
-      ledR.position.set(5.0, 0.05, 1.5);
-      g.add(ledR);
-      var ledL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 6), ledMat);
-      ledL.position.set(-5.0, 0.05, 1.5);
-      g.add(ledL);
-
-      // ===== ENGINE COMPACTO (era gigante demais) =====
-      var engCore = new THREE.Mesh(
-        new THREE.SphereGeometry(0.32, 14, 10),
-        new THREE.MeshBasicMaterial({color:0xff3040})
+      // ===== ENGINE HEXAGONAL PINK (matchando o modelsheet) =====
+      var matPinkEng = new THREE.MeshLambertMaterial({color:0xff40a0, emissive:0xff1080, emissiveIntensity:1.0, flatShading:true});
+      var engRing = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.55, 0.55, 0.22, 6),
+        matPinkEng
       );
-      engCore.scale.z = 1.4;
-      engCore.position.set(0, 0, 1.3);
-      g.add(engCore);
+      engRing.rotation.x = Math.PI/2;
+      engRing.position.set(0, 0, 1.20);
+      g.add(engRing);
+      // hot center hexagonal branco
       var engHot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.16, 12, 8),
-        new THREE.MeshBasicMaterial({color:0xffe8e0})
+        new THREE.CylinderGeometry(0.30, 0.30, 0.20, 6),
+        new THREE.MeshBasicMaterial({color:0xfff0ff})
       );
-      engHot.position.set(0, 0, 1.2);
+      engHot.rotation.x = Math.PI/2;
+      engHot.position.set(0, 0, 1.28);
       g.add(engHot);
+      // halo pink suave
       var engHalo = new THREE.Mesh(
-        new THREE.SphereGeometry(0.55, 14, 10),
-        new THREE.MeshBasicMaterial({color:0xff6080, transparent:true, opacity:0.45})
+        new THREE.SphereGeometry(0.70, 14, 10),
+        new THREE.MeshBasicMaterial({color:0xff40a0, transparent:true, opacity:0.42})
       );
-      engHalo.position.set(0, 0, 1.3);
+      engHalo.position.set(0, 0, 1.30);
       g.add(engHalo);
 
-      // tip emitters (bullets saem das pontas das asas)
-      var lTip = new THREE.Object3D(); lTip.position.set(-5.0, 0, 0.5); g.add(lTip);
-      var rTip = new THREE.Object3D(); rTip.position.set( 5.0, 0, 0.5); g.add(rTip);
+      // tip emitters (bullets saem das pontas das asas horizontais)
+      var lTip = new THREE.Object3D(); lTip.position.set(-4.1, 0, 1.0); g.add(lTip);
+      var rTip = new THREE.Object3D(); rTip.position.set( 4.1, 0, 1.0); g.add(rTip);
 
-      g.userData = { engL: engCore, engR: engHalo, leftTip: lTip, rightTip: rTip };
+      g.userData = { engL: engRing, engR: engHalo, leftTip: lTip, rightTip: rTip };
       return g;
     }
     var ship = makeShip();
