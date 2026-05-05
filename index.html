@@ -190,6 +190,38 @@ header nav a:hover{color:#fff}
   background:repeating-linear-gradient(45deg,#1a1a1a 0 20px,#222 20px 40px);
 }
 .bg-comingsoon .title,.bg-comingsoon .subtitle{color:#555}
+.bg-pvparchero{background:
+  radial-gradient(ellipse at 25% 25%,#4FB3F0 0%,transparent 55%),
+  radial-gradient(ellipse at 75% 75%,#FF5743 0%,transparent 55%),
+  radial-gradient(circle at 50% 50%,rgba(122,31,142,0.4) 0%,transparent 50%),
+  linear-gradient(135deg,#1a0e07 0%,#3a1818 100%)}
+
+/* ===== COMING SOON SECTION ===== */
+.soon-wrap{
+  background:
+    radial-gradient(ellipse at 30% 0%,rgba(255,170,30,0.08) 0%,transparent 55%),
+    radial-gradient(ellipse at 70% 100%,rgba(255,42,42,0.08) 0%,transparent 55%),
+    linear-gradient(180deg,rgba(255,170,30,0.02) 0%,rgba(255,42,42,0.02) 100%);
+  padding:20px 0;margin-top:20px;
+  border-top:1px solid rgba(255,170,30,0.15);
+  border-bottom:1px solid rgba(255,170,30,0.15);
+}
+.row.soon h2::before{background:#ffa000}
+.row.soon h2{color:#ffd070}
+.row.soon .row-scroll::-webkit-scrollbar-thumb{background:#ffa000}
+.card.soon-card .card-overlay{
+  background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.3) 70%,transparent 100%);
+}
+.card.soon-card .card-overlay .chip{background:rgba(255,170,30,0.25);border-color:#ffa000;color:#ffa000}
+.card.soon-card:hover{box-shadow:0 20px 60px rgba(0,0,0,0.85),0 0 0 3px rgba(255,170,30,0.7)}
+.soon-badge{
+  position:absolute;top:10px;right:10px;
+  padding:3px 8px;background:rgba(255,170,30,0.25);
+  border:1px solid #ffa000;color:#ffa000;
+  font-size:9px;font-weight:bold;letter-spacing:2px;
+  border-radius:3px;font-family:'Impact','Arial Black',sans-serif;
+  z-index:2;text-shadow:0 0 8px rgba(255,170,30,0.6);
+}
 
 /* ===== FOOTER ===== */
 footer{
@@ -223,6 +255,7 @@ footer a{color:#888;margin:0 8px}
   <a href="/" class="brand">SURTADO<span class="dot">.</span>GAMES</a>
   <nav>
     <a href="#games">games</a>
+    <a href="#coming-soon">coming soon</a>
     <a href="#kids">kids</a>
     <a href="secret/?v=33">secret</a>
     <a href="https://github.com/marcofurtado-hub" target="_blank">github</a>
@@ -328,6 +361,30 @@ footer a{color:#888;margin:0 8px}
     </a>
   </div>
 </section>
+
+<!-- ===== COMING SOON ===== -->
+<div class="soon-wrap" id="coming-soon">
+  <section class="row soon">
+    <h2>🚧 COMING SOON · em desenvolvimento</h2>
+    <div class="row-scroll">
+      <a class="card soon-card" href="https://marcofurtado-hub.github.io/pvp-archero/" target="_blank">
+        <div class="soon-badge">★ NEW · WIP</div>
+        <div class="card-bg bg-pvparchero">
+          <div>
+            <div class="emoji">🏹</div>
+            <div class="title">PVP<br>ARCHERO</div>
+            <div class="subtitle">PVP ARENA · 3D</div>
+          </div>
+        </div>
+        <div class="card-overlay">
+          <span class="chip">PVP · ARENA · 3D</span>
+          <h3>PvP Archero</h3>
+          <p>1v1 arena top-down estilo Archero com 2 minions cada lado, waves de PvE e boss que força foco comum antes do duelo final. Em construção — jogue a versão preview!</p>
+        </div>
+      </a>
+    </div>
+  </section>
+</div>
 
 <!-- ===== KIDS ZONE ===== -->
 <div class="kids-wrap" id="kids">
