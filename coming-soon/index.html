@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SURTADO.GAMES — coming soon</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#0a0a0a;color:#fff;font-family:'Helvetica Neue','Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* ===== GATE ===== */
+#gate{
+  position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,#3a1a05 0%,#000 80%);
+  transition:opacity .5s ease;
+}
+#gate.hide{opacity:0;pointer-events:none}
+.gate-box{
+  text-align:center;padding:40px 32px;max-width:360px;width:90%;
+  background:rgba(0,0,0,0.6);border:1px solid rgba(255,170,30,0.35);
+  border-radius:12px;backdrop-filter:blur(10px);
+}
+.gate-box .lock{font-size:54px;margin-bottom:12px;filter:drop-shadow(0 4px 20px rgba(255,170,30,0.4))}
+.gate-box h1{font-family:'Impact','Arial Black',sans-serif;font-size:32px;letter-spacing:3px;color:#ffa000;margin-bottom:8px;text-shadow:0 0 20px rgba(255,170,30,0.5)}
+.gate-box p{font-size:13px;color:#aaa;margin-bottom:22px;letter-spacing:1px}
+.gate-box input{
+  width:100%;padding:14px 16px;font-size:24px;text-align:center;letter-spacing:14px;
+  background:#0a0a0a;border:2px solid #333;color:#fff;border-radius:6px;outline:none;
+  font-family:inherit;transition:border-color .2s;
+}
+.gate-box input:focus{border-color:#ffa000}
+.gate-box input.bad{border-color:#ff4040;animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.gate-box button{
+  margin-top:14px;width:100%;padding:14px;font-size:14px;font-weight:bold;letter-spacing:2px;
+  background:#ffa000;color:#000;border:none;border-radius:6px;cursor:pointer;font-family:inherit;
+  transition:background .2s,transform .1s;
+}
+.gate-box button:hover{background:#ffb830}
+.gate-box button:active{transform:scale(0.97)}
+.gate-box .err{color:#ff5050;font-size:12px;margin-top:10px;height:14px;letter-spacing:1px}
+.gate-box .back{margin-top:18px;font-size:11px;color:#666;letter-spacing:1px}
+.gate-box .back a{color:#888;text-decoration:underline}
+
+/* ===== HEADER ===== */
+header{
+  padding:20px 48px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #1f1f1f;
+}
+header .brand{
+  font-family:'Impact','Arial Black',sans-serif;
+  font-size:24px;letter-spacing:2px;color:#ff2a2a;
+  text-shadow:0 0 18px rgba(255,42,42,0.6);
+}
+header .brand .dot{color:#ffa000}
+header nav a{margin-left:18px;font-size:13px;color:#ddd}
+header nav a:hover{color:#fff}
+
+/* ===== HERO ===== */
+.intro{padding:60px 48px 30px;text-align:center}
+.intro .badge{
+  display:inline-block;padding:6px 12px;background:rgba(255,170,30,0.15);
+  border:1px solid #ffa000;color:#ffa000;font-size:11px;font-weight:bold;
+  letter-spacing:3px;border-radius:3px;margin-bottom:18px;
+}
+.intro h1{
+  font-family:'Impact','Arial Black',sans-serif;
+  font-size:64px;letter-spacing:4px;color:#fff;margin-bottom:14px;
+  text-shadow:0 0 30px rgba(255,170,30,0.4);
+}
+.intro h1 .gold{color:#ffa000}
+.intro p{font-size:16px;color:#aaa;max-width:600px;margin:0 auto;line-height:1.5}
+
+/* ===== GRID 3 COLS ===== */
+.grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+  padding:30px 48px 60px;max-width:1280px;margin:0 auto;
+}
+.card{
+  aspect-ratio:16/9;border-radius:10px;cursor:pointer;position:relative;
+  overflow:hidden;border:2px solid transparent;
+  transition:transform 0.25s cubic-bezier(0.25,0.8,0.25,1),box-shadow 0.25s ease;
+}
+.card:hover{transform:scale(1.04);box-shadow:0 20px 60px rgba(0,0,0,0.9),0 0 0 3px rgba(255,170,30,0.6)}
+.card-bg{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Impact','Arial Black',sans-serif;
+  color:#fff;letter-spacing:1px;text-align:center;padding:16px;
+  text-shadow:0 4px 20px rgba(0,0,0,0.8);
+}
+.card .emoji{font-size:54px;margin-bottom:6px;filter:drop-shadow(0 2px 10px rgba(0,0,0,0.5))}
+.card .title{font-size:26px;letter-spacing:2px;line-height:1.05}
+.card .subtitle{font-size:10px;color:rgba(255,255,255,0.75);font-family:inherit;letter-spacing:3px;margin-top:6px;font-weight:normal}
+.beta-badge{
+  position:absolute;top:10px;right:10px;
+  padding:3px 8px;background:rgba(255,170,30,0.25);
+  border:1px solid #ffa000;color:#ffa000;
+  font-size:9px;font-weight:bold;letter-spacing:2px;
+  border-radius:3px;font-family:'Impact','Arial Black',sans-serif;
+  z-index:2;text-shadow:0 0 8px rgba(255,170,30,0.6);
+}
+.card-overlay{
+  position:absolute;inset:0;opacity:0;
+  background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 70%,transparent 100%);
+  padding:16px;display:flex;flex-direction:column;justify-content:flex-end;
+  transition:opacity 0.25s ease;
+}
+.card:hover .card-overlay{opacity:1}
+.card-overlay h3{font-size:16px;color:#fff;margin-bottom:4px}
+.card-overlay p{font-size:11px;color:#b8b8b8;line-height:1.4;margin-bottom:8px}
+.card-overlay .chip{
+  display:inline-block;padding:2px 8px;background:rgba(255,170,30,0.25);
+  border:1px solid #ffa000;color:#ffa000;font-size:9px;letter-spacing:1px;
+  border-radius:3px;font-weight:bold;
+}
+
+.bg-pvparchero{background:
+  radial-gradient(ellipse at 25% 25%,#4FB3F0 0%,transparent 55%),
+  radial-gradient(ellipse at 75% 75%,#FF5743 0%,transparent 55%),
+  radial-gradient(circle at 50% 50%,rgba(122,31,142,0.4) 0%,transparent 50%),
+  linear-gradient(135deg,#1a0e07 0%,#3a1818 100%)}
+.bg-soccer{background:
+  radial-gradient(ellipse at 25% 70%,#1a5acc 0%,transparent 55%),
+  radial-gradient(ellipse at 75% 30%,#cc1a1a 0%,transparent 55%),
+  radial-gradient(circle at 50% 50%,rgba(255,255,255,0.22) 0%,transparent 40%),
+  linear-gradient(135deg,#0a3010 0%,#1f5028 50%,#0a2010 100%)}
+.bg-placeholder{background:repeating-linear-gradient(45deg,#1a1a1a 0 20px,#222 20px 40px)}
+.bg-placeholder .title,.bg-placeholder .subtitle{color:#555}
+
+footer{
+  padding:30px 48px 24px;border-top:1px solid #1f1f1f;text-align:center;
+  color:#666;font-size:12px;
+}
+footer a{color:#888;margin:0 8px}
+
+@media (max-width:900px){
+  .grid{grid-template-columns:repeat(2,1fr);padding:30px 20px 40px}
+  .intro{padding:40px 20px 20px}
+  .intro h1{font-size:42px;letter-spacing:2px}
+  header{padding:14px 20px}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr;gap:14px}
+  .intro h1{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== PASSWORD GATE ===== -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="lock">🔒</div>
+    <h1>COMING SOON</h1>
+    <p>ENTER 3-DIGIT CODE</p>
+    <input id="pw" type="password" maxlength="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="•••" autofocus>
+    <button id="pwBtn">UNLOCK</button>
+    <div class="err" id="pwErr"></div>
+    <div class="back">— <a href="../">back to surtado.games</a></div>
+  </div>
+</div>
+
+<!-- ===== CONTENT ===== -->
+<div id="content" style="display:none">
+  <header>
+    <a href="../" class="brand">SURTADO<span class="dot">.</span>GAMES</a>
+    <nav>
+      <a href="../">home</a>
+      <a href="../#games">games</a>
+    </nav>
+  </header>
+
+  <section class="intro">
+    <div class="badge">★ BETA · NDA</div>
+    <h1>COMING <span class="gold">SOON</span></h1>
+    <p>Protótipos em desenvolvimento. Acesso restrito por código.</p>
+  </section>
+
+  <div class="grid">
+    <a class="card" href="../pvp-archero/" target="_blank">
+      <span class="beta-badge">BETA</span>
+      <div class="card-bg bg-pvparchero">
+        <div>
+          <div class="emoji">🏹</div>
+          <div class="title">PVP<br>ARCHERO</div>
+          <div class="subtitle">PVP ARENA · 3D</div>
+        </div>
+      </div>
+      <div class="card-overlay">
+        <span class="chip">PVP · ARENA · 3D</span>
+        <h3>PvP Archero</h3>
+        <p>1v1 arena top-down chibi com 2 minions cada lado, waves de PvE, boss que força foco comum, e duelo final. WASD+mouse no desktop, joystick flutuante no mobile.</p>
+      </div>
+    </a>
+
+    <a class="card" href="../soccer-1x1/" target="_blank">
+      <span class="beta-badge">BETA</span>
+      <div class="card-bg bg-soccer">
+        <div>
+          <div class="emoji">⚽</div>
+          <div class="title">SOCCER<br>1×1</div>
+          <div class="subtitle">1V1 · 1ª A 3 GOLS</div>
+        </div>
+      </div>
+      <div class="card-overlay">
+        <span class="chip">SOCCER · 1V1</span>
+        <h3>Soccer 1x1</h3>
+        <p>Futebol de cubos no estilingue. WASD pra mover, mira no mouse, arrasta &amp; solta pra chutar. Bola ricocheteia nas paredes laterais, primeiro a 3 gols leva. Azul (você) vs Vermelho (rival).</p>
+      </div>
+    </a>
+
+    <div class="card" style="cursor:default" onclick="return false">
+      <div class="card-bg bg-placeholder">
+        <div>
+          <div class="emoji">🚧</div>
+          <div class="title">MORE<br>SOON</div>
+          <div class="subtitle">EM BREVE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>SURTADO.GAMES — área restrita ♥</p>
+    <p style="margin-top:6px"><a href="../">voltar pra home</a></p>
+  </footer>
+</div>
+
+<script>
+const PASSWORD = '381';
+const STORAGE_KEY = 'surtado_comingsoon_unlocked_v1';
+
+const gateEl = document.getElementById('gate');
+const contentEl = document.getElementById('content');
+const pwInput = document.getElementById('pw');
+const pwBtn = document.getElementById('pwBtn');
+const pwErr = document.getElementById('pwErr');
+
+function unlock() {
+  gateEl.classList.add('hide');
+  setTimeout(() => {
+    gateEl.style.display = 'none';
+    contentEl.style.display = 'block';
+  }, 500);
+}
+
+function tryPassword() {
+  const v = pwInput.value.trim();
+  if (v === PASSWORD) {
+    sessionStorage.setItem(STORAGE_KEY, '1');
+    unlock();
+  } else {
+    pwInput.classList.add('bad');
+    pwErr.textContent = 'WRONG CODE';
+    setTimeout(() => { pwInput.classList.remove('bad'); pwErr.textContent=''; }, 700);
+    pwInput.value = '';
+    pwInput.focus();
+  }
+}
+
+pwBtn.addEventListener('click', tryPassword);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
+
+if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+  gateEl.style.display = 'none';
+  contentEl.style.display = 'block';
+}
+</script>
+
+</body>
+</html>
