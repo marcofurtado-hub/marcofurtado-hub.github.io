@@ -171,6 +171,11 @@ header nav a:hover{color:#fff}
   radial-gradient(ellipse at 30% 20%,#a020ff 0%,transparent 55%),
   radial-gradient(ellipse at 70% 80%,#ff4080 0%,transparent 55%),
   linear-gradient(135deg,#1a0030 0%,#3a0a20 100%)}
+.bg-drumkit{background:
+  radial-gradient(ellipse at 30% 25%,#ff2a2a 0%,transparent 50%),
+  radial-gradient(ellipse at 70% 75%,#ffa000 0%,transparent 50%),
+  radial-gradient(circle at 50% 50%,rgba(0,0,0,0.5) 0%,transparent 70%),
+  linear-gradient(135deg,#1a0508 0%,#0a0204 100%)}
 .bg-spacefox{background:
   radial-gradient(ellipse at 25% 25%,#ffaa20 0%,transparent 50%),
   radial-gradient(ellipse at 75% 30%,#40c0ff 0%,transparent 55%),
@@ -203,6 +208,29 @@ header nav a:hover{color:#fff}
   radial-gradient(ellipse at 75% 70%,rgba(255,42,42,0.4) 0%,transparent 55%),
   radial-gradient(circle at 50% 50%,rgba(0,0,0,0.5) 0%,transparent 60%),
   linear-gradient(135deg,#1a0e07 0%,#3a1808 100%)}
+
+/* ===== VR SECTION ===== */
+.vr-wrap{
+  background:
+    radial-gradient(ellipse at 30% 0%,rgba(160,32,255,0.12) 0%,transparent 55%),
+    radial-gradient(ellipse at 70% 100%,rgba(64,128,255,0.12) 0%,transparent 55%),
+    linear-gradient(180deg,rgba(160,32,255,0.03) 0%,rgba(64,128,255,0.03) 100%);
+  padding:20px 0;margin-top:20px;
+  border-top:1px solid rgba(160,32,255,0.2);
+  border-bottom:1px solid rgba(160,32,255,0.2);
+}
+.row.vr h2::before{background:#a020ff}
+.row.vr h2{color:#d8a8ff}
+.card.vr-card:hover{box-shadow:0 20px 60px rgba(0,0,0,0.85),0 0 0 3px rgba(160,32,255,0.7)}
+.card.vr-card .card-overlay .chip{background:rgba(160,32,255,0.25);border-color:#a020ff;color:#d8a8ff}
+.vr-badge{
+  position:absolute;top:10px;right:10px;
+  padding:3px 8px;background:rgba(160,32,255,0.25);
+  border:1px solid #a020ff;color:#d8a8ff;
+  font-size:9px;font-weight:bold;letter-spacing:2px;
+  border-radius:3px;font-family:'Impact','Arial Black',sans-serif;
+  z-index:2;text-shadow:0 0 8px rgba(160,32,255,0.6);
+}
 
 /* ===== COMING SOON SECTION ===== */
 .soon-wrap{
@@ -263,6 +291,7 @@ footer a{color:#888;margin:0 8px}
   <a href="/" class="brand">SURTADO<span class="dot">.</span>GAMES</a>
   <nav>
     <a href="#games">games</a>
+    <a href="#vr">vr</a>
     <a href="#kids">kids</a>
     <a href="secret/?v=33">secret</a>
     <a href="https://github.com/marcofurtado-hub" target="_blank">github</a>
@@ -337,21 +366,6 @@ footer a{color:#888;margin:0 8px}
       </div>
     </a>
 
-    <a class="card" href="https://marcofurtado-hub.github.io/doomzinho-vr/" target="_blank">
-      <div class="card-bg bg-vr">
-        <div>
-          <div class="emoji">🥽</div>
-          <div class="title">DOOMZINHO<br>VR</div>
-          <div class="subtitle">QUEST 2 · WEBXR</div>
-        </div>
-      </div>
-      <div class="card-overlay">
-        <span class="chip">VR · QUEST 2</span>
-        <h3>Doomzinho VR</h3>
-        <p>Mesma arena do FPS mas em Realidade Virtual. Arma na mão direita, mira pelo controller, movimenta com thumbstick. Abra no Quest 2 browser.</p>
-      </div>
-    </a>
-
     <a class="card" href="https://marcofurtado-hub.github.io/space-fox/?v=30" target="_blank">
       <div class="card-bg bg-spacefox">
         <div>
@@ -384,6 +398,57 @@ footer a{color:#888;margin:0 8px}
     </a>
   </div>
 </section>
+
+<!-- ===== VR ZONE ===== -->
+<div class="vr-wrap" id="vr">
+  <section class="row vr">
+    <h2>🥽 VR ZONE · meta quest 2 · webxr</h2>
+    <div class="row-scroll">
+      <a class="card vr-card" href="https://marcofurtado-hub.github.io/doomzinho-vr/" target="_blank">
+        <span class="vr-badge">🥽 VR</span>
+        <div class="card-bg bg-vr">
+          <div>
+            <div class="emoji">🔫</div>
+            <div class="title">DOOMZINHO<br>VR</div>
+            <div class="subtitle">QUEST 2 · WEBXR</div>
+          </div>
+        </div>
+        <div class="card-overlay">
+          <span class="chip">VR · SHOOTER</span>
+          <h3>Doomzinho VR</h3>
+          <p>Mesma arena do FPS mas em Realidade Virtual. Arma na mão direita, mira pelo controller, movimenta com thumbstick. Abra no Quest 2 browser.</p>
+        </div>
+      </a>
+
+      <a class="card vr-card" href="https://marcofurtado-hub.github.io/drumkit-vr/" target="_blank">
+        <span class="vr-badge">🥽 VR</span>
+        <div class="card-bg bg-drumkit">
+          <div>
+            <div class="emoji">🥁</div>
+            <div class="title">DRUMKIT<br>VR</div>
+            <div class="subtitle">ROCK KIT · WEBXR</div>
+          </div>
+        </div>
+        <div class="card-overlay">
+          <span class="chip">VR · MUSIC</span>
+          <h3>Drumkit VR</h3>
+          <p>Bateria de rock completa em VR — kick, caixa, 3 toms, chimbal, crash e ride. Sticks nos controles, samples reais, haptic feedback proporcional à força. Trigger = pedal de bumbo.</p>
+        </div>
+      </a>
+
+      <div class="card vr-card" style="cursor:default" onclick="return false">
+        <span class="vr-badge">🔮 SOON</span>
+        <div class="card-bg bg-comingsoon">
+          <div>
+            <div class="emoji">✨</div>
+            <div class="title">COMING<br>SOON</div>
+            <div class="subtitle">PRÓXIMO VR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 
 <!-- ===== KIDS ZONE ===== -->
 <div class="kids-wrap" id="kids">
