@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff5e0">
+<title>Dentista Bobinho 🦷</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff5e0;font-family:'Comic Sans MS','Chalkboard SE','Trebuchet MS',sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#mouth-wrap{position:relative;height:100%;aspect-ratio:9/16;max-width:100%;background:url('empty-mouth.webp') center center/contain no-repeat;background-color:#fff5e0;flex-shrink:0}
+
+/* TOOTH SPRITES — absolutely positioned over the empty-mouth image */
+.tooth{position:absolute;width:9%;aspect-ratio:1;pointer-events:none;will-change:transform,filter;transform:translate(-50%,-50%) scale(0);transition:transform 0.5s cubic-bezier(0.5,1.7,0.5,1),opacity 0.4s,filter 0.3s}
+.tooth.spawned{transform:translate(-50%,-50%) scale(1)}
+.tooth.dirty{filter:sepia(0.6) saturate(1.8) hue-rotate(-20deg) brightness(0.92)}
+.tooth.extracted{transform:translate(-50%,-150%) scale(0.5) rotate(540deg);opacity:0;pointer-events:none}
+.tooth img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.22))}
+.tooth.shake img{animation:toothShake 0.12s ease-in-out infinite alternate}
+@keyframes toothShake{from{transform:translate(-2px,0) rotate(-3deg)}to{transform:translate(2px,0) rotate(3deg)}}
+.tooth.glow{filter:drop-shadow(0 0 12px rgba(255,220,80,0.9)) drop-shadow(0 0 24px rgba(255,180,40,0.6))}
+/* Cavity overlay — procedural black hole layered on a clean tooth */
+.tooth .cavity-hole{position:absolute;left:50%;top:50%;width:40%;height:40%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#0a0408 30%,#241016 60%,transparent 78%);box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);transition:transform 0.25s,opacity 0.25s;pointer-events:none}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:50;padding:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.hud-pill{background:rgba(255,255,255,0.92);border:3px solid #ff8aa8;border-radius:18px;padding:6px 14px;box-shadow:0 4px 0 #ffc4d6;display:flex;align-items:center;gap:8px}
+.hud-pill .icon{font-size:24px;line-height:1}
+.hud-pill .text{font-size:14px;font-weight:bold;color:#c0356a;text-shadow:0 1px 0 #fff}
+#progress-bar{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px}
+#progress-bar .label{font-size:9px;letter-spacing:2px;color:#c0356a;font-weight:bold}
+#progress-bar .bar{width:120px;height:14px;background:rgba(255,200,220,0.5);border:2px solid #ff8aa8;border-radius:8px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,0.1)}
+#progress-bar .fill{height:100%;background:linear-gradient(90deg,#ffd47a,#ff8aa8);width:0%;transition:width 0.4s cubic-bezier(0.5,1.5,0.5,1);border-radius:6px}
+
+/* PHASE BANNER */
+#banner{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:40;pointer-events:none;text-align:center;opacity:0;transition:opacity 0.3s,transform 0.6s cubic-bezier(0.5,1.7,0.5,1)}
+#banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#banner .emoji{font-size:80px;margin-bottom:8px;filter:drop-shadow(0 4px 0 rgba(0,0,0,0.15))}
+#banner .text{font-size:32px;font-weight:bold;color:#fff;text-shadow:0 3px 0 #ff8aa8,0 4px 6px rgba(0,0,0,0.2);letter-spacing:2px;line-height:1}
+#banner .sub{font-size:14px;color:#fff;margin-top:6px;text-shadow:0 1px 2px rgba(0,0,0,0.3);letter-spacing:1px}
+
+/* TOOL */
+#tool{position:fixed;width:120px;height:120px;pointer-events:none;z-index:30;will-change:transform;transform:translate(-50%,-50%);transition:opacity 0.25s}
+#tool img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15))}
+#tool.active img{animation:wiggle 0.18s ease-in-out infinite alternate}
+@keyframes wiggle{from{transform:rotate(-4deg) scale(1)}to{transform:rotate(4deg) scale(1.04)}}
+
+/* EFFECTS LAYER */
+#fx-layer{position:absolute;inset:0;pointer-events:none;z-index:25}
+.particle{position:absolute;pointer-events:none;will-change:transform,opacity;font-size:24px;line-height:1}
+.flash-ring{position:absolute;border-radius:50%;border:4px solid #fff;pointer-events:none;animation:ringPop 0.5s ease-out forwards}
+@keyframes ringPop{0%{transform:scale(0);opacity:1}100%{transform:scale(2.4);opacity:0}}
+
+/* INTRO */
+#intro{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#ffd6e8 0%,#fff5e0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;cursor:pointer}
+#intro.hide{opacity:0;pointer-events:none;transition:opacity 0.5s}
+#intro h1{font-size:54px;color:#ff5a85;text-shadow:0 4px 0 #fff,0 6px 0 #ff8aa8,0 7px 12px rgba(0,0,0,0.2);margin-bottom:6px;line-height:1;letter-spacing:1px;animation:bounce 1s ease-in-out infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-6px)}}
+#intro .sub{color:#c0356a;font-size:18px;margin-bottom:24px;font-weight:bold;letter-spacing:1px}
+#intro .preview{width:80%;max-width:280px;aspect-ratio:9/16;background:url('empty-mouth.webp') center center/contain no-repeat;border-radius:24px;box-shadow:0 12px 30px rgba(0,0,0,0.15);margin-bottom:24px}
+#intro .tap{background:#ff5a85;color:#fff;padding:14px 36px;border-radius:32px;font-size:22px;font-weight:bold;letter-spacing:2px;box-shadow:0 6px 0 #c0356a,0 10px 20px rgba(0,0,0,0.15);animation:pulseBtn 0.8s ease-in-out infinite alternate}
+@keyframes pulseBtn{from{transform:scale(1)}to{transform:scale(1.06)}}
+
+/* END */
+#end{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#ffd6e8 0%,#fff5e0 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#end.show{display:flex;animation:fadeIn 0.6s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#end h2{font-size:62px;color:#ff5a85;text-shadow:0 4px 0 #fff,0 6px 0 #ff8aa8,0 7px 12px rgba(0,0,0,0.2);margin-bottom:6px;letter-spacing:1px}
+#end .stars{font-size:60px;margin:8px 0 14px;animation:twinkle 1s ease-in-out infinite alternate}
+@keyframes twinkle{from{transform:scale(1) rotate(-5deg)}to{transform:scale(1.1) rotate(5deg)}}
+#end .msg{color:#c0356a;font-size:18px;font-weight:bold;margin-bottom:24px;line-height:1.4}
+#end .cta{background:linear-gradient(180deg,#7eda52,#3ba321);color:#fff;padding:18px 44px;border-radius:36px;font-size:24px;font-weight:bold;letter-spacing:2px;border:none;box-shadow:0 6px 0 #2d7a18,0 10px 20px rgba(0,0,0,0.15);cursor:pointer;animation:pulseBtn 0.8s ease-in-out infinite alternate;font-family:inherit}
+#end .cta:active{transform:translateY(2px) scale(0.96);box-shadow:0 3px 0 #2d7a18}
+
+#confetti{position:fixed;inset:0;z-index:99;pointer-events:none}
+.confetti-piece{position:absolute;width:14px;height:14px;border-radius:3px;will-change:transform,opacity}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="mouth-wrap">
+    <div id="teeth-layer"></div>
+    <div id="fx-layer"></div>
+  </div>
+</div>
+
+<div id="hud">
+  <div class="hud-pill" id="hud-tool">
+    <span class="icon">🪥</span>
+    <span class="text" id="hud-text">Escovar</span>
+  </div>
+  <div id="progress-bar">
+    <div class="label" id="progress-label">FASE 1/4</div>
+    <div class="bar"><div class="fill" id="progress-fill"></div></div>
+  </div>
+</div>
+
+<div id="banner">
+  <div class="emoji" id="banner-emoji">🪥</div>
+  <div class="text" id="banner-text">VAMOS ESCOVAR!</div>
+  <div class="sub" id="banner-sub">arrasta nos dentes amarelos</div>
+</div>
+
+<div id="tool"><img id="tool-img" alt="" /></div>
+
+<div id="intro">
+  <h1>DENTISTA<br>BOBINHO 🦷</h1>
+  <div class="sub">limpa, drilla e arranca!</div>
+  <div class="preview"></div>
+  <div class="tap">▶ TOCAR PRA COMEÇAR</div>
+</div>
+
+<div id="end">
+  <h2>BOA, DOUTOR!</h2>
+  <div class="stars">⭐⭐⭐</div>
+  <div class="msg">Você salvou os dentinhos!<br>Quer brincar de novo?</div>
+  <button class="cta" id="cta-btn">JOGAR AGORA</button>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+// ============================================================================
+// CONFIG
+// ============================================================================
+const CTA_URL = 'https://play.google.com/store/apps/details?id=com.example.kidsdentist';
+
+const TOOL_IMAGES = {
+  brush:  'brush.webp',
+  floss:  'floss.webp',
+  drill:  'drill.webp',
+  pliers: 'pliers.webp',
+};
+
+const TOOTH_SPRITE = {
+  clean:  'tooth-clean.webp',
+  rotten: 'tooth-rotten.webp',
+};
+
+// 12 tooth slots positioned along the empty-mouth's gum arcs
+// (x, y normalized 0-1 relative to mouth-wrap)
+// Each tooth has an INITIAL state that determines what the player does.
+// state options: 'clean' | 'dirty' | 'cavity' | 'rotten'
+// Slot positions for the standing toy mouth — opening visible y=0.30-0.55, x=0.36-0.66.
+// 10 teeth (5 top + 5 bottom) form a tight horseshoe.
+const TOOTH_SLOTS = [
+  // ---- TOP arc (hanging from upper gum — y≈0.41-0.43)
+  { id: 't0', x: 0.32, y: 0.43, state: 'dirty'  },
+  { id: 't1', x: 0.40, y: 0.42, state: 'cavity' },
+  { id: 't2', x: 0.48, y: 0.41, state: 'clean'  },
+  { id: 't3', x: 0.55, y: 0.42, state: 'dirty'  },
+  { id: 't4', x: 0.62, y: 0.43, state: 'rotten' },
+  // ---- BOTTOM arc (standing on lower gum, above tongue — y≈0.55-0.57)
+  { id: 't5', x: 0.32, y: 0.57, state: 'dirty'  },
+  { id: 't6', x: 0.40, y: 0.56, state: 'clean'  },
+  { id: 't7', x: 0.48, y: 0.55, state: 'cavity' },
+  { id: 't8', x: 0.55, y: 0.56, state: 'dirty'  },
+  { id: 't9', x: 0.62, y: 0.57, state: 'clean'  },
+];
+
+const FLOSS_GAPS = [
+  { id: 'g0', x: 0.44, y: 0.42 },
+  { id: 'g1', x: 0.51, y: 0.42 },
+  { id: 'g2', x: 0.48, y: 0.56 },
+];
+
+// Phase config
+const PHASES = [
+  { id: 'brush',  tool: 'brush',  icon: '🪥', name: 'Escovar',     sub: 'arrasta nos dentes amarelos',  hold: 0.55 },
+  { id: 'floss',  tool: 'floss',  icon: '🧵', name: 'Fio Dental',  sub: 'passa o fio entre os dentes',  hold: 0.45 },
+  { id: 'drill',  tool: 'drill',  icon: '🔧', name: 'Motorzinho',  sub: 'segura na cárie preta',        hold: 0.85 },
+  { id: 'pliers', tool: 'pliers', icon: '🦷', name: 'Alicate',     sub: 'puxa o dente podre pra fora',  hold: 0.75 },
+];
+
+const HIT_RADIUS_PCT = 0.075;  // hit radius in normalized coords
+
+// ============================================================================
+// STATE
+// ============================================================================
+let phaseIdx = 0;
+let phase = PHASES[0];
+let pointer = { x: 0, y: 0, active: false };
+let teeth = {};       // id -> {state, progress, el, slot}
+let gapsDone = {};    // floss gap id -> bool
+let started = false;
+let ended = false;
+let lastFrame = performance.now();
+
+// DOM refs
+const wrapEl = document.getElementById('mouth-wrap');
+const teethLayer = document.getElementById('teeth-layer');
+const fxEl = document.getElementById('fx-layer');
+const toolEl = document.getElementById('tool');
+const toolImgEl = document.getElementById('tool-img');
+const hudIconEl = document.querySelector('#hud-tool .icon');
+const hudTextEl = document.getElementById('hud-text');
+const progressFillEl = document.getElementById('progress-fill');
+const progressLabelEl = document.getElementById('progress-label');
+const bannerEl = document.getElementById('banner');
+const bannerEmojiEl = document.getElementById('banner-emoji');
+const bannerTextEl = document.getElementById('banner-text');
+const bannerSubEl = document.getElementById('banner-sub');
+const introEl = document.getElementById('intro');
+const endEl = document.getElementById('end');
+
+// ============================================================================
+// INIT
+// ============================================================================
+function init() {
+  // Build tooth sprites from slots
+  for (const slot of TOOTH_SLOTS) {
+    const el = document.createElement('div');
+    el.className = 'tooth';
+    el.style.left = (slot.x * 100) + '%';
+    el.style.top = (slot.y * 100) + '%';
+    const img = document.createElement('img');
+    // All states use the clean sprite as base; rotten uses rotten sprite.
+    // 'dirty' = clean + CSS filter. 'cavity' = clean + procedural black hole div.
+    img.src = TOOTH_SPRITE[slot.state === 'rotten' ? 'rotten' : 'clean'];
+    el.appendChild(img);
+    let cavityHole = null;
+    if (slot.state === 'dirty') el.classList.add('dirty');
+    if (slot.state === 'rotten') el.classList.add('shake');
+    if (slot.state === 'cavity') {
+      cavityHole = document.createElement('div');
+      cavityHole.className = 'cavity-hole';
+      el.appendChild(cavityHole);
+    }
+    teethLayer.appendChild(el);
+    teeth[slot.id] = { state: slot.state, progress: 0, el, img, cavityHole, slot };
+  }
+  // Stagger spawn animation
+  setTimeout(() => {
+    Object.values(teeth).forEach((t, i) => {
+      setTimeout(() => t.el.classList.add('spawned'), i * 60);
+    });
+  }, 100);
+
+  // Tool init
+  toolImgEl.src = TOOL_IMAGES[phase.tool];
+  toolEl.style.opacity = '0';
+
+  // Pointer events
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('mousedown', onPointerDown);
+  document.addEventListener('mouseup', onPointerUp);
+  document.addEventListener('touchstart', onPointerDown, { passive: false });
+  document.addEventListener('touchmove', onPointerMove, { passive: false });
+  document.addEventListener('touchend', onPointerUp);
+
+  introEl.addEventListener('click', startGame);
+  introEl.addEventListener('touchstart', e => { e.preventDefault(); startGame(); }, { passive: false });
+  document.getElementById('cta-btn').addEventListener('click', () => {
+    if (window.mraid) window.mraid.open(CTA_URL);
+    else window.open(CTA_URL, '_blank');
+  });
+
+  requestAnimationFrame(loop);
+}
+
+function startGame() {
+  if (started) return;
+  started = true;
+  introEl.classList.add('hide');
+  setTimeout(() => { introEl.style.display = 'none'; }, 500);
+  setPhase(0);
+  initAudio();
+}
+
+// ============================================================================
+// POINTER
+// ============================================================================
+function getPos(e) {
+  const t = e.touches ? e.touches[0] : e;
+  if (!t) return null;
+  return { clientX: t.clientX, clientY: t.clientY };
+}
+function onPointerMove(e) {
+  const p = getPos(e);
+  if (!p) return;
+  e.preventDefault && e.preventDefault();
+  pointer.x = p.clientX;
+  pointer.y = p.clientY;
+  toolEl.style.transform = `translate(${pointer.x}px, ${pointer.y}px) translate(-50%, -50%)`;
+  if (started && !ended) toolEl.style.opacity = '1';
+}
+function onPointerDown(e) {
+  const p = getPos(e);
+  if (!p) return;
+  e.preventDefault && e.preventDefault();
+  pointer.x = p.clientX;
+  pointer.y = p.clientY;
+  pointer.active = true;
+  toolEl.style.transform = `translate(${pointer.x}px, ${pointer.y}px) translate(-50%, -50%)`;
+  if (started && !ended) {
+    toolEl.style.opacity = '1';
+    toolEl.classList.add('active');
+  }
+}
+function onPointerUp() {
+  pointer.active = false;
+  toolEl.classList.remove('active');
+}
+
+function getPointerInMouth() {
+  const r = wrapEl.getBoundingClientRect();
+  const x = (pointer.x - r.left) / r.width;
+  const y = (pointer.y - r.top) / r.height;
+  return { x, y, inside: x >= 0 && x <= 1 && y >= 0 && y <= 1 };
+}
+
+// ============================================================================
+// PHASE
+// ============================================================================
+function setPhase(i) {
+  phaseIdx = i;
+  phase = PHASES[i];
+  toolImgEl.src = TOOL_IMAGES[phase.tool];
+  hudIconEl.textContent = phase.icon;
+  hudTextEl.textContent = phase.name;
+  progressLabelEl.textContent = `FASE ${i+1}/${PHASES.length}`;
+  updateProgress();
+  showBanner(phase.icon, phase.name.toUpperCase(), phase.sub);
+}
+
+function showBanner(emoji, text, sub) {
+  bannerEmojiEl.textContent = emoji;
+  bannerTextEl.textContent = text;
+  bannerSubEl.textContent = sub;
+  bannerEl.classList.remove('show');
+  void bannerEl.offsetWidth;
+  bannerEl.classList.add('show');
+  setTimeout(() => bannerEl.classList.remove('show'), 1800);
+}
+
+function updateProgress() {
+  // Total progress across all phases
+  let done = 0, total = 0;
+  // Brush targets = dirty
+  for (const id in teeth) { const s = teeth[id].slot.state; if (s === 'dirty') { total++; if (teeth[id].state === 'clean') done++; } }
+  // Floss targets
+  for (const g of FLOSS_GAPS) { total++; if (gapsDone[g.id]) done++; }
+  // Drill targets = cavity
+  for (const id in teeth) { const s = teeth[id].slot.state; if (s === 'cavity') { total++; if (teeth[id].state === 'clean') done++; } }
+  // Pliers targets = rotten
+  for (const id in teeth) { const s = teeth[id].slot.state; if (s === 'rotten') { total++; if (teeth[id].state === 'extracted') done++; } }
+  progressFillEl.style.width = `${(done / total) * 100}%`;
+}
+
+function checkPhaseComplete() {
+  if (phase.id === 'brush')  return Object.values(teeth).every(t => t.slot.state !== 'dirty' || t.state === 'clean');
+  if (phase.id === 'floss')  return FLOSS_GAPS.every(g => gapsDone[g.id]);
+  if (phase.id === 'drill')  return Object.values(teeth).every(t => t.slot.state !== 'cavity' || t.state === 'clean');
+  if (phase.id === 'pliers') return Object.values(teeth).every(t => t.slot.state !== 'rotten' || t.state === 'extracted');
+  return false;
+}
+
+function advancePhase() {
+  if (phaseIdx + 1 >= PHASES.length) {
+    endGame();
+  } else {
+    setTimeout(() => setPhase(phaseIdx + 1), 1200);
+  }
+}
+
+function endGame() {
+  ended = true;
+  toolEl.style.opacity = '0';
+  setTimeout(() => {
+    endEl.classList.add('show');
+    spawnConfetti();
+  }, 800);
+}
+
+// ============================================================================
+// INTERACTION
+// ============================================================================
+function processInteraction(dt) {
+  if (!pointer.active || !started || ended) return;
+  const p = getPointerInMouth();
+  if (!p.inside) return;
+
+  if (phase.id === 'brush')  return processBrush(dt, p);
+  if (phase.id === 'floss')  return processFloss(dt, p);
+  if (phase.id === 'drill')  return processDrill(dt, p);
+  if (phase.id === 'pliers') return processPliers(dt, p);
+}
+
+function findClosestTooth(p, predicate) {
+  let best = null, bestD = HIT_RADIUS_PCT * HIT_RADIUS_PCT;
+  for (const id in teeth) {
+    const t = teeth[id];
+    if (!predicate(t)) continue;
+    const dx = t.slot.x - p.x, dy = t.slot.y - p.y;
+    const d = dx*dx + dy*dy;
+    if (d < bestD) { bestD = d; best = t; }
+  }
+  return best;
+}
+
+function processBrush(dt, p) {
+  const t = findClosestTooth(p, t => t.slot.state === 'dirty' && t.state === 'dirty');
+  if (!t) return;
+  t.progress += dt / phase.hold;
+  spawnSparkleAt(p);
+  // Fade the dirty filter as progress increases
+  t.el.style.filter = `hue-rotate(${-30 * (1 - t.progress)}deg) brightness(${0.85 + 0.15 * t.progress}) saturate(${1.6 - 0.6 * t.progress})`;
+  if (t.progress >= 1) {
+    t.state = 'clean';
+    t.el.classList.remove('dirty');
+    t.el.style.filter = '';
+    burstParticles(p, ['✨','⭐','💫','💖'], 10);
+    flashRing(p, '#fff');
+    playPing();
+    updateProgress();
+    if (checkPhaseComplete()) advancePhase();
+  }
+}
+
+function processFloss(dt, p) {
+  // Find nearest gap
+  let best = null, bestD = HIT_RADIUS_PCT * HIT_RADIUS_PCT;
+  for (const g of FLOSS_GAPS) {
+    if (gapsDone[g.id]) continue;
+    const dx = g.x - p.x, dy = g.y - p.y;
+    const d = dx*dx + dy*dy;
+    if (d < bestD) { bestD = d; best = g; }
+  }
+  if (!best) return;
+  best.progress = (best.progress || 0) + dt / phase.hold;
+  spawnSparkleAt(p);
+  if (best.progress >= 1) {
+    gapsDone[best.id] = true;
+    burstParticles(p, ['💕','✨','💖','🌟'], 10);
+    flashRing(p, '#ffd0e0');
+    playPing();
+    updateProgress();
+    if (checkPhaseComplete()) advancePhase();
+  }
+}
+
+function processDrill(dt, p) {
+  const t = findClosestTooth(p, t => t.slot.state === 'cavity' && t.state === 'cavity');
+  if (!t) return;
+  t.progress += dt / phase.hold;
+  if (Math.random() < 0.5) spawnSparkleAt(p, '⚡');
+  // Shrink the procedural cavity hole as drilling progresses
+  if (t.cavityHole) {
+    const remaining = Math.max(0, 1 - t.progress);
+    t.cavityHole.style.transform = `translate(-50%, -50%) scale(${remaining})`;
+  }
+  if (t.progress >= 1) {
+    t.state = 'clean';
+    if (t.cavityHole) {
+      t.cavityHole.remove();
+      t.cavityHole = null;
+    }
+    t.el.classList.add('glow');
+    setTimeout(() => t.el.classList.remove('glow'), 700);
+    burstParticles(p, ['✨','⭐','💫','🌟','💎'], 14);
+    flashRing(p, '#ffd040');
+    playPing();
+    updateProgress();
+    if (checkPhaseComplete()) advancePhase();
+  }
+}
+
+function processPliers(dt, p) {
+  const t = findClosestTooth(p, t => t.slot.state === 'rotten' && t.state === 'rotten');
+  if (!t) return;
+  t.progress += dt / phase.hold;
+  // Tooth shakes harder + lifts as you pull
+  t.el.classList.add('shake');
+  t.el.style.transform = `translate(-50%, ${-50 - 30 * t.progress}%) rotate(${(Math.random()-0.5)*8}deg)`;
+  if (t.progress >= 1) {
+    t.state = 'extracted';
+    t.el.classList.remove('shake');
+    t.el.classList.add('extracted');
+    burstParticles(p, ['💖','⭐','✨','🌟','💫','💎'], 18);
+    flashRing(p, '#ff8aa8');
+    playPop();
+    updateProgress();
+    if (checkPhaseComplete()) advancePhase();
+  }
+}
+
+// ============================================================================
+// EFFECTS
+// ============================================================================
+function spawnSparkleAt(p, override) {
+  if (Math.random() > 0.5) return;
+  const r = wrapEl.getBoundingClientRect();
+  const px = p.x * r.width;
+  const py = p.y * r.height;
+  const emoji = override || ['✨','⭐','💧'][Math.floor(Math.random()*3)];
+  spawnFloatingParticle(px, py, emoji);
+}
+
+function spawnFloatingParticle(x, y, emoji) {
+  const el = document.createElement('div');
+  el.className = 'particle';
+  el.textContent = emoji;
+  el.style.left = (x - 12) + 'px';
+  el.style.top = (y - 12) + 'px';
+  fxEl.appendChild(el);
+  const angle = Math.random() * Math.PI * 2;
+  const speed = 60 + Math.random() * 80;
+  const vx = Math.cos(angle) * speed;
+  const vy = Math.sin(angle) * speed - 80;
+  let life = 0, max = 0.7 + Math.random() * 0.3;
+  const tick = () => {
+    life += 0.016;
+    if (life >= max) { el.remove(); return; }
+    const t = life / max;
+    const dx = vx * life;
+    const dy = vy * life + 200 * life * life;
+    el.style.transform = `translate(${dx}px, ${dy}px) scale(${1 - t * 0.5}) rotate(${life * 360}deg)`;
+    el.style.opacity = (1 - t).toString();
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function burstParticles(p, emojis, count) {
+  const r = wrapEl.getBoundingClientRect();
+  const px = p.x * r.width;
+  const py = p.y * r.height;
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => spawnFloatingParticle(px, py, emojis[Math.floor(Math.random() * emojis.length)]), i * 18);
+  }
+}
+
+function flashRing(p, color) {
+  const r = wrapEl.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'flash-ring';
+  el.style.borderColor = color;
+  el.style.left = (p.x * r.width - 30) + 'px';
+  el.style.top = (p.y * r.height - 30) + 'px';
+  el.style.width = '60px';
+  el.style.height = '60px';
+  fxEl.appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+
+// ============================================================================
+// CONFETTI
+// ============================================================================
+function spawnConfetti() {
+  const colors = ['#ff5a85','#ffd47a','#a8e6a3','#9ed1ff','#c89df0','#ff8aa8'];
+  const container = document.getElementById('confetti');
+  for (let i = 0; i < 80; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * window.innerWidth + 'px';
+    p.style.top = (-20 - Math.random() * 100) + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.transform = `rotate(${Math.random() * 360}deg)`;
+    container.appendChild(p);
+    const fallDur = 2.5 + Math.random() * 1.5;
+    const drift = (Math.random() - 0.5) * 200;
+    const startX = parseFloat(p.style.left);
+    let life = 0;
+    const tick = () => {
+      life += 0.016;
+      if (life >= fallDur) { p.remove(); return; }
+      const t = life / fallDur;
+      p.style.top = (window.innerHeight * t * 1.1 - 20) + 'px';
+      p.style.left = (startX + drift * t) + 'px';
+      p.style.transform = `rotate(${life * 720}deg)`;
+      p.style.opacity = (1 - t * 0.3).toString();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
+}
+
+// ============================================================================
+// AUDIO (synth)
+// ============================================================================
+let audioCtx = null;
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e) { console.warn('audio init failed:', e); }
+}
+function playPing() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  for (let i = 0; i < 2; i++) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime([880, 1320][i], now + i*0.06);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now + i*0.06);
+    g.gain.linearRampToValueAtTime(0.18, now + i*0.06 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.06 + 0.18);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start(now + i*0.06);
+    osc.stop(now + i*0.06 + 0.20);
+  }
+}
+function playPop() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(180, now);
+  osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.4, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.2);
+}
+
+// ============================================================================
+// LOOP
+// ============================================================================
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+  processInteraction(dt);
+  requestAnimationFrame(loop);
+}
+
+init();
+</script>
+</body>
+</html>
