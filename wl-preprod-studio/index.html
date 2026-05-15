@@ -245,26 +245,26 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <div class="track-progress" id="trackProgress" style="width:0%"></div>
       <button class="node active" data-phase="1" type="button" title="Hipótese">1</button>
       <button class="node pending" data-phase="2" type="button" title="Mercado">2</button>
-      <button class="node pending" data-phase="3" type="button" title="Brief">3</button>
-      <button class="node pending" data-phase="4" type="button" title="Estilo">4</button>
-      <button class="node pending" data-phase="5" type="button" title="Personagens">5</button>
-      <button class="node pending" data-phase="6" type="button" title="Mundo">6</button>
-      <button class="node pending" data-phase="7" type="button" title="UI / Telas">7</button>
-      <button class="node pending" data-phase="8" type="button" title="Assets">8</button>
-      <button class="node pending" data-phase="9" type="button" title="MVP Alpha">9</button>
-      <button class="node pending" data-phase="10" type="button" title="Lançamento">10</button>
+      <button class="node pending" data-phase="3" type="button" title="Core Loop / Gameplay Mockado">3</button>
+      <button class="node pending" data-phase="4" type="button" title="Gameplay Aspiracional">4</button>
+      <button class="node pending" data-phase="5" type="button" title="Brief">5</button>
+      <button class="node pending" data-phase="6" type="button" title="Estilo">6</button>
+      <button class="node pending" data-phase="7" type="button" title="Personagens / Objetos">7</button>
+      <button class="node pending" data-phase="8" type="button" title="UI / Telas">8</button>
+      <button class="node pending" data-phase="9" type="button" title="Vertical Slice MVP">9</button>
+      <button class="node pending" data-phase="10" type="button" title="Pitch / Roadmap / Lançamento teste">10</button>
     </div>
     <div class="track-labels">
       <small data-phase="1" class="active">Hipótese</small>
       <small data-phase="2">Mercado</small>
-      <small data-phase="3">Brief</small>
-      <small data-phase="4">Estilo</small>
-      <small data-phase="5">Personagens</small>
-      <small data-phase="6">Mundo</small>
-      <small data-phase="7">UI / Telas</small>
-      <small data-phase="8">Assets</small>
-      <small data-phase="9">MVP α</small>
-      <small data-phase="10">Lançamento</small>
+      <small data-phase="3">Loop mocked</small>
+      <small data-phase="4">Aspiracional</small>
+      <small data-phase="5">Brief</small>
+      <small data-phase="6">Estilo</small>
+      <small data-phase="7">Cast / Props</small>
+      <small data-phase="8">UI / Telas</small>
+      <small data-phase="9">Vertical Slice</small>
+      <small data-phase="10">Pitch / Launch</small>
     </div>
   </div>
 </div>
@@ -304,7 +304,7 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <div class="panel-sub">Não é o pitch ainda. É a tese — "se eu lançar X, então Y acontece".</div>
       <div class="field full">
         <span class="field-label">Hipótese central <span class="req">*</span></span>
-        <textarea id="h-hipotese" rows="2" placeholder="Ex: Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.">Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.</textarea>
+        <textarea id="h-hipotese" rows="2">Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.</textarea>
         <span class="field-hint">formato sugerido: "se X, então Y porque Z"</span>
       </div>
     </div>
@@ -312,22 +312,10 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
     <div class="panel">
       <h3>Contexto</h3>
       <div class="form-grid">
-        <div class="field">
-          <span class="field-label">Por que agora?</span>
-          <input type="text" id="h-timing" value="Cozy gaming em alta pós-pandemia, mercado BR cresceu 40% em mobile casual em 2025">
-        </div>
-        <div class="field">
-          <span class="field-label">O que prova se der certo?</span>
-          <input type="text" id="h-prova" value="Que conteúdo cultural-local bate global em retenção D30">
-        </div>
-        <div class="field">
-          <span class="field-label">Investimento estimado</span>
-          <input type="text" id="h-budget" value="Time pequeno (4 pessoas), 6 meses até soft launch">
-        </div>
-        <div class="field">
-          <span class="field-label">Métrica de sucesso</span>
-          <input type="text" id="h-metric" value="D7 ≥ 25%, ARPDAU ≥ $0.18 no soft launch BR">
-        </div>
+        <div class="field"><span class="field-label">Por que agora?</span><input type="text" id="h-timing" value="Cozy gaming em alta pós-pandemia, mercado BR cresceu 40% em mobile casual em 2025"></div>
+        <div class="field"><span class="field-label">O que prova se der certo?</span><input type="text" id="h-prova" value="Que conteúdo cultural-local bate global em retenção D30"></div>
+        <div class="field"><span class="field-label">Investimento estimado</span><input type="text" id="h-budget" value="Time pequeno (4 pessoas), 6 meses até soft launch"></div>
+        <div class="field"><span class="field-label">Métrica de sucesso</span><input type="text" id="h-metric" value="D7 ≥ 25%, ARPDAU ≥ $0.18 no soft launch BR"></div>
       </div>
     </div>
 
@@ -335,7 +323,7 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <h3>Risco principal a mitigar</h3>
       <div class="field full">
         <span class="field-label">O que pode dar mais errado?</span>
-        <textarea id="h-risco" rows="2" placeholder="Ex: tema regional pode parecer estereotipado ou só vender no Brasil.">Tema regional pode soar caricato se mal executado, e pode ter teto de mercado limitado ao Brasil — precisamos validar appeal em LATAM cedo.</textarea>
+        <textarea id="h-risco" rows="2">Tema regional pode soar caricato se mal executado, e pode ter teto de mercado limitado ao Brasil — precisamos validar appeal em LATAM cedo.</textarea>
       </div>
     </div>
   </div>
@@ -357,7 +345,7 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
 
   <div class="phase-content">
     <div class="panel">
-      <h3>Genero alvo da hipótese</h3>
+      <h3>Gênero alvo da hipótese</h3>
       <div class="form-grid">
         <div class="field">
           <span class="field-label">Categoria principal</span>
@@ -393,7 +381,7 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
 
     <div class="panel">
       <h3>Top do gênero · agora</h3>
-      <div class="panel-sub">Fonte: <a href="https://sensortower.com/blog/top-10-worldwide-mobile-games-by-revenue-and-downloads-in-april-2026" target="_blank" style="color:var(--accent)">SensorTower abr/2026</a> + relatórios públicos. No plugin real, atualiza via skill on-demand.</div>
+      <div class="panel-sub">Fonte: <a href="https://sensortower.com/blog/top-10-worldwide-mobile-games-by-revenue-and-downloads-in-april-2026" target="_blank" style="color:var(--accent)">SensorTower abr/2026</a> + relatórios públicos.</div>
       <p class="bench-note" id="benchNote">—</p>
       <div class="bench-grid" id="benchGrid"></div>
     </div>
@@ -402,7 +390,7 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <h3>Veredito</h3>
       <div class="field full">
         <span class="field-label">Sua hipótese sobrevive ao mercado?</span>
-        <textarea id="m-veredito" rows="3" placeholder="Ex: Top é Royal Match com $1.4B, é mercado real. Nicho regional brasileiro é underserved — nenhum top 10 atende. Viável seguir.">Top do gênero é Royal Match ($1.4B/ano), mercado é real e tem demanda. Nicho regional brasileiro é underserved — nenhum dos top 10 atende. Viável seguir, mas cuidado com expectativa de receita: nosso teto natural é ~$50M/ano (1/30 do líder global) se servirmos só BR.</textarea>
+        <textarea id="m-veredito" rows="3">Top do gênero é Royal Match ($1.4B/ano), mercado é real e tem demanda. Nicho regional brasileiro é underserved — nenhum dos top 10 atende. Viável seguir, mas cuidado com expectativa de receita: nosso teto natural é ~$50M/ano (1/30 do líder global) se servirmos só BR.</textarea>
       </div>
     </div>
   </div>
@@ -410,16 +398,147 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
   <nav class="phase-nav">
     <button class="btn-secondary" data-next="1" type="button">← Hipótese</button>
     <div class="nav-state">salvo automaticamente</div>
-    <button class="btn-primary" data-next="3" type="button">Continuar pro Brief →</button>
+    <button class="btn-primary" data-next="3" type="button">Continuar pro Core Loop →</button>
   </nav>
 </section>
 
-<!-- ========== ETAPA 3: BRIEF ========== -->
+<!-- ========== ETAPA 3: CORE LOOP / GAMEPLAY MOCKADO ========== -->
 <section class="phase" data-phase="3" hidden>
   <div class="phase-header">
     <div class="phase-meta">Etapa 3 de 10 · Macro</div>
+    <h1 class="phase-title">Core Loop / Gameplay Mockado</h1>
+    <p class="phase-desc">Antes de gerar arte: <strong>descreve o loop minuto-a-minuto em texto.</strong> Frame-by-frame, o que o jogador vê, faz, sente em 30 segundos. Paper prototype puro. É aqui que a gente descobre se o jogo é <em>divertido</em> antes de gastar 1 CU.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Os 30 segundos do jogador</h3>
+      <div class="panel-sub">Frame por frame. Sem floreio. O que aparece → o que ele faz → o que acontece.</div>
+      <div class="form-grid">
+        <div class="field"><span class="field-label">1 · O que aparece</span><input type="text" id="cl-step1" value="Tabuleiro 7×9 com ingredientes (tomate, alho, farinha) + receita do dia no topo: 'Macarrão à bolonhesa'"></div>
+        <div class="field"><span class="field-label">2 · O que o jogador faz</span><input type="text" id="cl-step2" value="Troca peças adjacentes pra formar grupos de 3+ ingredientes da receita"></div>
+        <div class="field"><span class="field-label">3 · Feedback imediato</span><input type="text" id="cl-step3" value="Som de cozinha + animação curta do ingrediente sendo cozinhado + barra de progresso da receita preenche"></div>
+        <div class="field"><span class="field-label">4 · Recompensa</span><input type="text" id="cl-step4" value="Receita completa: cinemática 2s da Dona Marta servindo + estrelas + moedas + diálogo curto regional"></div>
+        <div class="field full"><span class="field-label">5 · O que vem em seguida</span><input type="text" id="cl-step5" value="Próximo level desbloqueia OU evento sazonal aparece OU loja de power-ups oferece booster"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Paper prototype (ASCII)</h3>
+      <div class="panel-sub">Wireframe textual do core loop. Não precisa ser bonito — precisa ser claro.</div>
+      <div class="field full">
+        <textarea id="cl-ascii" rows="14" style="font-family:'SF Mono',Menlo,monospace;font-size:12px;line-height:1.5">┌─────────────────────────────┐
+│  🍝 Receita: bolonhesa  ▓▓░  │  ← barra de progresso
+├─────────────────────────────┤
+│   🍅 🧅 🍅 🌾 🧀 🍅 🧅       │
+│   🌾 🍅 🧅 🍅 🌾 🍅 🧀       │  ← tabuleiro 7×9
+│   🍅 🌾 🍅 🧅 🍅 🌾 🍅       │     ingredientes
+│   🧀 🍅 🌾 🍅 🧅 🍅 🌾       │     selecionáveis
+│   🍅 🧅 🍅 🌾 🍅 🌾 🍅       │
+│   🌾 🍅 🧅 🍅 🧀 🍅 🧅       │
+├─────────────────────────────┤
+│  🪙 1.240   💎 12   ⏱ 1:42  │  ← HUD bottom
+└─────────────────────────────┘
+   ↑ swap tomate-alho aqui</textarea>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>O que diferencia do Royal Match / Candy Crush?</h3>
+      <div class="field full">
+        <span class="field-label">Hook único do core loop</span>
+        <textarea id="cl-diff" rows="3">Receitas reais regionais brasileiras (não power-ups genéricos). Cada nível ensina uma receita de verdade — você termina o jogo sabendo cozinhar 50 pratos da culinária brasileira. Mecânica é match-3 padrão, mas a META vira aspiracional ("vou aprender a fazer x14 de carne").</textarea>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="2" type="button">← Mercado</button>
+    <div class="nav-state">paper prototype salvo</div>
+    <button class="btn-primary" data-next="4" type="button">Continuar pra Aspiracional →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 4: GAMEPLAY ASPIRACIONAL ========== -->
+<section class="phase" data-phase="4" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 4 de 10 · Macro</div>
+    <h1 class="phase-title">Gameplay Aspiracional</h1>
+    <p class="phase-desc">Quais jogos têm <strong>gameplay</strong> (não só visual) que você quer chegar perto? Não é cópia — é referência. <em>"A mecânica do Royal Match com o timing do Cooking Diary e a meta-progression do Township."</em></p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Referências de gameplay</h3>
+      <div class="panel-sub">Pina 1-3 cards. Pra cada um, anota o que copiar e o que NÃO copiar.</div>
+      <div class="mood-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
+        <div class="mood-card" data-pin-asp="a1">
+          <div class="mood-num">A</div>
+          <div class="mood-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/33/57/61/3357618c-5970-9214-51cd-fb231ad63eba/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" alt="Royal Match" loading="lazy"></div>
+          <div class="mood-body">
+            <div class="mood-name">Royal Match</div>
+            <div class="mood-style"><strong>Copiar:</strong> juice + cinemáticas de feedback. <strong>Pular:</strong> rei genérico, queremos persona regional.</div>
+            <div class="mood-source">Dream Games · #1 puzzle 2025</div>
+          </div>
+        </div>
+        <div class="mood-card" data-pin-asp="a2">
+          <div class="mood-num">B</div>
+          <div class="mood-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b9/a4/ec/b9a4ec3e-d780-03df-cd37-e1e2ef2ea789/AppIcon-1x_U007emarketing-0-10-0-P3-85-220-0.png/512x512bb.jpg" alt="Cooking Diary" loading="lazy"></div>
+          <div class="mood-body">
+            <div class="mood-name">Cooking Diary</div>
+            <div class="mood-style"><strong>Copiar:</strong> timing/pressure cooking + narrativa entre níveis. <strong>Pular:</strong> ritmo frenético — queremos cozy.</div>
+            <div class="mood-source">Mytona · time-management</div>
+          </div>
+        </div>
+        <div class="mood-card" data-pin-asp="a3">
+          <div class="mood-num">C</div>
+          <div class="mood-img"><div class="mood-fallback">Gossip Harbor</div></div>
+          <div class="mood-body">
+            <div class="mood-name">Gossip Harbor</div>
+            <div class="mood-style"><strong>Copiar:</strong> story-driven com NPCs falando. <strong>Pular:</strong> mecânica merge — ficamos no match-3.</div>
+            <div class="mood-source">Microfun · $650M em 2025</div>
+          </div>
+        </div>
+        <div class="mood-card" data-pin-asp="a4">
+          <div class="mood-num">D</div>
+          <div class="mood-img"><div class="mood-fallback">Township</div></div>
+          <div class="mood-body">
+            <div class="mood-name">Township</div>
+            <div class="mood-style"><strong>Copiar:</strong> meta-progressão builder (cozinha vira restaurante). <strong>Pular:</strong> escopo enorme — queremos só cozinha.</div>
+            <div class="mood-source">Playrix · farm builder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>A fórmula</h3>
+      <div class="panel-sub">Combine os ingredientes em uma frase única que vira nossa estrela polar.</div>
+      <div class="form-grid">
+        <div class="field"><span class="field-label">Mecânica de</span><input type="text" id="asp-mech" value="Royal Match (juice + level design)"></div>
+        <div class="field"><span class="field-label">Pacing de</span><input type="text" id="asp-pace" value="Cooking Diary (com cozy lento, não frenético)"></div>
+        <div class="field"><span class="field-label">Meta-progressão de</span><input type="text" id="asp-meta" value="Township (cozinha cresce visualmente conforme avança)"></div>
+      </div>
+      <div class="field full" style="margin-top:14px">
+        <span class="field-label">A frase resumida</span>
+        <textarea id="asp-line" rows="2" style="font-style:italic">Match-3 com juice de Royal Match, narrativa-NPC de Gossip Harbor, ritmo cozy de Cooking Diary, e meta-progressão visual de Township — temperado por receitas reais regionais brasileiras.</textarea>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="3" type="button">← Core Loop</button>
+    <div class="nav-state">aspiracional definido</div>
+    <button class="btn-primary" data-next="5" type="button">Continuar pro Brief →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 5: BRIEF ========== -->
+<section class="phase" data-phase="5" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 5 de 10 · Macro</div>
     <h1 class="phase-title">Brief</h1>
-    <p class="phase-desc">A descrição canônica do jogo. Define o produto: gênero, perspectiva, core loop, monetização, público. <strong>Eu auto-gero a partir das suas escolhas — você refina o texto.</strong></p>
+    <p class="phase-desc">Agora que você tem hipótese + mercado + core loop + aspiracional, o brief vira <strong>denso e específico</strong>. Eu auto-gero a partir das suas escolhas anteriores — você refina o texto.</p>
   </div>
 
   <div class="phase-content">
@@ -429,22 +548,10 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
         <span class="code-chip"><span class="code-chip-label">code</span><span id="codePreview">cozy-kitchen-3a7f · v0.1</span></span>
       </div>
       <div class="form-grid" style="margin-top:16px">
-        <div class="field">
-          <span class="field-label">Codename <span class="req">*</span></span>
-          <input type="text" id="f-codename" value="cozy-kitchen-game">
-        </div>
-        <div class="field">
-          <span class="field-label">Público-alvo</span>
-          <input type="text" id="f-audience" value="mulheres 35-50 BR + LATAM, casual cozy gaming">
-        </div>
-        <div class="field">
-          <span class="field-label">Restrições</span>
-          <input type="text" id="f-restrictions" placeholder="ex: prazo Q4, mobile-only">
-        </div>
-        <div class="field">
-          <span class="field-label">Hipótese a validar</span>
-          <input type="text" id="f-hypothesis" value="conteúdo cultural-local bate global em retenção">
-        </div>
+        <div class="field"><span class="field-label">Codename <span class="req">*</span></span><input type="text" id="f-codename" value="cozy-kitchen-game"></div>
+        <div class="field"><span class="field-label">Público-alvo</span><input type="text" id="f-audience" value="mulheres 35-50 BR + LATAM, casual cozy gaming"></div>
+        <div class="field"><span class="field-label">Restrições</span><input type="text" id="f-restrictions" placeholder="ex: prazo Q4, mobile-only"></div>
+        <div class="field"><span class="field-label">Hipótese a validar</span><input type="text" id="f-hypothesis" value="conteúdo cultural-local bate global em retenção"></div>
       </div>
     </div>
 
@@ -464,16 +571,16 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
   </div>
 
   <nav class="phase-nav">
-    <button class="btn-secondary" data-next="2" type="button">← Mercado</button>
+    <button class="btn-secondary" data-next="4" type="button">← Aspiracional</button>
     <div class="nav-state">salvo automaticamente</div>
-    <button class="btn-primary" data-next="4" type="button">Continuar pra Estilo →</button>
+    <button class="btn-primary" data-next="6" type="button">Continuar pra Estilo →</button>
   </nav>
 </section>
 
-<!-- ========== ETAPA 4: ESTILO ========== -->
-<section class="phase" data-phase="4" hidden>
+<!-- ========== ETAPA 6: ESTILO ========== -->
+<section class="phase" data-phase="6" hidden>
   <div class="phase-header">
-    <div class="phase-meta">Etapa 4 de 10 · Macro → Meso</div>
+    <div class="phase-meta">Etapa 6 de 10 · Macro → Meso</div>
     <h1 class="phase-title">Estilo <span class="status-pill draft" id="stylePill">draft</span></h1>
     <p class="phase-desc">Direção visual. Você pina <strong>1-2 directions Wildlife</strong> (refs do portfólio interno) e <strong>opcionalmente 1-2 células da matriz aspiracional</strong> (mercado externo). Quando travar, vira o ground truth — toda geração subsequente respeita automaticamente.</p>
   </div>
@@ -499,230 +606,114 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
   </div>
 
   <nav class="phase-nav">
-    <button class="btn-secondary" data-next="3" type="button">← Brief</button>
+    <button class="btn-secondary" data-next="5" type="button">← Brief</button>
     <div class="nav-state" id="stylePin">selecione 1+ pra continuar</div>
-    <button class="btn-primary" data-next="5" type="button" id="phase4Next" disabled>Continuar pra Personagens →</button>
+    <button class="btn-primary" data-next="7" type="button" id="phase4Next" disabled>Continuar pra Cast / Props →</button>
   </nav>
 </section>
 
-<!-- ========== ETAPA 5: PERSONAGENS ========== -->
-<section class="phase" data-phase="5" hidden>
-  <div class="phase-header">
-    <div class="phase-meta">Etapa 5 de 10 · Meso</div>
-    <h1 class="phase-title">Personagens</h1>
-    <p class="phase-desc">Quem são os personagens? Eu gero <strong>concept arts em batches</strong> respeitando o style.md travado. Você pina os melhores — eles viram ground truth pra produção dos assets finais.</p>
-  </div>
-
-  <div class="phase-content">
-    <div class="panel">
-      <h3>Cast (definição)</h3>
-      <div class="form-grid">
-        <div class="field">
-          <span class="field-label">Personagem principal</span>
-          <input type="text" value="Dona Marta — chef matriarca, 60 anos, do interior de MG">
-        </div>
-        <div class="field">
-          <span class="field-label">Sidekick</span>
-          <input type="text" value="Pingo — gato laranja morador da cozinha, mascote">
-        </div>
-        <div class="field">
-          <span class="field-label">Coadjuvante 1</span>
-          <input type="text" value="Tiago — neto que ajuda no app de delivery">
-        </div>
-        <div class="field">
-          <span class="field-label">Coadjuvante 2</span>
-          <input type="text" placeholder="ex: cliente fiel, fornecedor, vizinho...">
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Concepts por personagem</h3>
-      <div class="panel-sub">No plugin real: clica "Gerar concepts" → Layer dispara batch de 4 variações → você pina → vira referência canônica.</div>
-      <div class="placeholder-grid">
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">👵</div>
-          <div class="placeholder-name">Dona Marta</div>
-          <div class="placeholder-status">0 concepts · 0 pinned</div>
-          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🐱</div>
-          <div class="placeholder-name">Pingo</div>
-          <div class="placeholder-status">0 concepts · 0 pinned</div>
-          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">👨‍💻</div>
-          <div class="placeholder-name">Tiago</div>
-          <div class="placeholder-status">0 concepts · 0 pinned</div>
-          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <nav class="phase-nav">
-    <button class="btn-secondary" data-next="4" type="button">← Estilo</button>
-    <div class="nav-state">3 personagens · 0 concepts</div>
-    <button class="btn-primary" data-next="6" type="button">Continuar pro Mundo →</button>
-  </nav>
-</section>
-
-<!-- ========== ETAPA 6: MUNDO ========== -->
-<section class="phase" data-phase="6" hidden>
-  <div class="phase-header">
-    <div class="phase-meta">Etapa 6 de 10 · Meso</div>
-    <h1 class="phase-title">Mundo</h1>
-    <p class="phase-desc">Onde acontece? Cenários, locações, atmosferas. Mesmo padrão dos personagens: define cada cenário → gera batch de concepts → pina o melhor.</p>
-  </div>
-
-  <div class="phase-content">
-    <div class="panel">
-      <h3>Cenários principais</h3>
-      <div class="placeholder-grid">
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🏠</div>
-          <div class="placeholder-name">Cozinha da Dona Marta</div>
-          <div class="placeholder-status">cenário hub · 0 concepts</div>
-          <div class="placeholder-cta">+ gerar 4 concepts</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🛒</div>
-          <div class="placeholder-name">Feira de bairro</div>
-          <div class="placeholder-status">cenário de aquisição · 0 concepts</div>
-          <div class="placeholder-cta">+ gerar 4 concepts</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🎪</div>
-          <div class="placeholder-name">Festival junino</div>
-          <div class="placeholder-status">evento sazonal · 0 concepts</div>
-          <div class="placeholder-cta">+ gerar 4 concepts</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🚚</div>
-          <div class="placeholder-name">Cozinha móvel (food truck)</div>
-          <div class="placeholder-status">expansão futura · 0 concepts</div>
-          <div class="placeholder-cta">+ gerar 4 concepts</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <nav class="phase-nav">
-    <button class="btn-secondary" data-next="5" type="button">← Personagens</button>
-    <div class="nav-state">4 cenários · 0 concepts</div>
-    <button class="btn-primary" data-next="7" type="button">Continuar pra UI / Telas →</button>
-  </nav>
-</section>
-
-<!-- ========== ETAPA 7: UI / TELAS ========== -->
+<!-- ========== ETAPA 7: PERSONAGENS / OBJETOS ========== -->
 <section class="phase" data-phase="7" hidden>
   <div class="phase-header">
-    <div class="phase-meta">Etapa 7 de 10 · Meso → Micro</div>
+    <div class="phase-meta">Etapa 7 de 10 · Meso</div>
+    <h1 class="phase-title">Personagens / Objetos</h1>
+    <p class="phase-desc">Quem aparece e o que o jogador toca. <strong>Cast</strong> (personagens narrativos) + <strong>Props</strong> (objetos/itens do core loop). Eu gero concepts em batches respeitando o style.md travado. Você pina os melhores — viram ground truth pra produção.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Cast (personagens narrativos)</h3>
+      <div class="form-grid">
+        <div class="field"><span class="field-label">Protagonista</span><input type="text" value="Dona Marta — chef matriarca, 60 anos, do interior de MG"></div>
+        <div class="field"><span class="field-label">Sidekick / mascote</span><input type="text" value="Pingo — gato laranja morador da cozinha"></div>
+        <div class="field"><span class="field-label">Coadjuvante 1</span><input type="text" value="Tiago — neto que ajuda no app de delivery"></div>
+        <div class="field"><span class="field-label">Coadjuvante 2</span><input type="text" placeholder="ex: cliente fiel, fornecedor, vizinho..."></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Props / Objetos do core loop</h3>
+      <div class="panel-sub">Os ingredientes e utensílios que aparecem no tabuleiro — a "linguagem visual" do gameplay.</div>
+      <div class="form-grid">
+        <div class="field"><span class="field-label">Ingrediente principal</span><input type="text" value="🍅 Tomate — vermelho saturado, brilho cozy"></div>
+        <div class="field"><span class="field-label">Ingrediente 2</span><input type="text" value="🧅 Cebola — roxa, com camadas visíveis"></div>
+        <div class="field"><span class="field-label">Ingrediente 3</span><input type="text" value="🌾 Farinha de trigo — saco vintage com selo regional"></div>
+        <div class="field"><span class="field-label">Utensílio hero</span><input type="text" value="🥘 Panela de ferro fundido (a do core loop)"></div>
+        <div class="field"><span class="field-label">Power-up visual</span><input type="text" value="🌶 Pimenta-de-cheiro (explode peças adjacentes)"></div>
+        <div class="field"><span class="field-label">Item especial</span><input type="text" placeholder="ex: troféu, livro de receitas, foto de família"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Concepts por sujeito</h3>
+      <div class="panel-sub">No plugin real: clica "Gerar concepts" → Layer dispara batch de 4 variações → você pina → vira referência canônica.</div>
+      <div class="placeholder-grid">
+        <div class="placeholder-card"><div class="placeholder-emoji">👵</div><div class="placeholder-name">Dona Marta</div><div class="placeholder-status">cast · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (30 CU)</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🐱</div><div class="placeholder-name">Pingo</div><div class="placeholder-status">cast · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (30 CU)</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">👨‍💻</div><div class="placeholder-name">Tiago</div><div class="placeholder-status">cast · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (30 CU)</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🍅</div><div class="placeholder-name">Tomate</div><div class="placeholder-status">prop · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (8 CU)</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🧅</div><div class="placeholder-name">Cebola</div><div class="placeholder-status">prop · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (8 CU)</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🥘</div><div class="placeholder-name">Panela hero</div><div class="placeholder-status">prop · 0 concepts</div><div class="placeholder-cta">+ gerar 4 (8 CU)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="6" type="button">← Estilo</button>
+    <div class="nav-state">3 cast · 6 props · 0 concepts</div>
+    <button class="btn-primary" data-next="8" type="button">Continuar pra UI / Telas →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 8: UI / TELAS ========== -->
+<section class="phase" data-phase="8" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 8 de 10 · Meso → Micro</div>
     <h1 class="phase-title">UI / Telas</h1>
-    <p class="phase-desc">As telas-chave do jogo. Aqui é wireframe + concept visual de cada uma. Estilo do brief + style.md aplicado automaticamente.</p>
+    <p class="phase-desc">As telas-chave do jogo. Wireframe + concept visual de cada uma. Estilo do brief + style.md aplicado automaticamente.</p>
   </div>
 
   <div class="phase-content">
     <div class="panel">
       <h3>Telas principais</h3>
       <div class="placeholder-grid">
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🏡</div>
-          <div class="placeholder-name">Home / Lobby</div>
-          <div class="placeholder-status">tela de entrada</div>
-          <div class="placeholder-cta">+ wireframe + mockup</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🎮</div>
-          <div class="placeholder-name">Gameplay (board)</div>
-          <div class="placeholder-status">tela do core loop</div>
-          <div class="placeholder-cta">+ wireframe + mockup</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🛍</div>
-          <div class="placeholder-name">Loja IAP</div>
-          <div class="placeholder-status">monetização</div>
-          <div class="placeholder-cta">+ wireframe + mockup</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🏆</div>
-          <div class="placeholder-name">Level complete</div>
-          <div class="placeholder-status">tela de recompensa</div>
-          <div class="placeholder-cta">+ wireframe + mockup</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">⚙️</div>
-          <div class="placeholder-name">Settings / Perfil</div>
-          <div class="placeholder-status">utility</div>
-          <div class="placeholder-cta">+ wireframe + mockup</div>
-        </div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🏡</div><div class="placeholder-name">Home / Lobby</div><div class="placeholder-status">tela de entrada</div><div class="placeholder-cta">+ wireframe + mockup</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🎮</div><div class="placeholder-name">Gameplay (board)</div><div class="placeholder-status">core loop</div><div class="placeholder-cta">+ wireframe + mockup</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🛍</div><div class="placeholder-name">Loja IAP</div><div class="placeholder-status">monetização</div><div class="placeholder-cta">+ wireframe + mockup</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">🏆</div><div class="placeholder-name">Level complete</div><div class="placeholder-status">recompensa</div><div class="placeholder-cta">+ wireframe + mockup</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">⚙️</div><div class="placeholder-name">Settings / Perfil</div><div class="placeholder-status">utility</div><div class="placeholder-cta">+ wireframe + mockup</div></div>
       </div>
     </div>
   </div>
 
   <nav class="phase-nav">
-    <button class="btn-secondary" data-next="6" type="button">← Mundo</button>
+    <button class="btn-secondary" data-next="7" type="button">← Cast / Props</button>
     <div class="nav-state">5 telas · 0 mockups</div>
-    <button class="btn-primary" data-next="8" type="button">Continuar pra Assets →</button>
+    <button class="btn-primary" data-next="9" type="button">Continuar pra Vertical Slice →</button>
   </nav>
 </section>
 
-<!-- ========== ETAPA 8: ASSETS ========== -->
-<section class="phase" data-phase="8" hidden>
-  <div class="phase-header">
-    <div class="phase-meta">Etapa 8 de 10 · Micro</div>
-    <h1 class="phase-title">Assets finais</h1>
-    <p class="phase-desc">Produção. Cada concept pinado vira um asset final pronto pra Unity/Unreal: PNG transparente (2D), GLB com textura PBR (3D). Aqui é onde o orçamento de CUs pesa mais — eu sempre confirmo custo antes.</p>
-  </div>
-
-  <div class="phase-content">
-    <div class="panel">
-      <h3>Inventário</h3>
-      <table class="inventory">
-        <thead>
-          <tr><th>Asset</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Custo est.</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Dona Marta — full body T-pose</td><td>2D character</td><td>FLUX.2 [pro]</td><td><span class="status-pill draft">pending concept</span></td><td>~25 CU</td></tr>
-          <tr><td>Pingo — sprite sheet 4 poses</td><td>2D character</td><td>FLUX.2 [pro]</td><td><span class="status-pill draft">pending concept</span></td><td>~80 CU</td></tr>
-          <tr><td>Ícone de tomate</td><td>2D UI</td><td>GPT Image 1</td><td><span class="status-pill draft">pending concept</span></td><td>~8 CU</td></tr>
-          <tr><td>Ícone de farinha</td><td>2D UI</td><td>GPT Image 1</td><td><span class="status-pill draft">pending concept</span></td><td>~8 CU</td></tr>
-          <tr><td>Background cozinha</td><td>2D bg</td><td>FLUX.1 [dev]</td><td><span class="status-pill draft">pending concept</span></td><td>~30 CU</td></tr>
-          <tr><td>Panela 3D low-poly</td><td>3D prop</td><td>Meshy V6</td><td><span class="status-pill draft">pending concept</span></td><td>~280 CU</td></tr>
-        </tbody>
-      </table>
-      <div class="panel-sub" style="margin-top:14px">Total estimado: <strong>~431 CUs</strong> · workspace tem 54.962 disponíveis · <a href="#" style="color:var(--accent)">ver detalhes de cada asset</a></div>
-    </div>
-  </div>
-
-  <nav class="phase-nav">
-    <button class="btn-secondary" data-next="7" type="button">← UI</button>
-    <div class="nav-state">6 assets planejados · 0 finalizados</div>
-    <button class="btn-primary" data-next="9" type="button">Continuar pro MVP α →</button>
-  </nav>
-</section>
-
-<!-- ========== ETAPA 9: MVP ALPHA ========== -->
+<!-- ========== ETAPA 9: VERTICAL SLICE MVP ========== -->
 <section class="phase" data-phase="9" hidden>
   <div class="phase-header">
     <div class="phase-meta">Etapa 9 de 10 · Micro · jogável</div>
-    <h1 class="phase-title">MVP Alpha</h1>
-    <p class="phase-desc">Tudo até aqui era pré-produção. Agora vira <strong>protótipo jogável</strong>: build HTML5 (Phaser/PixiJS) consumindo os assets finais, com o core loop funcionando. Não é o jogo final — é a primeira vez que dá pra <strong>sentir o jogo nas mãos</strong>.</p>
+    <h1 class="phase-title">Vertical Slice MVP</h1>
+    <p class="phase-desc"><strong>1 level completo, funcionando end-to-end</strong>. Não é o jogo todo — é "5 minutos perfeitos" pra mostrar pra qualquer pessoa e ela <strong>entender e querer mais</strong>. Build HTML5 (Phaser) consumindo os assets finais, com o core loop polido.</p>
   </div>
 
   <div class="phase-content">
     <div class="panel">
-      <h3>Build status</h3>
+      <h3>Escopo do vertical slice</h3>
       <table class="inventory">
         <tbody>
           <tr><td>Engine</td><td>Phaser 3 + Vite</td></tr>
           <tr><td>Resolução</td><td>1080×1920 (portrait mobile)</td></tr>
-          <tr><td>Core loop implementado</td><td><span class="status-pill draft">aguardando assets</span></td></tr>
-          <tr><td>Tutorial / FTUE</td><td><span class="status-pill draft">não iniciado</span></td></tr>
-          <tr><td>10 levels jogáveis</td><td><span class="status-pill draft">não iniciado</span></td></tr>
-          <tr><td>Economia básica</td><td><span class="status-pill draft">não iniciado</span></td></tr>
+          <tr><td>Levels</td><td><strong>1 completo</strong> (Bolonhesa da Dona Marta)</td></tr>
+          <tr><td>Personagens polidos</td><td>Dona Marta + Pingo (2 cinemáticas)</td></tr>
+          <tr><td>Props finais</td><td>5 ingredientes + 1 panela hero</td></tr>
+          <tr><td>UI</td><td>Home + Board + Level Complete</td></tr>
+          <tr><td>Áudio</td><td>1 música ambiente + 8 SFX</td></tr>
+          <tr><td>Tutorial / FTUE</td><td><span class="status-pill draft">aguardando assets</span></td></tr>
           <tr><td>Build URL</td><td>—</td></tr>
         </tbody>
       </table>
@@ -730,98 +721,109 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
 
     <div class="panel" style="background:#000;border-style:dashed;text-align:center;padding:60px 24px">
       <div style="font-size:48px;margin-bottom:12px">🎮</div>
-      <div style="font-size:14px;color:var(--fg-muted);margin-bottom:6px">Preview jogável aparece aqui</div>
+      <div style="font-size:14px;color:var(--fg-muted);margin-bottom:6px">Vertical slice jogável aparece aqui</div>
       <div style="font-size:11px;color:var(--fg-dim);font-family:'SF Mono',Menlo,monospace">iframe 360×640 servindo build/index.html</div>
     </div>
 
     <div class="panel">
-      <h3>Test plan do alpha</h3>
+      <h3>Critérios de aceitação</h3>
       <table class="inventory">
         <tbody>
-          <tr><td>FTUE</td><td>jogador novo completa 3 levels sem ajuda</td></tr>
-          <tr><td>Loop</td><td>10 levels com curva de dificuldade crescente</td></tr>
-          <tr><td>Performance</td><td>60fps no iPhone XR</td></tr>
-          <tr><td>Tamanho</td><td>build &lt; 8MB pra download rápido</td></tr>
+          <tr><td>Jogabilidade</td><td>jogador novo termina o level em ≤ 4 min sem ajuda</td></tr>
+          <tr><td>"Quero mais"</td><td>≥ 7/10 pessoas testadas pedem o próximo level</td></tr>
+          <tr><td>Performance</td><td>60fps no iPhone XR + Android mid-range</td></tr>
+          <tr><td>Tamanho</td><td>build &lt; 8 MB pra download rápido</td></tr>
+          <tr><td>Polish</td><td>juice (haptics, sound, cinemática) bom o suficiente pra pitch</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <nav class="phase-nav">
-    <button class="btn-secondary" data-next="8" type="button">← Assets</button>
-    <div class="nav-state">aguardando assets pra buildar</div>
-    <button class="btn-primary" data-next="10" type="button">Continuar pra Lançamento →</button>
+    <button class="btn-secondary" data-next="8" type="button">← UI / Telas</button>
+    <div class="nav-state">vertical slice 0% · aguardando assets</div>
+    <button class="btn-primary" data-next="10" type="button">Continuar pro Pitch / Roadmap →</button>
   </nav>
 </section>
 
-<!-- ========== ETAPA 10: LANÇAMENTO ========== -->
+<!-- ========== ETAPA 10: PITCH / ROADMAP / LANÇAMENTO TESTE ========== -->
 <section class="phase" data-phase="10" hidden>
   <div class="phase-header">
     <div class="phase-meta">Etapa 10 de 10 · Lançamento</div>
-    <h1 class="phase-title">Lançamento</h1>
-    <p class="phase-desc">Material da loja + handoff pra produção. Empacotamento final: ícone, screenshots, vídeo, descrição ASO, manifesto técnico, e <strong>um zip portátil</strong> que o time de Unity pode importar direto.</p>
+    <h1 class="phase-title">Pitch / Roadmap / Lançamento teste</h1>
+    <p class="phase-desc">Convencer o time, definir o caminho até o global, e lançar pra mercados pequenos pra <strong>medir antes de escalar</strong>.</p>
   </div>
 
   <div class="phase-content">
     <div class="panel">
-      <h3>Store assets</h3>
+      <h3>📣 Pitch deck</h3>
+      <div class="panel-sub">7 slides extraídos automaticamente das etapas 1-9. Você revisa e ajusta.</div>
       <div class="placeholder-grid">
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">📱</div>
-          <div class="placeholder-name">Ícone (1024×1024)</div>
-          <div class="placeholder-status">App Store + Play Store</div>
-          <div class="placeholder-cta">+ gerar via Layer</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">📸</div>
-          <div class="placeholder-name">Screenshots (5×)</div>
-          <div class="placeholder-status">portrait, em devices mockup</div>
-          <div class="placeholder-cta">+ gerar do build alpha</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">🎬</div>
-          <div class="placeholder-name">Vídeo trailer (15s)</div>
-          <div class="placeholder-status">gameplay capture + edição</div>
-          <div class="placeholder-cta">+ rodar Veo 3.1</div>
-        </div>
-        <div class="placeholder-card">
-          <div class="placeholder-emoji">📝</div>
-          <div class="placeholder-name">Descrição ASO</div>
-          <div class="placeholder-status">PT-BR + EN-US</div>
-          <div class="placeholder-cta">+ Claude API</div>
-        </div>
+        <div class="placeholder-card"><div class="placeholder-emoji">1️⃣</div><div class="placeholder-name">Hipótese</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">2️⃣</div><div class="placeholder-name">Mercado + nicho</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">3️⃣</div><div class="placeholder-name">Core loop</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">4️⃣</div><div class="placeholder-name">Estilo + aspiracional</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">5️⃣</div><div class="placeholder-name">Cast principal</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">6️⃣</div><div class="placeholder-name">Vertical slice preview</div><div class="placeholder-status">slide auto-gerado</div></div>
+        <div class="placeholder-card"><div class="placeholder-emoji">7️⃣</div><div class="placeholder-name">Roadmap + ask</div><div class="placeholder-status">slide auto-gerado</div></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn-primary" type="button">📥 Exportar pitch.pdf</button></div>
+    </div>
+
+    <div class="panel">
+      <h3>📅 Roadmap</h3>
+      <table class="inventory">
+        <tbody>
+          <tr><td>M1 (mês 1)</td><td>Pré-produção lockada (esse pipeline)</td></tr>
+          <tr><td>M2-3</td><td>Build do vertical slice + ajustes</td></tr>
+          <tr><td>M4</td><td>Conteúdo: +9 levels + meta cozinha</td></tr>
+          <tr><td>M5</td><td>Soft launch teste (BR + Portugal)</td></tr>
+          <tr><td>M6</td><td>Ajustes KPI + decisão global yes/no</td></tr>
+          <tr><td>M7+</td><td>Lançamento LATAM (se KPIs bater)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>🧪 Lançamento teste (soft launch)</h3>
+      <div class="form-grid">
+        <div class="field"><span class="field-label">Markets teste</span><input type="text" value="BR + Portugal (cultura próxima, mesmo idioma, escala pequena)"></div>
+        <div class="field"><span class="field-label">Budget UA</span><input type="text" value="USD 15k em 30 dias"></div>
+        <div class="field"><span class="field-label">D1 alvo</span><input type="text" value="≥ 45%"></div>
+        <div class="field"><span class="field-label">D7 alvo</span><input type="text" value="≥ 25%"></div>
+        <div class="field"><span class="field-label">ARPDAU alvo</span><input type="text" value="≥ $0.18"></div>
+        <div class="field"><span class="field-label">Decisão go/no-go</span><input type="text" value="Se D7 ≥ 22% E ARPDAU ≥ $0.14, segue pra LATAM"></div>
       </div>
     </div>
 
     <div class="panel">
-      <h3>Handoff pro time de produção</h3>
+      <h3>📦 Store + Handoff</h3>
       <table class="inventory">
         <tbody>
-          <tr><td>brief.md</td><td><span class="status-pill locked">✓ pronto</span></td></tr>
-          <tr><td>style.md</td><td><span class="status-pill draft">draft</span></td></tr>
-          <tr><td>references.md</td><td><span class="status-pill draft">vazio</span></td></tr>
-          <tr><td>concepts/ (pinned only)</td><td><span class="status-pill draft">0 pinados</span></td></tr>
-          <tr><td>assets/2d/</td><td><span class="status-pill draft">0 produzidos</span></td></tr>
-          <tr><td>assets/3d/</td><td><span class="status-pill draft">0 produzidos</span></td></tr>
-          <tr><td>store/</td><td><span class="status-pill draft">0 itens</span></td></tr>
-          <tr><td>INVENTORY.md</td><td><span class="status-pill draft">auto-gerado no zip</span></td></tr>
+          <tr><td>Ícone (1024×1024)</td><td><span class="status-pill draft">pendente</span></td></tr>
+          <tr><td>Screenshots (5×)</td><td><span class="status-pill draft">pendente</span></td></tr>
+          <tr><td>Vídeo trailer (15s)</td><td><span class="status-pill draft">pendente</span></td></tr>
+          <tr><td>Descrição ASO (PT+EN)</td><td><span class="status-pill draft">pendente</span></td></tr>
+          <tr><td>brief.md + style.md + assets/</td><td><span class="status-pill draft">parcial</span></td></tr>
+          <tr><td>INVENTORY.md</td><td><span class="status-pill draft">auto no zip</span></td></tr>
         </tbody>
       </table>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-primary" type="button">📦 Empacotar cozy-kitchen-game-v0.1.zip</button>
+        <button class="btn-primary" type="button">📦 Empacotar cozy-kitchen-v0.1.zip</button>
         <button class="btn-secondary" type="button">🔗 Compartilhar com produção</button>
       </div>
     </div>
   </div>
 
   <nav class="phase-nav">
-    <button class="btn-secondary" data-next="9" type="button">← MVP α</button>
+    <button class="btn-secondary" data-next="9" type="button">← Vertical Slice</button>
     <div class="nav-state">pré-produção 60% completa</div>
     <button class="btn-primary" type="button" disabled>Finalizado ✓</button>
   </nav>
 </section>
 
 </main>
+
 
 <!-- ============================ APPS VIEW ============================ -->
 <main id="apps-view" hidden>
