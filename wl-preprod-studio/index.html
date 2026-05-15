@@ -99,6 +99,16 @@ main{padding:36px 24px 60px;max-width:1100px;margin:0 auto}
 .bench-pub{font-size:10px;color:var(--fg-muted)}
 .bench-card-note{font-size:11px;color:var(--fg-muted);line-height:1.5}
 
+/* Suggestion cascade */
+.field.suggested input,.field.suggested textarea,.field.suggested select{border-color:rgba(79,140,255,0.55);background:linear-gradient(180deg,var(--accent-bg) 0%,var(--bg) 35%);box-shadow:inset 0 0 0 1px rgba(79,140,255,0.15)}
+.field.suggested .field-label::after{content:"✨ sugerido";display:inline-block;background:var(--accent-bg);color:var(--accent);font-size:8px;padding:2px 7px;border-radius:99px;margin-left:6px;font-weight:600;text-transform:none;letter-spacing:0;vertical-align:middle}
+.suggestion-banner{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 12px 32px rgba(79,140,255,0.4);cursor:pointer;z-index:50;display:flex;align-items:flex-start;gap:12px;max-width:360px;transform:translateY(120%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity:0;line-height:1.35}
+.suggestion-banner.visible{transform:translateY(0);opacity:1}
+.suggestion-banner-icon{font-size:18px;flex-shrink:0}
+.suggestion-banner-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0;flex-shrink:0;margin-left:auto}
+.suggestion-banner-close:hover{background:rgba(255,255,255,0.35)}
+.suggestion-banner-body small{display:block;font-size:11px;opacity:0.85;margin-top:3px;font-weight:400}
+
 /* Wildlife mood cards */
 .mood-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .mood-card{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;position:relative}
@@ -1089,6 +1099,159 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
       </div>
     `).join('');
   }
+
+  // === Cascade de sugestões a partir da hipótese ===
+  // Quando o usuário muda h-hipotese, detecta padrão e auto-fill em todas as fases.
+  const presets = {
+    autobattler: {
+      label: 'auto-battler tático (estilo TFT + chess)',
+      match: t => /\b(chess|xadrez|auto.?chess|auto.?battler|t[fa]t|t[áa]tic|tactic)\b/i.test(t) || (/(combate|combat|battle)/i.test(t) && /(stat|rpg|movimenta)/i.test(t)),
+      fields: {
+        'h-timing': 'Auto-battler é gênero quente — TFT Mobile, Chess Rush e Auto Chess somam ~$500M/ano em 2025',
+        'h-prova': 'Que dá pra capturar audiência TFT com 1/3 do escopo, focando em mobile-first',
+        'h-budget': 'Time pequeno (5 pessoas), 7 meses até vertical slice',
+        'h-metric': 'D7 ≥ 28%, ARPDAU ≥ $0.25 (gênero core paga mais)',
+        'h-risco': 'TFT tem 5 anos de vantagem em produção e comunidade — diferencial precisa ser claríssimo (real-time puro + sem RNG de draft)',
+        'f-genre': 'RTS',
+        'f-mood': 'épico / fantasia',
+        'f-codename': 'tactic-chess-arena',
+        'f-audience': 'gamers core 18-40, mobile mid-to-hardcore, LATAM + SEA',
+        'f-restrictions': 'matches ≤ 3min, mobile-first portrait, F2P com IAP cosmético',
+        'f-hypothesis': 'real-time + sem RNG bate TFT em retenção',
+        'm-veredito': 'TFT Mobile fatura ~$300M/ano — mercado existe e é grande. Nicho aberto: simplicidade chess-like + real-time PURO (sem turnos) + sem RNG pesado de draft. Risco: TFT tem 5 anos de vantagem em produção e marca. Diferenciação precisa ser óbvia em 30s de gameplay.',
+        'cl-step1': 'Tabuleiro 5×5, 5 pieces suas vs 5 inimigas, fase de posicionamento (10s)',
+        'cl-step2': 'Drag-and-drop pra posicionar pieces antes do combate',
+        'cl-step3': 'Combate real-time inicia — pieces atacam por range/adjacência baseado em stats, barras de HP visíveis',
+        'cl-step4': 'Vitória → moedas + escolha de 1 upgrade card (sobe 1 stat de 1 piece, persiste)',
+        'cl-step5': 'Próximo round, posições resetam, stats acumulados persistem; melhor de 3 vence',
+        'cl-ascii': '┌────────────────────────────┐\n│ Round 3 · 1:42 · YOU vs CPU│\n├────────────────────────────┤\n│ . . ♟ . .  ← inimigo (cpu) │\n│ . ♟ ♟ . .                  │\n│ . . . . .  ← zona neutra   │\n│ . ♞ ♝ . .                  │\n│ ♜ . . ♞ ♟  ← seu time      │\n├────────────────────────────┤\n│ ♞ Cavaleiro │ HP 12 ⚔ 8    │\n│ ♝ Mago      │ HP 8  ⚔ 11   │\n│ ♜ Tanque    │ HP 18 ⚔ 5    │\n└────────────────────────────┘',
+        'cl-diff': 'Real-time (não turn-based como TFT) + classes RPG no lugar de chess pieces genéricas + sem RNG de draft (compra upgrades, não rola dados) + matches ≤ 3 min',
+        'asp-mech': 'TFT (stats + meta de itens)',
+        'asp-pace': 'Marvel Snap (rounds de 3 min, instant retry)',
+        'asp-meta': 'Chess.com (clareza visual de board)',
+        'asp-line': 'Auto-battler com stats e meta-progression de TFT, simplicidade visual de Chess.com, rounds curtos de Marvel Snap e controle direto de Brawl Stars — temperado com classes RPG ao invés de chess pieces.'
+      }
+    },
+    'cozy-match3': {
+      label: 'match-3 cozy',
+      match: t => /\b(match.?3|merge|cozy|dom[ée]stic|culinari|cozinh|restaurant|farm|garden)\b/i.test(t),
+      fields: {
+        'h-timing': 'Cozy gaming em alta pós-pandemia, mercado BR cresceu 40% em mobile casual em 2025',
+        'h-prova': 'Que conteúdo cultural-local bate global em retenção D30',
+        'h-budget': 'Time pequeno (4 pessoas), 6 meses até soft launch',
+        'h-metric': 'D7 ≥ 25%, ARPDAU ≥ $0.18 no soft launch BR',
+        'h-risco': 'Tema regional pode soar caricato se mal executado, e pode ter teto de mercado limitado ao Brasil',
+        'f-genre': 'match-3 / merge',
+        'f-mood': 'cozy / doméstico',
+        'f-codename': 'cozy-kitchen-game',
+        'f-audience': 'mulheres 35-50 BR + LATAM, casual cozy gaming',
+        'f-hypothesis': 'conteúdo cultural-local bate global em retenção',
+        'm-veredito': 'Top do gênero é Royal Match ($1.4B/ano), mercado é real e tem demanda. Nicho regional brasileiro é underserved — nenhum dos top 10 atende. Teto natural ~$50M/ano se servirmos só BR.'
+      }
+    },
+    runner: {
+      label: 'runner',
+      match: t => /\b(runner|infinite.run|swipe|corrida|corre.*obstac|temple.run)\b/i.test(t),
+      fields: {
+        'h-timing': 'Runner é gênero evergreen, Subway Surfers cresceu via LiveOps de cidades temáticas em 2025',
+        'h-budget': 'Time enxuto (3 pessoas), 4 meses até vertical slice',
+        'h-metric': 'D1 ≥ 50%, sessões 30s-2min, ARPDAU ≥ $0.10',
+        'f-genre': 'runner',
+        'f-mood': 'aventura / vibrante',
+        'f-codename': 'fast-runner',
+        'f-audience': 'casual mobile 13-25, global',
+        'f-restrictions': 'sessões curtas, retry em 1 tap, mobile portrait'
+      }
+    }
+  };
+
+  function detectPreset(text){
+    for(const [id, p] of Object.entries(presets)){
+      if(p.match(text)) return id;
+    }
+    return null;
+  }
+
+  let currentPreset = null;
+  function applyPreset(presetId){
+    const preset = presets[presetId];
+    if(!preset) return 0;
+    let count = 0;
+    Object.entries(preset.fields).forEach(([fieldId, value]) => {
+      const el = $(fieldId);
+      if(!el) return;
+      // Não sobrescreve se o usuário já editou esse campo manualmente
+      if(el.dataset.userEdited === 'true') return;
+      el.value = value;
+      el.dataset.suggested = 'true';
+      const field = el.closest('.field');
+      if(field) field.classList.add('suggested');
+      count++;
+    });
+    currentPreset = presetId;
+    regenerate(true);
+    return {count, label: preset.label};
+  }
+
+  function clearSuggestionOn(el){
+    if(el.dataset.suggested === 'true'){
+      el.dataset.suggested = 'false';
+      el.dataset.userEdited = 'true';
+      const field = el.closest('.field');
+      if(field) field.classList.remove('suggested');
+    }
+  }
+
+  function showSuggestionBanner(result){
+    const existing = document.querySelector('.suggestion-banner');
+    if(existing) existing.remove();
+    const banner = document.createElement('div');
+    banner.className = 'suggestion-banner';
+    banner.innerHTML = `
+      <div class="suggestion-banner-icon">🌊</div>
+      <div class="suggestion-banner-body">
+        <strong>${result.count} sugestões aplicadas</strong>
+        <small>preset detectado: <em>${result.label}</em><br>clique nos campos pra ajustar — edição manual desativa a sugestão</small>
+      </div>
+      <button class="suggestion-banner-close" type="button" aria-label="Fechar">×</button>
+    `;
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('visible'));
+    banner.querySelector('.suggestion-banner-close').addEventListener('click', e => {
+      e.stopPropagation();
+      banner.classList.remove('visible');
+      setTimeout(() => banner.remove(), 400);
+    });
+    setTimeout(() => {
+      if(banner.parentNode){banner.classList.remove('visible'); setTimeout(() => banner.remove(), 400)}
+    }, 8000);
+  }
+
+  function debounce(fn, ms){
+    let timer;
+    return (...args) => {clearTimeout(timer); timer = setTimeout(() => fn(...args), ms)};
+  }
+
+  // Listen on hipotese pra disparar cascade
+  const triggerCascade = debounce(() => {
+    const text = $('h-hipotese').value;
+    if(text.length < 30) return; // muito curto pra detectar
+    const presetId = detectPreset(text);
+    if(presetId && presetId !== currentPreset){
+      const result = applyPreset(presetId);
+      if(result && result.count > 0) showSuggestionBanner(result);
+    }
+  }, 600);
+  if($('h-hipotese')){
+    $('h-hipotese').addEventListener('input', triggerCascade);
+    $('h-hipotese').addEventListener('blur', triggerCascade);
+  }
+
+  // Marca campos editados manualmente pra não sobrescrever
+  ['h-timing','h-prova','h-budget','h-metric','h-risco','f-codename','f-genre','f-mood','f-audience','f-restrictions','f-hypothesis','m-veredito','cl-step1','cl-step2','cl-step3','cl-step4','cl-step5','cl-ascii','cl-diff','asp-mech','asp-pace','asp-meta','asp-line'].forEach(id => {
+    const el = $(id);
+    if(el) el.addEventListener('input', () => clearSuggestionOn(el));
+  });
 
   // === Phase navigation ===
   let currentPhase = 1;
