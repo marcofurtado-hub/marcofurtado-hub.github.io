@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mood Picker — WL Preprod Studio (mock)</title>
+<title>WL Preprod Studio · pipeline</title>
 <style>
-:root{--bg:#0a0a0b;--bg-elev:#111114;--bg-elev-2:#17171b;--border:#232329;--fg:#ededee;--fg-muted:#9b9ba3;--fg-dim:#5d5d68;--accent:#4f8cff;--accent-bg:rgba(79,140,255,0.12);--success:#4ade80;--warning:#facc15}
+:root{--bg:#0a0a0b;--bg-elev:#111114;--bg-elev-2:#17171b;--border:#232329;--border-strong:#303039;--fg:#ededee;--fg-muted:#9b9ba3;--fg-dim:#5d5d68;--accent:#4f8cff;--accent-2:#2b4d8c;--accent-bg:rgba(79,140,255,0.15);--success:#4ade80;--warning:#facc15;--danger:#f87171}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
-header{border-bottom:1px solid var(--border);background:var(--bg-elev);padding:18px 28px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
+
+/* Header */
+header{border-bottom:1px solid var(--border);background:var(--bg-elev);padding:14px 24px;position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
 .header-inner{max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:12px}
-.dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#2b4d8c)}
+.dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
 .title{font-size:14px;font-weight:600;letter-spacing:-0.01em}
-.subtitle{font-size:11px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+.subtitle{font-size:10px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:1px}
 .context{font-size:11px;color:var(--fg-muted);font-family:"SF Mono",Menlo,monospace}
-
-main{max-width:1500px;margin:0 auto;padding:32px 28px}
-
-/* Top nav tabs */
 .topnav{display:flex;gap:4px;align-items:center}
 .topnav .tab{background:transparent;border:1px solid transparent;color:var(--fg-muted);font-size:12px;font-weight:500;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:0.02em;display:flex;align-items:center;gap:6px;transition:all 0.15s}
 .topnav .tab:hover{background:var(--bg-elev-2);color:var(--fg)}
@@ -26,13 +25,156 @@ main{max-width:1500px;margin:0 auto;padding:32px 28px}
 .lock-icon{font-size:10px;opacity:0.7}
 .topnav .tab.unlocked .lock-icon{display:none}
 
-/* Password modal */
+/* Pipeline track */
+.pipeline-track{background:var(--bg);border-bottom:1px solid var(--border);padding:22px 24px 16px;position:sticky;top:56px;z-index:15;backdrop-filter:blur(8px)}
+.track-container{max-width:1400px;margin:0 auto}
+.track-nodes{display:flex;justify-content:space-between;position:relative;padding:0 12px}
+.track-nodes::before{content:"";position:absolute;top:14px;left:26px;right:26px;height:2px;background:var(--border);z-index:0}
+.track-progress{position:absolute;top:14px;left:26px;height:2px;background:linear-gradient(90deg,var(--success),var(--accent));z-index:1;transition:width 0.4s ease}
+.node{position:relative;z-index:2;width:28px;height:28px;border-radius:50%;background:var(--bg);border:2px solid var(--border);color:var(--fg-dim);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;transition:all 0.2s;padding:0}
+.node:hover{border-color:var(--fg-muted);transform:scale(1.08)}
+.node.done{background:var(--success);border-color:var(--success);color:#062a14}
+.node.active{background:var(--accent);border-color:var(--accent);color:#fff;width:34px;height:34px;font-size:13px;box-shadow:0 0 0 5px var(--accent-bg);margin-top:-3px}
+.node.active:hover{transform:scale(1.05)}
+.track-labels{display:flex;justify-content:space-between;margin-top:10px;padding:0 0px}
+.track-labels small{flex:1;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--fg-dim);line-height:1.3;padding:0 2px;cursor:pointer;transition:color 0.15s}
+.track-labels small.active{color:var(--fg);font-weight:600}
+.track-labels small.done{color:var(--success)}
+.track-labels small:hover{color:var(--fg-muted)}
+
+/* Main */
+main{padding:36px 24px 60px;max-width:1100px;margin:0 auto}
+
+/* Phase */
+.phase{animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.phase-header{margin-bottom:32px}
+.phase-meta{display:inline-flex;align-items:center;gap:10px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:"SF Mono",Menlo,monospace;margin-bottom:14px}
+.phase-meta::before{content:"";width:24px;height:1px;background:var(--accent)}
+.phase-title{margin:0 0 10px;font-size:32px;font-weight:700;letter-spacing:-0.025em;line-height:1.15}
+.phase-desc{margin:0;color:var(--fg-muted);font-size:14px;line-height:1.55;max-width:720px}
+
+.phase-content{display:flex;flex-direction:column;gap:24px}
+
+/* Card / panel base */
+.panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:24px 28px}
+.panel h3{margin:0 0 14px;font-size:14px;font-weight:600;letter-spacing:-0.01em}
+.panel-sub{font-size:11px;color:var(--fg-dim);margin:-10px 0 14px;line-height:1.5}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1 / -1}
+.field-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--fg-dim);font-weight:600}
+.field-label .req{color:var(--danger);margin-left:2px}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:13px;font-family:inherit;transition:border-color 0.15s,background 0.15s;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);background:var(--bg-elev-2)}
+.field textarea{min-height:80px;line-height:1.5}
+.field-hint{font-size:11px;color:var(--fg-dim);line-height:1.4}
+.field-hint code{background:var(--bg-elev-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--accent);font-family:"SF Mono",Menlo,monospace}
+.field select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--fg-muted) 50%),linear-gradient(135deg,var(--fg-muted) 50%,transparent 50%);background-position:calc(100% - 18px) 14px,calc(100% - 13px) 14px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
+
+/* Brief autogen */
+.brief-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.brief-status{font-size:10px;color:var(--success);font-family:"SF Mono",Menlo,monospace}
+.brief-status.dirty{color:var(--warning)}
+.btn-link{background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;padding:2px 6px;border-radius:4px}
+.btn-link:hover{background:var(--accent-bg)}
+
+/* Code preview chip */
+.code-chip{display:inline-flex;align-items:center;gap:8px;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:"SF Mono",Menlo,monospace;font-size:11px;color:var(--accent)}
+.code-chip-label{font-size:9px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.1em}
+
+/* Benchmark */
+.bench-note{font-size:13px;color:var(--fg-muted);line-height:1.55;margin:0 0 16px;padding:11px 14px;background:var(--bg-elev-2);border-left:3px solid var(--accent);border-radius:6px}
+.bench-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.bench-card{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.15s,transform 0.15s}
+.bench-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.bench-card.wildlife{border-color:rgba(79,140,255,0.4);background:linear-gradient(180deg,var(--accent-bg),var(--bg-elev-2) 60%)}
+.bench-rank-row{display:flex;justify-content:space-between;gap:8px}
+.bench-rank{font-family:"SF Mono",Menlo,monospace;font-size:10px;color:var(--fg-dim);font-weight:600}
+.bench-tag{font-size:9px;text-transform:uppercase;letter-spacing:0.06em;background:var(--bg);color:var(--fg-muted);padding:2px 6px;border-radius:4px;border:1px solid var(--border);text-align:right;line-height:1.4}
+.bench-card.wildlife .bench-tag{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bench-name{font-size:13px;font-weight:600;letter-spacing:-0.01em;line-height:1.25}
+.bench-pub{font-size:10px;color:var(--fg-muted)}
+.bench-card-note{font-size:11px;color:var(--fg-muted);line-height:1.5}
+
+/* Wildlife mood cards */
+.mood-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.mood-card{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;position:relative}
+.mood-card.pinned{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 24px rgba(79,140,255,0.2)}
+.mood-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.mood-num{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;backdrop-filter:blur(8px);z-index:2;border:1px solid rgba(255,255,255,0.1)}
+.mood-card.pinned .mood-num{background:var(--accent);border-color:var(--accent)}
+.mood-card.pinned::after{content:"✓ PINNED";position:absolute;top:8px;right:8px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:0.08em;z-index:2}
+.mood-img{aspect-ratio:16/10;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.mood-img img{width:100%;height:100%;object-fit:cover}
+.mood-fallback{background:linear-gradient(135deg,#222,#0a0a0a);color:var(--fg-dim);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center;padding:20px}
+.mood-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.mood-name{font-size:13px;font-weight:600}
+.mood-style{font-size:11px;color:var(--fg-muted);line-height:1.4}
+.mood-source{font-size:10px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:0.06em}
+
+/* Style matrix */
+.style-matrix-wrap{padding:0}
+.matrix-axes{font-size:11px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;letter-spacing:0.04em;margin-bottom:14px}
+.matrix-axes b{color:var(--fg-muted)}
+.style-matrix{display:grid;grid-template-columns:80px repeat(3,1fr);grid-template-rows:auto repeat(3,1fr);gap:10px}
+.matrix-x-label{display:flex;align-items:flex-end;justify-content:center;padding:4px 4px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-weight:600;text-align:center;line-height:1.3}
+.matrix-x-label.first{justify-self:start;padding-left:0}
+.matrix-x-label.last{justify-self:end;padding-right:0}
+.matrix-y-label{display:flex;align-items:center;padding:8px 6px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-weight:600;text-align:right;line-height:1.3;justify-content:flex-end}
+.matrix-cell{position:relative;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit;transition:all 0.2s;display:flex;flex-direction:column;cursor:pointer}
+.matrix-cell:hover{border-color:var(--accent);transform:translateY(-2px)}
+.matrix-cell.pinned{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 20px rgba(79,140,255,0.15)}
+.cell-number{position:absolute;top:5px;left:5px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9px;backdrop-filter:blur(8px);z-index:2;border:1px solid rgba(255,255,255,0.1)}
+.matrix-cell.pinned .cell-number{background:var(--accent);border-color:var(--accent)}
+.cell-img{aspect-ratio:1;background:#000;overflow:hidden}
+.cell-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
+.matrix-cell:hover .cell-img img{transform:scale(1.05)}
+.cell-meta{padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.cell-name{font-size:11px;font-weight:600;line-height:1.2;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell-style{font-size:9px;color:var(--fg-muted);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Placeholder phase content */
+.placeholder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.placeholder-card{background:var(--bg-elev-2);border:1px dashed var(--border-strong);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.placeholder-emoji{font-size:24px}
+.placeholder-name{font-size:13px;font-weight:600}
+.placeholder-status{font-size:10px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.08em}
+.placeholder-cta{margin-top:auto;font-size:11px;color:var(--accent)}
+
+/* Phase nav */
+.phase-nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.nav-state{font-size:11px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;display:flex;align-items:center;gap:6px}
+.nav-state::before{content:"●";color:var(--success);font-size:8px}
+.btn-primary,.btn-secondary{padding:10px 22px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all 0.15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#3a7ae8;border-color:#3a7ae8;transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,140,255,0.3)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:transparent;color:var(--fg-muted);border-color:var(--border)}
+.btn-secondary:hover{color:var(--fg);border-color:var(--border-strong)}
+.btn-secondary:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Status pill */
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+.status-pill.locked{background:rgba(74,222,128,0.15);color:var(--success)}
+.status-pill.draft{background:var(--bg-elev-2);color:var(--fg-dim)}
+.status-pill.warning{background:rgba(250,204,21,0.15);color:var(--warning)}
+
+/* Inventory table */
+.inventory{width:100%;border-collapse:collapse;font-size:12px}
+.inventory th,.inventory td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.inventory th{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-weight:600}
+.inventory td{color:var(--fg-muted)}
+.inventory td:first-child{color:var(--fg);font-weight:500}
+
+/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5)}
 .modal-icon{font-size:32px;margin-bottom:16px}
 .modal h2{margin:0 0 8px;font-size:18px;font-weight:600}
-.modal > p{margin:0 0 20px;font-size:13px;color:var(--fg-muted);line-height:1.5}
+.modal>p{margin:0 0 20px;font-size:13px;color:var(--fg-muted);line-height:1.5}
 .modal input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--fg);font-size:14px;font-family:inherit;letter-spacing:0.4em;text-align:center}
 .modal input:focus{outline:none;border-color:var(--accent);background:var(--bg-elev-2)}
 .modal-actions{display:flex;gap:8px;margin-top:16px}
@@ -51,155 +193,30 @@ main{max-width:1500px;margin:0 auto;padding:32px 28px}
 .app-card.live:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 12px 28px rgba(79,140,255,0.15)}
 .app-card.placeholder{opacity:0.45;cursor:not-allowed}
 .app-card.placeholder:hover{opacity:0.6}
-.app-card.placeholder::after{content:"em planejamento";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);font-size:13px;font-weight:600;color:var(--fg-dim);background:rgba(0,0,0,0.4);padding:6px 16px;border-radius:6px;letter-spacing:0.1em;text-transform:uppercase;pointer-events:none;opacity:0;transition:opacity 0.2s}
-.app-card.placeholder:hover::after{opacity:1}
 .app-status{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace}
 .app-emoji{font-size:30px;line-height:1;margin:4px 0 6px}
 .app-name{font-size:18px;font-weight:600;letter-spacing:-0.01em}
 .app-tagline{font-size:13px;color:var(--fg-muted);line-height:1.45;margin-bottom:8px}
 .app-meta{display:flex;gap:6px;font-size:11px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;flex-wrap:wrap}
-.apps-foot{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:28px 32px}
-.apps-foot h3{margin:0 0 8px;font-size:14px;font-weight:600;letter-spacing:-0.01em}
+.apps-foot{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:28px 32px;max-width:1100px;margin:0 auto 48px}
+.apps-foot h3{margin:0 0 8px;font-size:14px;font-weight:600}
 .apps-foot p{margin:0 0 12px;font-size:13px;color:var(--fg-muted);line-height:1.55}
 .apps-foot pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 12px}
 .apps-foot code{font-family:"SF Mono",Menlo,monospace;font-size:12px;color:var(--accent);line-height:1.6}
 .apps-foot-fineprint{font-size:11px;color:var(--fg-dim);margin:0}
 
-.create{background:linear-gradient(180deg,rgba(79,140,255,0.06),var(--bg-elev) 60%);border:1px solid var(--border);border-radius:14px;padding:28px 32px;margin-bottom:36px}
-.create-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:24px;flex-wrap:wrap}
-.create h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-0.02em}
-.create-sub{margin:0;color:var(--fg-muted);font-size:13px;line-height:1.6;max-width:760px}
-.create-sub code{background:var(--bg-elev-2);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent);font-family:"SF Mono",Menlo,monospace}
-.code-tag{flex-shrink:0;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:240px}
-.code-label{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);margin-bottom:4px}
-.code-value{font-family:"SF Mono",Menlo,monospace;font-size:12px;color:var(--accent);letter-spacing:0.02em}
+footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;letter-spacing:0.05em;border-top:1px solid var(--border)}
 
-.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.field{display:flex;flex-direction:column;gap:6px}
-.field.full{grid-column:1 / -1}
-.field-label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--fg-dim);font-weight:600}
-.field-label .req{color:#f87171;margin-left:2px}
-.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:13px;font-family:inherit;transition:border-color 0.15s,background 0.15s;resize:vertical}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);background:var(--bg-elev)}
-.field textarea{min-height:90px;line-height:1.5}
-.field-hint{font-size:11px;color:var(--fg-dim);line-height:1.4}
-.field-hint code{background:var(--bg-elev-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--accent);font-family:"SF Mono",Menlo,monospace}
-.field select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--fg-muted) 50%),linear-gradient(135deg,var(--fg-muted) 50%,transparent 50%);background-position:calc(100% - 18px) 14px,calc(100% - 13px) 14px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
-
-.create-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
-.btn-primary,.btn-secondary{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all 0.15s;font-family:inherit}
-.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn-primary:hover{background:#3a7ae8;border-color:#3a7ae8;transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,140,255,0.3)}
-.btn-secondary{background:transparent;color:var(--fg-muted);border-color:var(--border)}
-.btn-secondary:hover{color:var(--fg);border-color:var(--border-strong)}
-.brief-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.brief-actions{display:flex;align-items:center;gap:10px}
-.brief-status{font-size:10px;color:var(--success);font-family:"SF Mono",Menlo,monospace}
-.brief-status.dirty{color:var(--warning)}
-.btn-link{background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;padding:2px 6px;border-radius:4px}
-.btn-link:hover{background:var(--accent-bg)}
-
-.benchmark{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin-bottom:36px}
-.bench-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px;flex-wrap:wrap}
-.bench-title{font-size:16px;font-weight:600;letter-spacing:-0.01em;display:flex;align-items:center;gap:8px}
-.bench-title-icon{font-size:18px}
-.bench-genre-pill{display:inline-block;background:var(--accent-bg);color:var(--accent);padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;font-family:"SF Mono",Menlo,monospace;margin-left:8px}
-.bench-source{font-size:10px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;text-align:right;line-height:1.5}
-.bench-source a{color:var(--fg-muted);text-decoration:none;border-bottom:1px dotted var(--fg-dim)}
-.bench-source a:hover{color:var(--accent);border-color:var(--accent)}
-.bench-note{font-size:13px;color:var(--fg-muted);line-height:1.55;margin:0 0 18px;padding:12px 14px;background:var(--bg-elev-2);border-left:3px solid var(--accent);border-radius:6px}
-.bench-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.bench-card{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color 0.15s,transform 0.15s;position:relative}
-.bench-card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.bench-card.wildlife{border-color:rgba(79,140,255,0.4);background:linear-gradient(180deg,var(--accent-bg),var(--bg-elev-2) 60%)}
-.bench-rank-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.bench-rank{font-family:"SF Mono",Menlo,monospace;font-size:11px;color:var(--fg-dim);font-weight:600}
-.bench-tag{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;background:var(--bg);color:var(--fg-muted);padding:2px 7px;border-radius:4px;border:1px solid var(--border);text-align:right;line-height:1.4}
-.bench-card.wildlife .bench-tag{background:var(--accent);color:#fff;border-color:var(--accent)}
-.bench-name{font-size:14px;font-weight:600;letter-spacing:-0.01em;line-height:1.25}
-.bench-pub{font-size:11px;color:var(--fg-muted);margin-top:-4px}
-.bench-card-note{font-size:11px;color:var(--fg-muted);line-height:1.5;margin-top:auto}
-.section-note{font-size:12px;color:var(--fg-muted);line-height:1.6;margin:-8px 0 18px;padding:10px 14px;background:var(--bg-elev);border-left:3px solid var(--border-strong);border-radius:6px;max-width:920px}
-.section-note strong{color:var(--fg)}
-
-.style-matrix-wrap{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:28px 28px 22px;margin-bottom:36px}
-.matrix-meta{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px}
-.matrix-axes{font-size:11px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;letter-spacing:0.04em}
-.matrix-axes b{color:var(--fg-muted)}
-.style-matrix{display:grid;grid-template-columns:84px repeat(3,1fr);grid-template-rows:auto repeat(3,1fr);gap:10px}
-.matrix-x-label{display:flex;align-items:flex-end;justify-content:center;padding:6px 4px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-weight:600;text-align:center;line-height:1.3}
-.matrix-x-label.first{justify-self:start;padding-left:0}
-.matrix-x-label.last{justify-self:end;padding-right:0}
-.matrix-y-label{display:flex;align-items:center;padding:8px 6px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);font-weight:600;text-align:right;line-height:1.3;justify-content:flex-end}
-.matrix-cell{position:relative;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit;transition:all 0.2s;display:flex;flex-direction:column;cursor:pointer}
-.matrix-cell:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 20px rgba(79,140,255,0.15)}
-.cell-number{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;backdrop-filter:blur(8px);z-index:2;border:1px solid rgba(255,255,255,0.1)}
-.matrix-cell:hover .cell-number{background:var(--accent);border-color:var(--accent)}
-.cell-img{aspect-ratio:1;background:#000;overflow:hidden;position:relative}
-.cell-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
-.matrix-cell:hover .cell-img img{transform:scale(1.05)}
-.cell-meta{padding:9px 11px 11px;display:flex;flex-direction:column;gap:2px}
-.cell-name{font-size:12px;font-weight:600;line-height:1.25;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cell-style{font-size:10px;color:var(--fg-muted);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cell-pub{font-size:9px;color:var(--fg-dim);font-family:"SF Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
-@media(max-width:780px){.style-matrix{grid-template-columns:60px repeat(3,1fr)}.matrix-y-label{font-size:9px}}
-
-.intro{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:28px}
-.intro h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-0.02em}
-.intro p{margin:0;color:var(--fg-muted);font-size:14px;line-height:1.6;max-width:780px}
-.intro p strong{color:var(--fg);font-weight:600}
-.intro .pillars{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.pill{font-size:11px;padding:4px 10px;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:999px;color:var(--fg-muted)}
-.pill strong{color:var(--accent)}
-
-.limits{background:rgba(250,204,21,0.06);border:1px solid rgba(250,204,21,0.2);border-radius:10px;padding:14px 18px;margin-bottom:28px;display:flex;gap:12px;align-items:flex-start}
-.limits-icon{font-size:14px;line-height:1.4;flex-shrink:0}
-.limits-text{font-size:12px;color:var(--fg-muted);line-height:1.55}
-.limits-text strong{color:var(--warning);font-weight:600}
-
-h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--fg-dim);margin:0 0 16px;display:flex;align-items:center;gap:8px}
-h2::after{content:"";flex:1;height:1px;background:var(--border)}
-h2 .count{flex:none;background:var(--bg-elev-2);color:var(--fg-dim);padding:2px 8px;border-radius:999px;font-size:10px}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.25s;position:relative;cursor:pointer}
-.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 32px rgba(79,140,255,0.15)}
-.number{position:absolute;top:14px;left:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);z-index:2}
-.card:hover .number{background:var(--accent);border-color:var(--accent)}
-.img-wrap{aspect-ratio:4/3;background:#000;overflow:hidden;position:relative}
-.img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
-.card:hover .img-wrap img{transform:scale(1.04)}
-.source{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.65);color:var(--fg-muted);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;backdrop-filter:blur(8px);font-family:"SF Mono",Menlo,monospace}
-
-.card-body{padding:18px 20px}
-.mood-name{font-size:16px;font-weight:600;margin:0 0 4px;letter-spacing:-0.01em}
-.mood-tagline{font-size:12px;color:var(--fg-muted);margin:0 0 14px;line-height:1.4}
-
-.palette{display:flex;gap:6px;margin-bottom:14px}
-.swatch{width:28px;height:28px;border-radius:6px;border:1px solid var(--border)}
-
-.attrs{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:11px;line-height:1.5}
-.attrs dt{color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;font-size:10px}
-.attrs dd{color:var(--fg);margin:0}
-
-.implies{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--fg-muted);line-height:1.5}
-.implies strong{color:var(--success);font-weight:500}
-
-.divergent{margin-top:8px;font-size:11px;color:var(--fg-dim);line-height:1.5}
-.divergent strong{color:#f87171;font-weight:500}
-
-.cta{background:var(--accent-bg);border:1px solid var(--accent);border-radius:14px;padding:24px 28px;margin-top:36px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.cta-text h3{margin:0 0 6px;font-size:15px;font-weight:600;color:var(--fg)}
-.cta-text p{margin:0;color:var(--fg-muted);font-size:13px;line-height:1.55;max-width:780px}
-.cta-text code{background:var(--bg-elev-2);padding:2px 8px;border-radius:4px;font-size:12px;color:var(--accent);font-family:"SF Mono",Menlo,monospace}
-
-.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;margin-top:36px;padding:24px;background:var(--bg-elev);border:1px solid var(--border);border-radius:14px}
-.flow-step{padding:18px;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--fg-muted);line-height:1.5}
-.flow-step strong{display:block;color:var(--fg);font-size:13px;margin-bottom:6px;font-weight:600}
-.flow-arrow{color:var(--accent);font-size:20px;text-align:center}
-@media(max-width:900px){.flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)}}
-
-footer{padding:40px 28px;text-align:center;color:var(--fg-dim);font-size:11px;letter-spacing:0.05em}
+@media(max-width:780px){
+  .track-labels small{font-size:8px}
+  .node{width:22px;height:22px;font-size:9px}
+  .node.active{width:28px;height:28px;font-size:11px}
+  .style-matrix{grid-template-columns:48px repeat(3,1fr)}
+  .matrix-y-label{font-size:9px}
+  .phase-title{font-size:24px}
+  main{padding:24px 16px 48px}
+  .pipeline-track{padding:16px 12px 12px}
+}
 </style>
 </head>
 <body>
@@ -210,18 +227,49 @@ footer{padding:40px 28px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <div class="dot"></div>
       <div>
         <div class="title">WL Preprod Studio</div>
-        <div class="subtitle" id="subtitleText">Mood Picker · mockup v0.3</div>
+        <div class="subtitle" id="subtitleText">Pipeline · mock v0.4</div>
       </div>
     </div>
     <nav class="topnav">
-      <button class="tab active" data-tab="picker" type="button">Pré-Prod Picker</button>
+      <button class="tab active" data-tab="pipeline" type="button">Pipeline</button>
       <button class="tab" data-tab="apps" type="button">Apps <span class="lock-icon">🔒</span></button>
     </nav>
-    <div class="context" id="contextText">cozy-kitchen-game · pre-prod/cozy-kitchen/</div>
+    <div class="context" id="contextText">cozy-kitchen-game · v0.1</div>
   </div>
 </header>
 
-<!-- Password modal pra unlock da aba Apps -->
+<!-- Pipeline track (sticky abaixo do header) -->
+<div id="pipeline-track" class="pipeline-track">
+  <div class="track-container">
+    <div class="track-nodes">
+      <div class="track-progress" id="trackProgress" style="width:0%"></div>
+      <button class="node active" data-phase="1" type="button" title="Hipótese">1</button>
+      <button class="node pending" data-phase="2" type="button" title="Mercado">2</button>
+      <button class="node pending" data-phase="3" type="button" title="Brief">3</button>
+      <button class="node pending" data-phase="4" type="button" title="Estilo">4</button>
+      <button class="node pending" data-phase="5" type="button" title="Personagens">5</button>
+      <button class="node pending" data-phase="6" type="button" title="Mundo">6</button>
+      <button class="node pending" data-phase="7" type="button" title="UI / Telas">7</button>
+      <button class="node pending" data-phase="8" type="button" title="Assets">8</button>
+      <button class="node pending" data-phase="9" type="button" title="MVP Alpha">9</button>
+      <button class="node pending" data-phase="10" type="button" title="Lançamento">10</button>
+    </div>
+    <div class="track-labels">
+      <small data-phase="1" class="active">Hipótese</small>
+      <small data-phase="2">Mercado</small>
+      <small data-phase="3">Brief</small>
+      <small data-phase="4">Estilo</small>
+      <small data-phase="5">Personagens</small>
+      <small data-phase="6">Mundo</small>
+      <small data-phase="7">UI / Telas</small>
+      <small data-phase="8">Assets</small>
+      <small data-phase="9">MVP α</small>
+      <small data-phase="10">Lançamento</small>
+    </div>
+  </div>
+</div>
+
+<!-- Password modal -->
 <div class="modal-overlay" id="passwordModal" style="display:none">
   <div class="modal">
     <div class="modal-icon">🔒</div>
@@ -235,743 +283,733 @@ footer{padding:40px 28px;text-align:center;color:var(--fg-dim);font-size:11px;le
       </div>
       <div class="modal-error" id="passwordError" style="display:none">Senha incorreta</div>
     </form>
-    <div class="modal-fineprint">
-      ⚠ Lock client-side — não é segurança real, é só gating leve pra colaboradores internos.
-    </div>
+    <div class="modal-fineprint">⚠ Lock client-side — não é segurança real, é só gating leve pra colaboradores internos.</div>
   </div>
 </div>
 
-<main id="picker-view">
+<!-- ============================ PIPELINE VIEW ============================ -->
+<main id="pipeline-view">
 
-  <section class="create">
-    <div class="create-header">
-      <div>
-        <h1>Crie sua pré-produção</h1>
-        <p class="create-sub">
-          Você escreve aqui — texto livre + uns parâmetros chave. Quando travar, eu gero o
-          <strong>code</strong> da pré-prod (slug + hash + manifesto), gravo em
-          <code>pre-prod/&lt;codename&gt;/brief.md</code>, e abro o mood picker abaixo.
-          A partir desse code, toda geração subsequente fica amarrada.
-        </p>
+<!-- ========== ETAPA 1: HIPÓTESE ========== -->
+<section class="phase" data-phase="1">
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 1 de 10 · Macro</div>
+    <h1 class="phase-title">Hipótese</h1>
+    <p class="phase-desc">Antes de qualquer coisa: <strong>qual é a aposta deste jogo?</strong> Uma frase clara que você defenderia numa sala de produtores. Por que agora? O que esse jogo prova se der certo?</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>A aposta em uma frase</h3>
+      <div class="panel-sub">Não é o pitch ainda. É a tese — "se eu lançar X, então Y acontece".</div>
+      <div class="field full">
+        <span class="field-label">Hipótese central <span class="req">*</span></span>
+        <textarea id="h-hipotese" rows="2" placeholder="Ex: Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.">Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.</textarea>
+        <span class="field-hint">formato sugerido: "se X, então Y porque Z"</span>
       </div>
-      <div class="code-tag">
-        <div class="code-label">code preview</div>
-        <div class="code-value" id="codePreview">cozy-kitchen-3a7f · v0.1 · unlocked</div>
-      </div>
     </div>
 
-    <div class="form">
-      <label class="field">
-        <span class="field-label">Codename <span class="req">*</span></span>
-        <input type="text" id="f-codename" value="cozy-kitchen-game" placeholder="kebab-case, ex: space-cats-merge">
-        <span class="field-hint">vira o nome da pasta em <code>pre-prod/</code></span>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Gênero</span>
-        <select id="f-genre">
-          <option>match-3 / merge</option>
-          <option>runner</option>
-          <option>idle / clicker</option>
-          <option>RPG / RPG-lite</option>
-          <option>RTS</option>
-          <option>battle royale</option>
-          <option>sports</option>
-          <option>hidden object</option>
-          <option>social deduction</option>
-          <option>puzzle</option>
-          <option>builder / sandbox</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Mood-âncora</span>
-        <select id="f-mood">
-          <option>cozy / doméstico</option>
-          <option>cute / wholesome</option>
-          <option>aventura / vibrante</option>
-          <option>épico / fantasia</option>
-          <option>militar / sério</option>
-          <option>noir / sombrio</option>
-          <option>nostálgico / pixel</option>
-          <option>premium / minimalista</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Público-alvo</span>
-        <input type="text" id="f-audience" value="casuais 25-45, mobile-first" placeholder="ex: gen z mobile, hardcore PC">
-      </label>
-
-      <label class="field full">
-        <span class="brief-header">
-          <span class="field-label">Brief — gerado automaticamente, mas você pode editar</span>
-          <span class="brief-actions">
-            <span class="brief-status" id="briefStatus">auto · sincronizado com os campos acima</span>
-            <button type="button" class="btn-link" id="regenBtn" title="Regerar brief a partir das categorias">↻ regenerar</button>
-          </span>
-        </span>
-        <textarea id="f-brief" rows="9" placeholder="Brief vai aparecer aqui conforme você mexe nas categorias acima…"></textarea>
-        <span class="field-hint">eu uso isso como input pro mood picker e pro lock do <code>style.md</code></span>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Restrições conhecidas</span>
-        <input type="text" id="f-restrictions" placeholder="ex: prazo Q4, mobile-only, time de 3 artistas">
-      </label>
-
-      <label class="field">
-        <span class="field-label">Hipótese principal</span>
-        <input type="text" id="f-hypothesis" placeholder="ex: jogadores brasileiros vão se conectar com receitas regionais">
-      </label>
-    </div>
-
-    <div class="create-actions">
-      <button class="btn-secondary">Salvar rascunho</button>
-      <button class="btn-primary">⛓ Bloquear pré-prod &amp; abrir mood picker</button>
-    </div>
-  </section>
-
-  <section class="benchmark">
-    <div class="bench-header">
-      <div>
-        <div class="bench-title">
-          <span class="bench-title-icon">📊</span>
-          <span>Benchmark — top do gênero</span>
-          <span class="bench-genre-pill" id="benchGenrePill">match-3 / merge</span>
+    <div class="panel">
+      <h3>Contexto</h3>
+      <div class="form-grid">
+        <div class="field">
+          <span class="field-label">Por que agora?</span>
+          <input type="text" id="h-timing" value="Cozy gaming em alta pós-pandemia, mercado BR cresceu 40% em mobile casual em 2025">
         </div>
-        <div style="font-size:11px;color:var(--fg-dim);margin-top:6px;letter-spacing:0.02em">
-          Líderes globais que você deve estudar antes de bater no mood.
+        <div class="field">
+          <span class="field-label">O que prova se der certo?</span>
+          <input type="text" id="h-prova" value="Que conteúdo cultural-local bate global em retenção D30">
+        </div>
+        <div class="field">
+          <span class="field-label">Investimento estimado</span>
+          <input type="text" id="h-budget" value="Time pequeno (4 pessoas), 6 meses até soft launch">
+        </div>
+        <div class="field">
+          <span class="field-label">Métrica de sucesso</span>
+          <input type="text" id="h-metric" value="D7 ≥ 25%, ARPDAU ≥ $0.18 no soft launch BR">
         </div>
       </div>
-      <div class="bench-source">
-        Fonte: <a href="https://sensortower.com/blog/top-10-worldwide-mobile-games-by-revenue-and-downloads-in-april-2026" target="_blank">SensorTower top 10 (abr/2026)</a><br>
-        + <a href="https://naavik.co/digest/what-leading-match-3-and-merge-games-do-differently/" target="_blank">naavik</a>
-        e relatórios públicos<br>
-        <span style="opacity:0.6">no plugin real, atualiza via skill on-demand</span>
+    </div>
+
+    <div class="panel">
+      <h3>Risco principal a mitigar</h3>
+      <div class="field full">
+        <span class="field-label">O que pode dar mais errado?</span>
+        <textarea id="h-risco" rows="2" placeholder="Ex: tema regional pode parecer estereotipado ou só vender no Brasil.">Tema regional pode soar caricato se mal executado, e pode ter teto de mercado limitado ao Brasil — precisamos validar appeal em LATAM cedo.</textarea>
       </div>
-    </div>
-    <p class="bench-note" id="benchNote">—</p>
-    <div class="bench-grid" id="benchGrid"></div>
-  </section>
-
-  <section class="intro">
-    <h1>↓ Escolha 1 ou 2 directions de mood</h1>
-    <p>
-      Com base no que você criou acima, eu pesquisei o Asset Hub Wildlife e separei
-      <strong>6 directions visuais</strong> que funcionam pra esse gênero, todas vindas de
-      jogos reais do portfólio (Farm Day, Paradise Paws). <strong>Você pinaa 1 ou 2.</strong>
-      A direction escolhida vira o ground truth do <code>style.md</code> e <strong>todas as
-      gerações subsequentes (concepts, assets) vão seguir ela automaticamente</strong> — você
-      não vai precisar repetir "estilo cartoon stylized" em cada pedido.
-    </p>
-    <div class="pillars">
-      <span class="pill">Brief: <strong>match-3 cozy</strong></span>
-      <span class="pill">Mood: <strong>cozy doméstico</strong></span>
-      <span class="pill">Público: <strong>casuais 25-45</strong></span>
-      <span class="pill">Origem das refs: <strong>Asset Hub Wildlife (custo zero)</strong></span>
-    </div>
-  </section>
-
-  <div class="limits">
-    <div class="limits-icon">⚠️</div>
-    <div class="limits-text">
-      <strong>O que essas refs PROMETEM (e o que não):</strong>
-      Estas imagens são o <em>norte</em> visual. O Layer (gerador) vai produzir variações no estilo escolhido,
-      mas <strong>não vai clonar exatamente</strong> os personagens das refs (são IPs Wildlife).
-      Texto dentro de imagem (HUD, logos) sai mal — desenhar fora. Resolução prática: 1024×1024.
-      Pose dinâmica + multidão = falha. Mude expectativas: este mood picker é pra você ESCOLHER A
-      DIREÇÃO, não pra você assumir que o output vai ser 1:1 disso.
     </div>
   </div>
 
-  <h2>🏠 Refs Wildlife <span class="count">6 do portfólio</span></h2>
-  <p class="section-note">
-    Você <strong>tem acesso direto</strong> a esses assets via Asset Hub — pode estudar, remix,
-    usar como reference image em geração. Coerência com o portfólio Wildlife sai grátis.
-  </p>
+  <nav class="phase-nav">
+    <button class="btn-secondary" disabled>← Anterior</button>
+    <div class="nav-state">salvo automaticamente</div>
+    <button class="btn-primary" data-next="2" type="button">Continuar pra Mercado →</button>
+  </nav>
+</section>
 
-  <div class="grid">
+<!-- ========== ETAPA 2: MERCADO ========== -->
+<section class="phase" data-phase="2" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 2 de 10 · Macro</div>
+    <h1 class="phase-title">Mercado</h1>
+    <p class="phase-desc">Sua hipótese sobrevive ao mercado real? Eu puxo os top do gênero (SensorTower) e a gente confronta a aposta. <strong>Se o líder do gênero faz 1B/ano, sua estratégia tem que ser de nicho. Se ninguém ali fatura, talvez ainda seja cedo.</strong></p>
+  </div>
 
-    <div class="card">
-      <div class="number">1</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/c5/251b31548b04a9d3a668c50c37d9bedafe600b1318820a35ebbe331f655af4_256.webp?v=1" alt="Farmer's Splash">
-        <div class="source">Farm Day</div>
-      </div>
-      <div class="card-body">
-        <h3 class="mood-name">Farmer's Splash</h3>
-        <p class="mood-tagline">Vibrante, cheio, ensolarado, multi-personagem</p>
-        <div class="palette">
-          <div class="swatch" style="background:#f5b14a"></div>
-          <div class="swatch" style="background:#8fc34a"></div>
-          <div class="swatch" style="background:#5fb3e8"></div>
-          <div class="swatch" style="background:#fff7e0"></div>
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Genero alvo da hipótese</h3>
+      <div class="form-grid">
+        <div class="field">
+          <span class="field-label">Categoria principal</span>
+          <select id="f-genre">
+            <option>match-3 / merge</option>
+            <option>runner</option>
+            <option>idle / clicker</option>
+            <option>RPG / RPG-lite</option>
+            <option>RTS</option>
+            <option>battle royale</option>
+            <option>sports</option>
+            <option>hidden object</option>
+            <option>social deduction</option>
+            <option>puzzle</option>
+            <option>builder / sandbox</option>
+          </select>
         </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Alta, busy</dd>
-          <dt>Proporção</dt><dd>Stylized normal</dd>
-          <dt>Shading</dt><dd>Cell soft + sombra colorida</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> splash arts de evento, capa, cenas de venda. Onboarding warm.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> UI minimalista, ícones limpos.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="number">2</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/bb/b167067c219c79af809f49715e4af5525b5bba5cb299b00e95e091efb597f1_256.webp?v=1" alt="Magical Companion">
-        <div class="source">Paradise Paws</div>
-      </div>
-      <div class="card-body">
-        <h3 class="mood-name">Magical Companion</h3>
-        <p class="mood-tagline">Colorido, sparkly, mascote-único, energia mágica</p>
-        <div class="palette">
-          <div class="swatch" style="background:#f4a23a"></div>
-          <div class="swatch" style="background:#46c3a6"></div>
-          <div class="swatch" style="background:#9c5fd8"></div>
-          <div class="swatch" style="background:#7fc55f"></div>
+        <div class="field">
+          <span class="field-label">Mood âncora</span>
+          <select id="f-mood">
+            <option>cozy / doméstico</option>
+            <option>cute / wholesome</option>
+            <option>aventura / vibrante</option>
+            <option>épico / fantasia</option>
+            <option>militar / sério</option>
+            <option>noir / sombrio</option>
+            <option>nostálgico / pixel</option>
+            <option>premium / minimalista</option>
+          </select>
         </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Média, ufa</dd>
-          <dt>Proporção</dt><dd>Big-head cute</dd>
-          <dt>Shading</dt><dd>Cell + glow accents</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> mascote da loja, ícones de power-up, FX de match.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> cenas realistas, ambientação séria.</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="number">3</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/7d/3b543c8639a357f36aa48f5044ba6133095b4fc30e3a71fba2e3c48d64308e_256.webp?v=1" alt="Soft & Plush">
-        <div class="source">Paradise Paws</div>
-      </div>
-      <div class="card-body">
-        <h3 class="mood-name">Soft &amp; Plush</h3>
-        <p class="mood-tagline">Macio, plush, olho grande, single-subject vazio</p>
-        <div class="palette">
-          <div class="swatch" style="background:#cdb89e"></div>
-          <div class="swatch" style="background:#8c79b8"></div>
-          <div class="swatch" style="background:#fef0e6"></div>
-          <div class="swatch" style="background:#3a3149"></div>
-        </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Baixa, calma</dd>
-          <dt>Proporção</dt><dd>Animal chibi</dd>
-          <dt>Shading</dt><dd>Painterly soft</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> personagens de coleção, achievements, cenas íntimas.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> ação rápida, multiplos elementos.</div>
-      </div>
+    <div class="panel">
+      <h3>Top do gênero · agora</h3>
+      <div class="panel-sub">Fonte: <a href="https://sensortower.com/blog/top-10-worldwide-mobile-games-by-revenue-and-downloads-in-april-2026" target="_blank" style="color:var(--accent)">SensorTower abr/2026</a> + relatórios públicos. No plugin real, atualiza via skill on-demand.</div>
+      <p class="bench-note" id="benchNote">—</p>
+      <div class="bench-grid" id="benchGrid"></div>
     </div>
 
-    <div class="card">
-      <div class="number">4</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/f5/d5a3da428fb3ae58fb87a9929a01bd5a122df5690d5fff6217eab5e47b4cbb_256.webp?v=1" alt="Glossy Icon">
-        <div class="source">Farm Day</div>
+    <div class="panel">
+      <h3>Veredito</h3>
+      <div class="field full">
+        <span class="field-label">Sua hipótese sobrevive ao mercado?</span>
+        <textarea id="m-veredito" rows="3" placeholder="Ex: Top é Royal Match com $1.4B, é mercado real. Nicho regional brasileiro é underserved — nenhum top 10 atende. Viável seguir.">Top do gênero é Royal Match ($1.4B/ano), mercado é real e tem demanda. Nicho regional brasileiro é underserved — nenhum dos top 10 atende. Viável seguir, mas cuidado com expectativa de receita: nosso teto natural é ~$50M/ano (1/30 do líder global) se servirmos só BR.</textarea>
       </div>
-      <div class="card-body">
-        <h3 class="mood-name">Glossy Icon</h3>
-        <p class="mood-tagline">Limpo, glossy, ícone-de-jogo clássico, vetor-like</p>
-        <div class="palette">
-          <div class="swatch" style="background:#d93b3b"></div>
-          <div class="swatch" style="background:#3eb049"></div>
-          <div class="swatch" style="background:#fef063"></div>
-          <div class="swatch" style="background:#1f1f24"></div>
-        </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Neutra</dd>
-          <dt>Proporção</dt><dd>Item-only (sem char)</dd>
-          <dt>Shading</dt><dd>Flat com highlight glossy</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> tabuleiro do match-3, ícones de ingrediente, recipes UI.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> personagens, narrativa.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="number">5</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/ff/d423ad1b0270d613ddab566fb9047f82a7b6a87f46c4beda8d09d6bfaf9032_256.webp?v=1" alt="Storybook Scene">
-        <div class="source">Paradise Paws</div>
-      </div>
-      <div class="card-body">
-        <h3 class="mood-name">Storybook Scene</h3>
-        <p class="mood-tagline">Narrativo, cinematic, paleta tropical, story moment</p>
-        <div class="palette">
-          <div class="swatch" style="background:#f7a8b8"></div>
-          <div class="swatch" style="background:#82c7e8"></div>
-          <div class="swatch" style="background:#f4d28a"></div>
-          <div class="swatch" style="background:#5fa57a"></div>
-        </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Doce, calma</dd>
-          <dt>Proporção</dt><dd>Char + cenário ampla</dd>
-          <dt>Shading</dt><dd>Painterly + soft light</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> intro, cutscenes de capítulo, key art.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> ícones, UI denso, ações repetidas.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="number">6</div>
-      <div class="img-wrap">
-        <img src="https://assets-thumbnails-cdn.wildlifestudios.com/6d/a4d9846cbac718282b6c3a6386d27712c02c15058cc8b55354208268a2dea5_256.webp?v=1" alt="Cinematic Ensemble">
-        <div class="source">Paradise Paws</div>
-  <h2 style="margin-top:48px">🎨 Matriz de estilo <span class="count">spectrum aspiracional</span></h2>
-  <p class="section-note">
-    <strong>Jogos de mercado posicionados num grid</strong>. Eixo X = nível de detalhe
-    (minimalist → realista). Eixo Y = tom (wholesome → gritty). <strong>Você pinaa 1-2 células</strong>
-    pra ancorar onde quer ficar nesse spectrum — o Layer vai gerar dentro desse range. Não precisa
-    ser exato: posições próximas funcionam como "vizinhança visual".
-  </p>
-
-  <div class="style-matrix-wrap">
-    <div class="matrix-meta">
-      <div class="matrix-axes">
-        eixo <b>X →</b> nível de detalhe · eixo <b>Y ↓</b> tom emocional
-      </div>
-      <div class="matrix-axes" style="opacity:0.7">
-        Fonte das imagens: App Store CDN · jogos reais de mercado
-      </div>
-    </div>
-
-    <div class="style-matrix">
-      <div></div>
-      <div class="matrix-x-label first">← Minimalist</div>
-      <div class="matrix-x-label">Stylized</div>
-      <div class="matrix-x-label last">Realistic →</div>
-
-      <div class="matrix-y-label">↑ Wholesome</div>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1f/f3/9c/1ff39cc7-a4af-4d4a-e8af-b3bdcb9028a9/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">7</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1f/f3/9c/1ff39cc7-a4af-4d4a-e8af-b3bdcb9028a9/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Crossy Road"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Crossy Road</div>
-          <div class="cell-style">low-poly cute flat</div>
-          <div class="cell-pub">Hipster Whale</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/58/00/e5/5800e5dd-3c86-dfb7-744d-fa428709b5ca/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">8</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/58/00/e5/5800e5dd-3c86-dfb7-744d-fa428709b5ca/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="CookieRun Kingdom"></div>
-        <div class="cell-meta">
-          <div class="cell-name">CookieRun Kingdom</div>
-          <div class="cell-style">kawaii cell-shaded</div>
-          <div class="cell-pub">Devsisters</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b9/a4/ec/b9a4ec3e-d780-03df-cd37-e1e2ef2ea789/AppIcon-1x_U007emarketing-0-10-0-P3-85-220-0.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">9</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b9/a4/ec/b9a4ec3e-d780-03df-cd37-e1e2ef2ea789/AppIcon-1x_U007emarketing-0-10-0-P3-85-220-0.png/512x512bb.jpg" loading="lazy" alt="Cooking Diary"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Cooking Diary</div>
-          <div class="cell-style">semi-realista detalhe</div>
-          <div class="cell-pub">Mytona</div>
-        </div>
-      </a>
-
-      <div class="matrix-y-label">Cool</div>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/21/8e/d8/218ed8a3-c616-9ec7-419e-368073b9deb7/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">10</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/21/8e/d8/218ed8a3-c616-9ec7-419e-368073b9deb7/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Monument Valley"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Monument Valley</div>
-          <div class="cell-style">geom. arquitetural</div>
-          <div class="cell-pub">ustwo games</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/33/57/61/3357618c-5970-9214-51cd-fb231ad63eba/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">11</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/33/57/61/3357618c-5970-9214-51cd-fb231ad63eba/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Royal Match"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Royal Match</div>
-          <div class="cell-style">glossy polished</div>
-          <div class="cell-pub">Dream Games</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/10/4a/56104ae6-272f-0619-908e-6ce14305b4fe/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">12</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/10/4a/56104ae6-272f-0619-908e-6ce14305b4fe/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Honkai Star Rail"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Honkai Star Rail</div>
-          <div class="cell-style">anime cinematic</div>
-          <div class="cell-pub">HoYoverse</div>
-        </div>
-      </a>
-
-      <div class="matrix-y-label">↓ Gritty</div>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/0f/26/01/0f260118-88bc-445e-c72f-072e8b5d6ece/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">13</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/0f/26/01/0f260118-88bc-445e-c72f-072e8b5d6ece/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Subway Surfers"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Subway Surfers</div>
-          <div class="cell-style">graffiti urbano</div>
-          <div class="cell-pub">SYBO</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/77/61/7e/77617ea5-0e5a-23d1-88f7-02962dbcd8c6/AppIcon-0-0-1x_U007emarketing-0-5-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">14</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/77/61/7e/77617ea5-0e5a-23d1-88f7-02962dbcd8c6/AppIcon-0-0-1x_U007emarketing-0-5-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Stumble Guys"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Stumble Guys</div>
-          <div class="cell-style">chunky competitive</div>
-          <div class="cell-pub">Scopely</div>
-        </div>
-      </a>
-      <a class="matrix-cell" href="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/56/64/5e/56645ecc-1ed3-d882-96c9-3785da2ac981/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg" target="_blank">
-        <div class="cell-number">15</div>
-        <div class="cell-img"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/56/64/5e/56645ecc-1ed3-d882-96c9-3785da2ac981/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg" loading="lazy" alt="Call of Duty Mobile"></div>
-        <div class="cell-meta">
-          <div class="cell-name">Call of Duty Mobile</div>
-          <div class="cell-style">PBR militar real</div>
-          <div class="cell-pub">Activision</div>
-        </div>
-      </a>
     </div>
   </div>
 
-        <div class="source">Subway Surfers · SYBO</div>
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="1" type="button">← Hipótese</button>
+    <div class="nav-state">salvo automaticamente</div>
+    <button class="btn-primary" data-next="3" type="button">Continuar pro Brief →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 3: BRIEF ========== -->
+<section class="phase" data-phase="3" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 3 de 10 · Macro</div>
+    <h1 class="phase-title">Brief</h1>
+    <p class="phase-desc">A descrição canônica do jogo. Define o produto: gênero, perspectiva, core loop, monetização, público. <strong>Eu auto-gero a partir das suas escolhas — você refina o texto.</strong></p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <div class="brief-header">
+        <h3 style="margin:0">Identidade</h3>
+        <span class="code-chip"><span class="code-chip-label">code</span><span id="codePreview">cozy-kitchen-3a7f · v0.1</span></span>
       </div>
-      <div class="card-body">
-        <h3 class="mood-name">Endless Urban Pop</h3>
-        <p class="mood-tagline">Graffiti urbano, dynamic motion, vibe jovem</p>
-        <div class="palette">
-          <div class="swatch" style="background:#ff4d4f"></div>
-          <div class="swatch" style="background:#ffec3d"></div>
-          <div class="swatch" style="background:#4dc4ff"></div>
-          <div class="swatch" style="background:#ff8c00"></div>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field">
+          <span class="field-label">Codename <span class="req">*</span></span>
+          <input type="text" id="f-codename" value="cozy-kitchen-game">
         </div>
-        <dl class="attrs">
-          <dt>Energia</dt><dd>Alta dinâmica</dd>
-          <dt>Proporção</dt><dd>Hero teen stylized</dd>
-          <dt>Shading</dt><dd>Cell + motion blur</dd>
-        </dl>
-        <div class="implies"><strong>✓ Bom pra:</strong> runner UI, cenas urbanas, público jovem, TikTok-friendly.</div>
-        <div class="divergent"><strong>✗ Ruim pra:</strong> cozy, premium, slow pacing.</div>
+        <div class="field">
+          <span class="field-label">Público-alvo</span>
+          <input type="text" id="f-audience" value="mulheres 35-50 BR + LATAM, casual cozy gaming">
+        </div>
+        <div class="field">
+          <span class="field-label">Restrições</span>
+          <input type="text" id="f-restrictions" placeholder="ex: prazo Q4, mobile-only">
+        </div>
+        <div class="field">
+          <span class="field-label">Hipótese a validar</span>
+          <input type="text" id="f-hypothesis" value="conteúdo cultural-local bate global em retenção">
+        </div>
       </div>
     </div>
 
-  </div>
-
-  <section class="cta">
-    <div class="cta-text">
-      <h3>Pra escolher</h3>
-      <p>
-        Volta no Claude Code e fala: <code>vou de mood 3</code>, ou misture: <code>mood 3 + 4</code>
-        (personagens vêm de 3, ícones de 4). Eu gravo isso em <code>style.md</code> com paleta, proporção,
-        shading e don'ts. Aí qualquer comando seguinte (<code>"gera concept"</code>, <code>"produz sprite"</code>)
-        já roda dentro desse mood — você não precisa repetir nada.
-      </p>
-    </div>
-  </section>
-
-  <h2 style="margin-top:48px">Como o lock funciona daqui pra frente</h2>
-  <div class="flow">
-    <div class="flow-step">
-      <strong>1. Lock</strong>
-      Você escolhe mood 3.<br>
-      style.md grava: paleta soft beige/lilás, proporção animal chibi, shading painterly soft, don'ts: "sem cores saturadas, sem ação rápida".
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <strong>2. Gerações futuras leem o lock</strong>
-      Quando você diz <em>"gera concept do gato chefe"</em>, eu construo o prompt automaticamente com os atributos do mood 3 + adiciono o sujeito. Você não repete nada.
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <strong>3. Drift detection</strong>
-      Se você pedir algo que contradiz o lock (ex: <em>"agora cyberpunk"</em>), o plugin avisa: "isso conflita com o mood 3, quer (a) atualizar style.md, (b) gerar fora só dessa vez, (c) cancelar".
+    <div class="panel">
+      <div class="brief-header">
+        <h3 style="margin:0">Brief auto-gerado</h3>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="brief-status" id="briefStatus">auto · sincronizado</span>
+          <button type="button" class="btn-link" id="regenBtn">↻ regenerar</button>
+        </div>
+      </div>
+      <div class="field full">
+        <textarea id="f-brief" rows="11"></textarea>
+        <span class="field-hint">eu uso isso como input pro picker de estilo e pra produção</span>
+      </div>
     </div>
   </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="2" type="button">← Mercado</button>
+    <div class="nav-state">salvo automaticamente</div>
+    <button class="btn-primary" data-next="4" type="button">Continuar pra Estilo →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 4: ESTILO ========== -->
+<section class="phase" data-phase="4" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 4 de 10 · Macro → Meso</div>
+    <h1 class="phase-title">Estilo <span class="status-pill draft" id="stylePill">draft</span></h1>
+    <p class="phase-desc">Direção visual. Você pina <strong>1-2 directions Wildlife</strong> (refs do portfólio interno) e <strong>opcionalmente 1-2 células da matriz aspiracional</strong> (mercado externo). Quando travar, vira o ground truth — toda geração subsequente respeita automaticamente.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>🏠 Refs Wildlife <span class="status-pill draft" style="margin-left:8px">portfólio interno</span></h3>
+      <div class="panel-sub">Assets reais do Asset Hub Wildlife — você pode usar diretamente como referência no Layer.</div>
+      <div class="mood-grid" id="wildlifeMoodGrid"></div>
+    </div>
+
+    <div class="panel style-matrix-wrap">
+      <h3>🎨 Matriz aspiracional <span class="status-pill draft" style="margin-left:8px">mercado externo</span></h3>
+      <div class="matrix-axes">eixo <b>X →</b> nível de detalhe · eixo <b>Y ↓</b> tom emocional · refs de mercado, não-Wildlife</div>
+      <div class="style-matrix" id="styleMatrix"></div>
+    </div>
+
+    <div class="panel" id="lockPanel" style="display:none">
+      <h3>🔒 Trava o estilo</h3>
+      <div class="panel-sub">Selecionados: <span id="pinnedSummary">nenhum</span></div>
+      <button class="btn-primary" type="button" id="lockStyleBtn">Travar style.md e seguir →</button>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="3" type="button">← Brief</button>
+    <div class="nav-state" id="stylePin">selecione 1+ pra continuar</div>
+    <button class="btn-primary" data-next="5" type="button" id="phase4Next" disabled>Continuar pra Personagens →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 5: PERSONAGENS ========== -->
+<section class="phase" data-phase="5" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 5 de 10 · Meso</div>
+    <h1 class="phase-title">Personagens</h1>
+    <p class="phase-desc">Quem são os personagens? Eu gero <strong>concept arts em batches</strong> respeitando o style.md travado. Você pina os melhores — eles viram ground truth pra produção dos assets finais.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Cast (definição)</h3>
+      <div class="form-grid">
+        <div class="field">
+          <span class="field-label">Personagem principal</span>
+          <input type="text" value="Dona Marta — chef matriarca, 60 anos, do interior de MG">
+        </div>
+        <div class="field">
+          <span class="field-label">Sidekick</span>
+          <input type="text" value="Pingo — gato laranja morador da cozinha, mascote">
+        </div>
+        <div class="field">
+          <span class="field-label">Coadjuvante 1</span>
+          <input type="text" value="Tiago — neto que ajuda no app de delivery">
+        </div>
+        <div class="field">
+          <span class="field-label">Coadjuvante 2</span>
+          <input type="text" placeholder="ex: cliente fiel, fornecedor, vizinho...">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Concepts por personagem</h3>
+      <div class="panel-sub">No plugin real: clica "Gerar concepts" → Layer dispara batch de 4 variações → você pina → vira referência canônica.</div>
+      <div class="placeholder-grid">
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">👵</div>
+          <div class="placeholder-name">Dona Marta</div>
+          <div class="placeholder-status">0 concepts · 0 pinned</div>
+          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🐱</div>
+          <div class="placeholder-name">Pingo</div>
+          <div class="placeholder-status">0 concepts · 0 pinned</div>
+          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">👨‍💻</div>
+          <div class="placeholder-name">Tiago</div>
+          <div class="placeholder-status">0 concepts · 0 pinned</div>
+          <div class="placeholder-cta">+ gerar 4 concepts (estim. 30 CU)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="4" type="button">← Estilo</button>
+    <div class="nav-state">3 personagens · 0 concepts</div>
+    <button class="btn-primary" data-next="6" type="button">Continuar pro Mundo →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 6: MUNDO ========== -->
+<section class="phase" data-phase="6" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 6 de 10 · Meso</div>
+    <h1 class="phase-title">Mundo</h1>
+    <p class="phase-desc">Onde acontece? Cenários, locações, atmosferas. Mesmo padrão dos personagens: define cada cenário → gera batch de concepts → pina o melhor.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Cenários principais</h3>
+      <div class="placeholder-grid">
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🏠</div>
+          <div class="placeholder-name">Cozinha da Dona Marta</div>
+          <div class="placeholder-status">cenário hub · 0 concepts</div>
+          <div class="placeholder-cta">+ gerar 4 concepts</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🛒</div>
+          <div class="placeholder-name">Feira de bairro</div>
+          <div class="placeholder-status">cenário de aquisição · 0 concepts</div>
+          <div class="placeholder-cta">+ gerar 4 concepts</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🎪</div>
+          <div class="placeholder-name">Festival junino</div>
+          <div class="placeholder-status">evento sazonal · 0 concepts</div>
+          <div class="placeholder-cta">+ gerar 4 concepts</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🚚</div>
+          <div class="placeholder-name">Cozinha móvel (food truck)</div>
+          <div class="placeholder-status">expansão futura · 0 concepts</div>
+          <div class="placeholder-cta">+ gerar 4 concepts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="5" type="button">← Personagens</button>
+    <div class="nav-state">4 cenários · 0 concepts</div>
+    <button class="btn-primary" data-next="7" type="button">Continuar pra UI / Telas →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 7: UI / TELAS ========== -->
+<section class="phase" data-phase="7" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 7 de 10 · Meso → Micro</div>
+    <h1 class="phase-title">UI / Telas</h1>
+    <p class="phase-desc">As telas-chave do jogo. Aqui é wireframe + concept visual de cada uma. Estilo do brief + style.md aplicado automaticamente.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Telas principais</h3>
+      <div class="placeholder-grid">
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🏡</div>
+          <div class="placeholder-name">Home / Lobby</div>
+          <div class="placeholder-status">tela de entrada</div>
+          <div class="placeholder-cta">+ wireframe + mockup</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🎮</div>
+          <div class="placeholder-name">Gameplay (board)</div>
+          <div class="placeholder-status">tela do core loop</div>
+          <div class="placeholder-cta">+ wireframe + mockup</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🛍</div>
+          <div class="placeholder-name">Loja IAP</div>
+          <div class="placeholder-status">monetização</div>
+          <div class="placeholder-cta">+ wireframe + mockup</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🏆</div>
+          <div class="placeholder-name">Level complete</div>
+          <div class="placeholder-status">tela de recompensa</div>
+          <div class="placeholder-cta">+ wireframe + mockup</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">⚙️</div>
+          <div class="placeholder-name">Settings / Perfil</div>
+          <div class="placeholder-status">utility</div>
+          <div class="placeholder-cta">+ wireframe + mockup</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="6" type="button">← Mundo</button>
+    <div class="nav-state">5 telas · 0 mockups</div>
+    <button class="btn-primary" data-next="8" type="button">Continuar pra Assets →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 8: ASSETS ========== -->
+<section class="phase" data-phase="8" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 8 de 10 · Micro</div>
+    <h1 class="phase-title">Assets finais</h1>
+    <p class="phase-desc">Produção. Cada concept pinado vira um asset final pronto pra Unity/Unreal: PNG transparente (2D), GLB com textura PBR (3D). Aqui é onde o orçamento de CUs pesa mais — eu sempre confirmo custo antes.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Inventário</h3>
+      <table class="inventory">
+        <thead>
+          <tr><th>Asset</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Custo est.</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Dona Marta — full body T-pose</td><td>2D character</td><td>FLUX.2 [pro]</td><td><span class="status-pill draft">pending concept</span></td><td>~25 CU</td></tr>
+          <tr><td>Pingo — sprite sheet 4 poses</td><td>2D character</td><td>FLUX.2 [pro]</td><td><span class="status-pill draft">pending concept</span></td><td>~80 CU</td></tr>
+          <tr><td>Ícone de tomate</td><td>2D UI</td><td>GPT Image 1</td><td><span class="status-pill draft">pending concept</span></td><td>~8 CU</td></tr>
+          <tr><td>Ícone de farinha</td><td>2D UI</td><td>GPT Image 1</td><td><span class="status-pill draft">pending concept</span></td><td>~8 CU</td></tr>
+          <tr><td>Background cozinha</td><td>2D bg</td><td>FLUX.1 [dev]</td><td><span class="status-pill draft">pending concept</span></td><td>~30 CU</td></tr>
+          <tr><td>Panela 3D low-poly</td><td>3D prop</td><td>Meshy V6</td><td><span class="status-pill draft">pending concept</span></td><td>~280 CU</td></tr>
+        </tbody>
+      </table>
+      <div class="panel-sub" style="margin-top:14px">Total estimado: <strong>~431 CUs</strong> · workspace tem 54.962 disponíveis · <a href="#" style="color:var(--accent)">ver detalhes de cada asset</a></div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="7" type="button">← UI</button>
+    <div class="nav-state">6 assets planejados · 0 finalizados</div>
+    <button class="btn-primary" data-next="9" type="button">Continuar pro MVP α →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 9: MVP ALPHA ========== -->
+<section class="phase" data-phase="9" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 9 de 10 · Micro · jogável</div>
+    <h1 class="phase-title">MVP Alpha</h1>
+    <p class="phase-desc">Tudo até aqui era pré-produção. Agora vira <strong>protótipo jogável</strong>: build HTML5 (Phaser/PixiJS) consumindo os assets finais, com o core loop funcionando. Não é o jogo final — é a primeira vez que dá pra <strong>sentir o jogo nas mãos</strong>.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Build status</h3>
+      <table class="inventory">
+        <tbody>
+          <tr><td>Engine</td><td>Phaser 3 + Vite</td></tr>
+          <tr><td>Resolução</td><td>1080×1920 (portrait mobile)</td></tr>
+          <tr><td>Core loop implementado</td><td><span class="status-pill draft">aguardando assets</span></td></tr>
+          <tr><td>Tutorial / FTUE</td><td><span class="status-pill draft">não iniciado</span></td></tr>
+          <tr><td>10 levels jogáveis</td><td><span class="status-pill draft">não iniciado</span></td></tr>
+          <tr><td>Economia básica</td><td><span class="status-pill draft">não iniciado</span></td></tr>
+          <tr><td>Build URL</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="background:#000;border-style:dashed;text-align:center;padding:60px 24px">
+      <div style="font-size:48px;margin-bottom:12px">🎮</div>
+      <div style="font-size:14px;color:var(--fg-muted);margin-bottom:6px">Preview jogável aparece aqui</div>
+      <div style="font-size:11px;color:var(--fg-dim);font-family:'SF Mono',Menlo,monospace">iframe 360×640 servindo build/index.html</div>
+    </div>
+
+    <div class="panel">
+      <h3>Test plan do alpha</h3>
+      <table class="inventory">
+        <tbody>
+          <tr><td>FTUE</td><td>jogador novo completa 3 levels sem ajuda</td></tr>
+          <tr><td>Loop</td><td>10 levels com curva de dificuldade crescente</td></tr>
+          <tr><td>Performance</td><td>60fps no iPhone XR</td></tr>
+          <tr><td>Tamanho</td><td>build &lt; 8MB pra download rápido</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="8" type="button">← Assets</button>
+    <div class="nav-state">aguardando assets pra buildar</div>
+    <button class="btn-primary" data-next="10" type="button">Continuar pra Lançamento →</button>
+  </nav>
+</section>
+
+<!-- ========== ETAPA 10: LANÇAMENTO ========== -->
+<section class="phase" data-phase="10" hidden>
+  <div class="phase-header">
+    <div class="phase-meta">Etapa 10 de 10 · Lançamento</div>
+    <h1 class="phase-title">Lançamento</h1>
+    <p class="phase-desc">Material da loja + handoff pra produção. Empacotamento final: ícone, screenshots, vídeo, descrição ASO, manifesto técnico, e <strong>um zip portátil</strong> que o time de Unity pode importar direto.</p>
+  </div>
+
+  <div class="phase-content">
+    <div class="panel">
+      <h3>Store assets</h3>
+      <div class="placeholder-grid">
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">📱</div>
+          <div class="placeholder-name">Ícone (1024×1024)</div>
+          <div class="placeholder-status">App Store + Play Store</div>
+          <div class="placeholder-cta">+ gerar via Layer</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">📸</div>
+          <div class="placeholder-name">Screenshots (5×)</div>
+          <div class="placeholder-status">portrait, em devices mockup</div>
+          <div class="placeholder-cta">+ gerar do build alpha</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">🎬</div>
+          <div class="placeholder-name">Vídeo trailer (15s)</div>
+          <div class="placeholder-status">gameplay capture + edição</div>
+          <div class="placeholder-cta">+ rodar Veo 3.1</div>
+        </div>
+        <div class="placeholder-card">
+          <div class="placeholder-emoji">📝</div>
+          <div class="placeholder-name">Descrição ASO</div>
+          <div class="placeholder-status">PT-BR + EN-US</div>
+          <div class="placeholder-cta">+ Claude API</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Handoff pro time de produção</h3>
+      <table class="inventory">
+        <tbody>
+          <tr><td>brief.md</td><td><span class="status-pill locked">✓ pronto</span></td></tr>
+          <tr><td>style.md</td><td><span class="status-pill draft">draft</span></td></tr>
+          <tr><td>references.md</td><td><span class="status-pill draft">vazio</span></td></tr>
+          <tr><td>concepts/ (pinned only)</td><td><span class="status-pill draft">0 pinados</span></td></tr>
+          <tr><td>assets/2d/</td><td><span class="status-pill draft">0 produzidos</span></td></tr>
+          <tr><td>assets/3d/</td><td><span class="status-pill draft">0 produzidos</span></td></tr>
+          <tr><td>store/</td><td><span class="status-pill draft">0 itens</span></td></tr>
+          <tr><td>INVENTORY.md</td><td><span class="status-pill draft">auto-gerado no zip</span></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-primary" type="button">📦 Empacotar cozy-kitchen-game-v0.1.zip</button>
+        <button class="btn-secondary" type="button">🔗 Compartilhar com produção</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="phase-nav">
+    <button class="btn-secondary" data-next="9" type="button">← MVP α</button>
+    <div class="nav-state">pré-produção 60% completa</div>
+    <button class="btn-primary" type="button" disabled>Finalizado ✓</button>
+  </nav>
+</section>
 
 </main>
 
-<!-- Apps view (escondido até unlock) -->
-<main id="apps-view" style="display:none">
+<!-- ============================ APPS VIEW ============================ -->
+<main id="apps-view" hidden>
   <section class="apps-hero">
     <div class="apps-eyebrow">🔓 Área desbloqueada · Wildlife Internal</div>
     <h1 class="apps-title">Apps da Wildlife</h1>
-    <p class="apps-sub">
-      Catálogo de apps internos construídos com Claude. Cada um é um plugin de Claude Code
-      instalável, distribuído pra galera da Wildlife. Clica num app pra ver detalhes,
-      instalação e tutorial.
-    </p>
+    <p class="apps-sub">Catálogo de apps internos construídos com Claude. Cada um é um plugin de Claude Code instalável, distribuído pra galera da Wildlife.</p>
   </section>
 
-  <section class="apps-grid">
-    <a class="app-card live" href="#preprod">
-      <div class="app-status">🟢 v0.3 · interno</div>
+  <section class="apps-grid" style="max-width:1100px;margin:0 auto 32px;padding:0 24px">
+    <a class="app-card live" href="#">
+      <div class="app-status">🟢 v0.4 · interno</div>
       <div class="app-emoji">🎨</div>
       <div class="app-name">WL Preprod Studio</div>
-      <div class="app-tagline">Assistente de pré-produção. Brief → estilo → concepts → assets.</div>
-      <div class="app-meta">
-        <span>4 skills</span>
-        <span>·</span>
-        <span>Asset Hub + Layer</span>
-      </div>
+      <div class="app-tagline">Hipótese → estilo → assets → MVP α. Pipeline completo de pré-produção.</div>
+      <div class="app-meta"><span>10 etapas</span><span>·</span><span>Asset Hub + Layer</span></div>
     </a>
-
-    <div class="app-card placeholder">
-      <div class="app-status">⚪ planejado</div>
-      <div class="app-emoji">🔊</div>
-      <div class="app-name">WL Audio Foundry</div>
-      <div class="app-tagline">Geração de SFX + música ambiente coerente com style.md.</div>
-      <div class="app-meta">
-        <span>1 skill</span>
-        <span>·</span>
-        <span>ElevenLabs + Asset Hub Audio</span>
-      </div>
-    </div>
-
-    <div class="app-card placeholder">
-      <div class="app-status">⚪ planejado</div>
-      <div class="app-emoji">🎬</div>
-      <div class="app-name">WL Playable Forge</div>
-      <div class="app-tagline">Gera playable ads HTML5 a partir de concepts pinados.</div>
-      <div class="app-meta">
-        <span>2 skills</span>
-        <span>·</span>
-        <span>Playables MCP</span>
-      </div>
-    </div>
-
-    <div class="app-card placeholder">
-      <div class="app-status">⚪ planejado</div>
-      <div class="app-emoji">📊</div>
-      <div class="app-name">WL Market Scout</div>
-      <div class="app-tagline">Auto-pull SensorTower diário + alertas de gênero em ascensão.</div>
-      <div class="app-meta">
-        <span>3 skills</span>
-        <span>·</span>
-        <span>SensorTower API</span>
-      </div>
-    </div>
-
-    <div class="app-card placeholder">
-      <div class="app-status">⚪ planejado</div>
-      <div class="app-emoji">🧪</div>
-      <div class="app-name">WL Test Lab</div>
-      <div class="app-tagline">Concept testing via grupos focais sintéticos + análise de retenção.</div>
-      <div class="app-meta">
-        <span>2 skills</span>
-        <span>·</span>
-        <span>Claude API</span>
-      </div>
-    </div>
-
-    <div class="app-card placeholder">
-      <div class="app-status">⚪ planejado</div>
-      <div class="app-emoji">📦</div>
-      <div class="app-name">WL Handoff</div>
-      <div class="app-tagline">Empacota pré-produção pra Unity/Unreal: GLB, atlases, manifests.</div>
-      <div class="app-meta">
-        <span>1 skill</span>
-        <span>·</span>
-        <span>filesystem + Unity bridge</span>
-      </div>
-    </div>
+    <div class="app-card placeholder"><div class="app-status">⚪ planejado</div><div class="app-emoji">🔊</div><div class="app-name">WL Audio Foundry</div><div class="app-tagline">Geração de SFX + música ambiente coerente com style.md.</div><div class="app-meta"><span>1 skill</span><span>·</span><span>ElevenLabs</span></div></div>
+    <div class="app-card placeholder"><div class="app-status">⚪ planejado</div><div class="app-emoji">🎬</div><div class="app-name">WL Playable Forge</div><div class="app-tagline">Gera playable ads HTML5 a partir de concepts pinados.</div><div class="app-meta"><span>2 skills</span></div></div>
+    <div class="app-card placeholder"><div class="app-status">⚪ planejado</div><div class="app-emoji">📊</div><div class="app-name">WL Market Scout</div><div class="app-tagline">Auto-pull SensorTower diário + alertas de gênero em ascensão.</div><div class="app-meta"><span>3 skills</span></div></div>
+    <div class="app-card placeholder"><div class="app-status">⚪ planejado</div><div class="app-emoji">🧪</div><div class="app-name">WL Test Lab</div><div class="app-tagline">Concept testing via grupos focais sintéticos + análise.</div><div class="app-meta"><span>2 skills</span></div></div>
+    <div class="app-card placeholder"><div class="app-status">⚪ planejado</div><div class="app-emoji">📦</div><div class="app-name">WL Handoff</div><div class="app-tagline">Empacota pré-produção pra Unity/Unreal: GLB, atlases, manifests.</div><div class="app-meta"><span>1 skill</span></div></div>
   </section>
 
   <section class="apps-foot">
-    <h3>Como instalar qualquer um destes apps</h3>
+    <h3>Como instalar</h3>
     <p>Cada app é distribuído como plugin de Claude Code. Instalação em 2 passos:</p>
     <pre><code>claude plugin marketplace add marcofurtado-hub/wl-preprod-studio
 claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
-    <p class="apps-foot-fineprint">
-      ⚠ Requer acesso aos MCPs internos (Asset Hub, Layer Wildlife) — peça pro time de infra
-      liberar se ainda não tem.
-    </p>
+    <p class="apps-foot-fineprint">⚠ Requer acesso aos MCPs internos (Asset Hub, Layer Wildlife) — peça pro time de infra liberar se ainda não tem.</p>
   </section>
 </main>
 
-<footer>WL Preprod Studio — mock v0.3 · <span id="footerNote">picker pattern · interactive</span></footer>
+<footer>WL Preprod Studio — mock v0.4 · pipeline · <span id="footerNote">10 etapas · hipótese → MVP α</span></footer>
 
 <script>
 (function(){
-  const genreData = {
-    'match-3 / merge': {label:'match-3',loop:'combina ingredientes/itens no tabuleiro pra completar receitas e progredir',comparables:['Midas Merge','Paradise Paws'],
-      perspective:'top-down do tabuleiro (board view), com personagens e cenário em meta-screen separada',
-      interaction:'tap/swap pra mover/conectar peças adjacentes',
-      pace:'sessões curtas de 2-5 minutos, alta repetição diária',
-      canonical:'Royal Match (puzzle) ou Gossip Harbor (merge story)'},
-    'runner': {label:'runner',loop:'corre desviando de obstáculos e coletando recompensas em corridas curtas',comparables:['Bike Race','Ninja Kid'],
-      perspective:'3rd person atrás-das-costas (igual Subway Surfers) ou side-scroll horizontal',
-      interaction:'swipe pra mudar de pista, pular ou escorregar',
-      pace:'corridas curtas de 30s-2min, retry instantâneo',
-      canonical:'Subway Surfers'},
-    'idle / clicker': {label:'idle/clicker',loop:'coleta passivamente e investe em upgrades pra escalar produção',comparables:['AFK Magic'],
-      perspective:'side-view 2D ou isometric estático, com personagens visíveis em batalha/economia',
-      interaction:'tap pra coletar/upgradar; jogo continua progredindo offline',
-      pace:'sessões curtas de check-in múltiplas vezes ao dia',
-      canonical:'AFK Journey'},
-    'RPG / RPG-lite': {label:'RPG',loop:'explora, batalha por turno ou tempo real, evolui personagens e equipamento',comparables:['Mistland Saga','AFK Magic'],
-      perspective:'3rd person over-shoulder ou isometric de combate; mapa-mundi navegável',
-      interaction:'tap em alvos + acionamento de skills; navegação por mapa overworld',
-      pace:'sessões médias de 10-30min, retenção de longo prazo',
-      canonical:'Honor of Kings (combate) ou Genshin Impact (open world)'},
-    'RTS': {label:'RTS',loop:'comanda tropas em duelos rápidos de 2-4 minutos',comparables:['Ashes of War'],
-      perspective:'top-down isometric da arena/base',
-      interaction:'tap pra deploy de unidades, drag pra movimento e comando',
-      pace:'partidas PvP de 2-5min, com meta-progression de base/deck entre matches',
-      canonical:'Clash Royale (curto) ou Last War: Survival Game (longo)'},
-    'battle royale': {label:'battle royale',loop:'sobrevive numa arena que encolhe, eliminando os outros',comparables:['Zooba'],
-      perspective:'3rd person sobre o personagem (action cam) ou top-down (estilo Zooba)',
-      interaction:'twin-stick virtual: stick esquerdo move, direito mira/atira',
-      pace:'partidas de 5-15min com alta tensão e queda gradual',
-      canonical:'Free Fire / Zooba'},
-    'sports': {label:'sports',loop:'compete em partidas curtas com mecânica esportiva real',comparables:['Tennis Clash'],
-      perspective:'depende do esporte: tênis = side court 3/4, futebol = top-down field, bilhar = top-down table',
-      interaction:'swipe/tap pra ação esportiva específica (saque, chute, tacada)',
-      pace:'partidas PvP curtas de 1-5min com matchmaking',
-      canonical:'Tennis Clash (1v1 curto) ou 8 Ball Pool (turn-based casual)'},
-    'hidden object': {label:'hidden object',loop:'encontra objetos escondidos contra o relógio pra avançar a história',comparables:['Detective Match'],
-      perspective:'cena estática 1st person (você olha pra dentro do quadro como se fosse a câmera)',
-      interaction:'tap nos objetos da lista escondidos na cena; zoom + pan',
-      pace:'sessões médias de 5-15min, divididas em capítulos narrativos',
-      canonical:"June's Journey / Detective Match"},
-    'social deduction': {label:'social deduction',loop:'deduz quem é traidor numa partida online de múltiplos jogadores',comparables:['Suspects'],
-      perspective:'top-down 2D (estilo Among Us) ou 3rd person isometric',
-      interaction:'movimento livre + tarefas pelo mapa + chat/voto em reuniões',
-      pace:'partidas de 5-10min, lobby social mais longo que a partida',
-      canonical:'Among Us / Suspects'},
-    'puzzle': {label:'puzzle',loop:'resolve quebra-cabeças progressivamente mais complexos',comparables:['Color by Number','Colorfy'],
-      perspective:'top-down 2D do puzzle, fullscreen sem cenário',
-      interaction:'tap/drag pra peças; mecânica simples e direta',
-      pace:'levels curtos de 1-3min com level select progressivo ou infinito',
-      canonical:'Block Blast (hyper) ou Royal Match (premium)'},
-    'builder / sandbox': {label:'builder',loop:'constrói livremente em mundo aberto coletando recursos',comparables:['Block Craft'],
-      perspective:'1st person (estilo Minecraft mobile) ou 3rd person com câmera livre',
-      interaction:'tap pra colocar/remover blocos; joystick virtual pra movimento',
-      pace:'sessões longas exploratórias de 20-60min',
-      canonical:'Minecraft / Block Craft 3D'}
-  };
-  const moodData = {
-    'cozy / doméstico': {vibe:'acolhedora, sem urgência, abraço',palette:'tons quentes (ocre, terracota, creme)',shading:'cell-shading soft com sombras coloridas',proportion:'humanos stylized normais',hint:'tipo "domingo na casa da vó"'},
-    'cute / wholesome': {vibe:'fofa, kawaii, abraçável',palette:'pastéis (rosa, lavanda, menta)',shading:'cell flat com light glow',proportion:'chibi de cabeça grande',hint:'tipo "Animal Crossing"'},
-    'aventura / vibrante': {vibe:'energética, animada, busy',palette:'saturada (laranja, ciano, magenta)',shading:'cell com contraste alto',proportion:'heroica dinâmica',hint:'tipo "Sky Warriors meets Zooba"'},
-    'épico / fantasia': {vibe:'épica, dramática, mítica',palette:'profunda (violeta, dourado, esmeralda)',shading:'painterly com drama de luz',proportion:'heroica realista',hint:'tipo "Mistland Saga"'},
-    'militar / sério': {vibe:'séria, tensa, técnica',palette:'terrosa dessaturada (oliva, areia, grafite)',shading:'PBR realista',proportion:'realista normal',hint:'tipo "War Machines / Sniper 3D"'},
-    'noir / sombrio': {vibe:'misteriosa, soturna, edgy',palette:'fria (preto, cinza-azul, vermelho-sangue)',shading:'high-contrast com sombras duras',proportion:'realista normal',hint:'tipo "Detective Match em modo dark"'},
-    'nostálgico / pixel': {vibe:'nostálgica, anos 90, pixel-perfect',palette:'retrô limitada (16-32 cores)',shading:'pixel art ou flat com dithering',proportion:'pixel chibi',hint:'tipo "16-bit cozy"'},
-    'premium / minimalista': {vibe:'elegante, refinada, premium',palette:'monocromática + 1 accent',shading:'flat com espaço negativo generoso',proportion:'silhuetas limpas',hint:'tipo "Monument Valley"'}
-  };
-
-  const benchmarkData = {
-    'match-3 / merge': {
-      note: 'Match-3 = ~8.7% do mercado mobile. Day 1 retention mais alto entre gêneros (~32.6%). Top performers giram em torno de US$ 1B+ IAP/ano.',
-      top: [
-        {rank:'#1 puzzle', title:'Royal Match', pub:'Dream Games', tag:'$1.4B em 2025', note:'Mestre em onboarding cinemático e LiveOps de eventos.'},
-        {rank:'top 5 abr/26', title:'Gossip Harbor', pub:'Microfun', tag:'merge story', note:'$650M em 2025. Merge com narrativa cozy.'},
-        {rank:'evergreen', title:'Candy Crush Saga', pub:'King', tag:'$1.1B em 2025', note:'Loop level + monetização IAP refinada.'},
-        {rank:'sustentado', title:'Gardenscapes', pub:'Playrix', tag:'meta-progressão', note:'$500M+. Match + customização garden.'},
-        {rank:'merge puro', title:'Travel Town', pub:'Magmatic', tag:'sem narrativa', note:'Merge minimalista, foco no loop.'}
-      ]
-    },
-    'runner': {
-      note: 'Runner é gênero de descoberta + retenção curta. Subway Surfers domina há ~10 anos via LiveOps semanal de cidades temáticas.',
-      top: [
-        {rank:'#1 downloads mar/26', title:'Subway Surfers City', pub:'SYBO', tag:'#1 growth mar/26', note:'Cidades temáticas mensais + presença ativa em TikTok.'},
-        {rank:'1B+ downloads', title:'Subway Surfers (orig)', pub:'SYBO', tag:'evergreen', note:'Loop curto, instantaneamente reconhecível.'},
-        {rank:'social', title:'Stumble Guys', pub:'Scopely', tag:'multi-runner', note:'Wipeout-like + battle royale leve.'},
-        {rank:'IP', title:'Sonic Dash', pub:'SEGA', tag:'IP forte', note:'Runner com franquia sólida.'},
-        {rank:'top 10 dl abr/26', title:'Bus Rush Fever!', pub:'-', tag:'hyper emergente', note:'Runner hypercasual em ascensão.'}
-      ]
-    },
-    'idle / clicker': {
-      note: 'Idle/clicker dominado por sub-gênero RPG. Visual polido + voice acting é o novo baseline (AFK Journey).',
-      top: [
-        {rank:'líder visual', title:'AFK Journey', pub:'Lilith Games', tag:'sucessor AFK Arena', note:'Hand-painted, voice acted. Idle RPG premium.'},
-        {rank:'mais baixados', title:'Idle Miner Tycoon', pub:'Kolibri', tag:'tycoon clicker', note:'Top global em downloads históricos.'},
-        {rank:'cute meta', title:'Cookie Run: Kingdom', pub:'Devsisters', tag:'idle RPG cute', note:'Estética cute + meta builder.'},
-        {rank:'cozy', title:'Egg, Inc.', pub:'Auxbrain', tag:'cozy idle', note:'Sessões curtas, visual minimalista.'}
-      ]
-    },
-    'RPG / RPG-lite': {
-      note: 'RPG é o gênero mais lucrativo do mobile. Tencent + HoYoverse dominam. Open-world cross-platform crescendo em 2026.',
-      top: [
-        {rank:'#1 revenue jan+abr/26', title:'Honor of Kings', pub:'Tencent', tag:'MOBA-RPG', note:'Skins + heróis em cadência. Líder global em revenue.'},
-        {rank:'novo lançamento 2026', title:'Honor of Kings: World', pub:'Tencent', tag:'open-world action', note:'Expansão da franquia em formato AAA.'},
-        {rank:'cross-platform', title:'Genshin Impact', pub:'HoYoverse', tag:'gacha', note:'Open-world + voice + soundtrack premium.'},
-        {rank:'top 4 growth mar/26', title:'StoneAge: Idle Adventure', pub:'-', tag:'idle RPG', note:'Catching/colecionável.'},
-        {rank:'top 6 growth mar/26', title:'Roco Kingdom: World', pub:'-', tag:'monster collector', note:'Turn-based RPG de coleção.'}
-      ]
-    },
-    'RTS': {
-      note: 'RTS de sobrevivência (Last War, Whiteout) domina 2026. Substituiu o modelo Clash clássico em revenue.',
-      top: [
-        {rank:'#1 revenue fev+mar/26', title:'Last War: Survival Game', pub:'-', tag:'#2 abr/26', note:'Ad de minijogo + meta complexo. Master em UA.'},
-        {rank:'top 3 revenue abr/26', title:'Whiteout Survival', pub:'Century Games', tag:'survival + city', note:'Sobrevivência inverno + city builder + RTS.'},
-        {rank:'evergreen', title:'Clash of Clans', pub:'Supercell', tag:'clássico', note:'Base building + multiplayer. Referência de gênero.'},
-        {rank:'mini-RTS', title:'Clash Royale', pub:'Supercell', tag:'1v1 curto', note:'Partidas rápidas + meta de cards.'},
-        {rank:'4X', title:'Rise of Kingdoms', pub:'Lilith', tag:'multi-civ', note:'Late game pesado, alta retenção.'}
-      ]
-    },
-    'battle royale': {
-      note: 'Free Fire é o BR mobile #1 globalmente, especialmente em LATAM e SEA — otimizado pra dispositivos low-end.',
-      top: [
-        {rank:'top 2 downloads abr/26', title:'Free Fire', pub:'Garena', tag:'líder LATAM/SEA', note:'BR otimizado pra device low-end. Forte em emergentes.'},
-        {rank:'BR clássico', title:'PUBG Mobile', pub:'Tencent / Krafton', tag:'realista', note:'Realismo + competitivo + esports.'},
-        {rank:'IP shooter', title:'Call of Duty: Mobile', pub:'Activision', tag:'multi-modos', note:'IP forte + variedade de modos.'},
-        {rank:'casual', title:'Stumble Guys', pub:'Scopely', tag:'BR cute', note:'Wipeout-like, social, baixa fricção.'}
-      ]
-    },
-    'sports': {
-      note: 'Sports mobile é nicho mas estável. eFootball + EA FC dominam soccer; Tennis Clash da Wildlife é referência em tênis.',
-      top: [
-        {rank:'top 7 revenue abr/26', title:'eFootball', pub:'Konami', tag:'F2P soccer', note:'11v11 com IPs reais. Modelo gacha-light.'},
-        {rank:'evergreen', title:'8 Ball Pool', pub:'Miniclip', tag:'casual sport', note:'Bilhar PvP. Top global em sessions.'},
-        {rank:'IP futebol', title:'EA SPORTS FC Mobile', pub:'EA', tag:'Ultimate Team', note:'Times reais + meta de cards.'},
-        {rank:'wildlife', title:'Tennis Clash', pub:'Wildlife Studios', tag:'portfólio', note:'Tennis 1v1 stylized — referência interna direta.', isWildlife:true}
-      ]
-    },
-    'hidden object': {
-      note: 'Hidden object é nicho fiel, audiência mais velha (35-55). Wooga é a referência incontestável, Detective Match (Wildlife) é exemplo no portfólio.',
-      top: [
-        {rank:'líder de gênero', title:"June's Journey", pub:'Wooga', tag:'narrativa anos 20', note:'Hidden object + story-driven. Mecânica de capítulos.'},
-        {rank:'mash-up', title:'Manor Cafe', pub:'Gamegos', tag:'híbrido', note:'Hidden + match-3 + decoration.'},
-        {rank:'aventura cozy', title:"Pearl's Peril", pub:'Wooga', tag:'mystery', note:'Hidden object + mystery story.'},
-        {rank:'wildlife', title:'Detective Match', pub:'Wildlife Studios', tag:'portfólio', note:'Hidden object com toque cartoon — referência interna.', isWildlife:true}
-      ]
-    },
-    'social deduction': {
-      note: 'Among Us catapultou o gênero em 2020 e ainda domina. Mercado nichado mas com engajamento alto, ideal pra streamers.',
-      top: [
-        {rank:'líder isolado', title:'Among Us', pub:'Innersloth', tag:'cross-platform', note:'Social + dedução + lobby quick. Cultura própria.'},
-        {rank:'concorrente', title:'Goose Goose Duck', pub:'Gaggle Studios', tag:'mais modos', note:'Variações de papel, comunidade ativa.'},
-        {rank:'wildlife', title:'Suspects', pub:'Wildlife Studios', tag:'portfólio', note:'Social deduction + investigação — referência interna.', isWildlife:true}
-      ]
-    },
-    'puzzle': {
-      note: 'Puzzle hyper-casual explodiu em downloads em 2026: Block Blast lidera, Arrows Puzzle/GO escalando rápido.',
-      top: [
-        {rank:'#1 downloads abr/26', title:'Block Blast!', pub:'Hungry Studio', tag:'tetris-like', note:'UA agressivo + loop minimalista. Leader downloads.'},
-        {rank:'top 3 abr/26', title:'Arrows Puzzle Escape', pub:'-', tag:'raciocínio', note:'Puzzle de raciocínio rápido em ascensão.'},
-        {rank:'top 5 abr/26', title:'Arrows GO!', pub:'-', tag:'variação', note:'Versão speed do Arrows Puzzle.'},
-        {rank:'top 9 abr/26', title:'Marble Sort!', pub:'-', tag:'sort', note:'Sorting puzzle simples. Hyper-casual emergente.'},
-        {rank:'evergreen', title:'2048', pub:'-', tag:'matemático', note:'Loop matemático ad-driven.'}
-      ]
-    },
-    'builder / sandbox': {
-      note: 'ROBLOX domina sandbox social via UGC. Block Craft (Wildlife) é referência em mobile-only Minecraft-style.',
-      top: [
-        {rank:'top 4 downloads abr/26', title:'ROBLOX', pub:'Roblox Corp', tag:'plataforma + UGC', note:'Domina público jovem. Modelo plataforma mais que jogo.'},
-        {rank:'IP gigante', title:'Minecraft', pub:'Mojang/Microsoft', tag:'cross-platform', note:'Sandbox de tijolo. Referência absoluta.'},
-        {rank:'farm builder', title:'Township', pub:'Playrix', tag:'casual cozy', note:'Builder cozy + farming. Audiência casual mais velha.'},
-        {rank:'wildlife', title:'Block Craft 3D', pub:'Wildlife Studios', tag:'portfólio', note:'Mobile-only Minecraft-like — referência interna.', isWildlife:true}
-      ]
-    }
-  };
-
   const $ = id => document.getElementById(id);
+  const $$ = sel => document.querySelectorAll(sel);
+
+  // === Genre / Mood data (mantido da v0.3) ===
+  const genreData = {
+    'match-3 / merge': {label:'match-3',loop:'combina ingredientes/itens no tabuleiro pra completar receitas e progredir',comparables:['Midas Merge','Paradise Paws'],perspective:'top-down do tabuleiro (board view), com personagens em meta-screen separada',interaction:'tap/swap pra mover/conectar peças adjacentes',pace:'sessões curtas de 2-5 minutos, alta repetição diária',canonical:'Royal Match (puzzle) ou Gossip Harbor (merge story)'},
+    'runner': {label:'runner',loop:'corre desviando de obstáculos e coletando recompensas em corridas curtas',comparables:['Bike Race','Ninja Kid'],perspective:'3rd person atrás-das-costas (igual Subway Surfers) ou side-scroll horizontal',interaction:'swipe pra mudar de pista, pular ou escorregar',pace:'corridas curtas de 30s-2min, retry instantâneo',canonical:'Subway Surfers'},
+    'idle / clicker': {label:'idle/clicker',loop:'coleta passivamente e investe em upgrades pra escalar produção',comparables:['AFK Magic'],perspective:'side-view 2D ou isometric estático, com personagens visíveis',interaction:'tap pra coletar/upgradar; jogo continua progredindo offline',pace:'sessões curtas de check-in múltiplas vezes ao dia',canonical:'AFK Journey'},
+    'RPG / RPG-lite': {label:'RPG',loop:'explora, batalha por turno ou tempo real, evolui personagens e equipamento',comparables:['Mistland Saga','AFK Magic'],perspective:'3rd person over-shoulder ou isometric de combate; mapa-mundi',interaction:'tap em alvos + skills; navegação por mapa overworld',pace:'sessões médias de 10-30min',canonical:'Honor of Kings ou Genshin Impact'},
+    'RTS': {label:'RTS',loop:'comanda tropas em duelos rápidos de 2-4 minutos',comparables:['Ashes of War'],perspective:'top-down isometric da arena/base',interaction:'tap pra deploy, drag pra movimento',pace:'partidas PvP de 2-5min',canonical:'Clash Royale ou Last War: Survival Game'},
+    'battle royale': {label:'battle royale',loop:'sobrevive numa arena que encolhe, eliminando os outros',comparables:['Zooba'],perspective:'3rd person sobre o personagem ou top-down (Zooba)',interaction:'twin-stick virtual: movimento + ações',pace:'partidas de 5-15min',canonical:'Free Fire / Zooba'},
+    'sports': {label:'sports',loop:'compete em partidas curtas com mecânica esportiva real',comparables:['Tennis Clash'],perspective:'depende do esporte: tênis = side court 3/4, futebol = top-down field',interaction:'swipe/tap pra ação esportiva',pace:'partidas PvP de 1-5min',canonical:'Tennis Clash ou 8 Ball Pool'},
+    'hidden object': {label:'hidden object',loop:'encontra objetos escondidos contra o relógio',comparables:['Detective Match'],perspective:'cena estática 1st person',interaction:'tap nos objetos da lista',pace:'sessões médias 5-15min',canonical:"June's Journey / Detective Match"},
+    'social deduction': {label:'social deduction',loop:'deduz quem é traidor numa partida online',comparables:['Suspects'],perspective:'top-down 2D ou 3rd person isometric',interaction:'movimento + tarefas + chat/voto',pace:'partidas de 5-10min',canonical:'Among Us / Suspects'},
+    'puzzle': {label:'puzzle',loop:'resolve quebra-cabeças progressivamente mais complexos',comparables:['Color by Number','Colorfy'],perspective:'top-down 2D fullscreen',interaction:'tap/drag pra peças',pace:'levels curtos 1-3min',canonical:'Block Blast ou Royal Match'},
+    'builder / sandbox': {label:'builder',loop:'constrói livremente em mundo aberto',comparables:['Block Craft'],perspective:'1st person (Minecraft) ou 3rd person free cam',interaction:'tap pra place/remove blocks',pace:'sessões longas 20-60min',canonical:'Minecraft / Block Craft 3D'}
+  };
+
+  const moodData = {
+    'cozy / doméstico': {vibe:'acolhedora, sem urgência',palette:'tons quentes (ocre, terracota, creme)',shading:'cell-shading soft',proportion:'humanos stylized normais',hint:'tipo "domingo na casa da vó"'},
+    'cute / wholesome': {vibe:'fofa, kawaii',palette:'pastéis (rosa, lavanda, menta)',shading:'cell flat com light glow',proportion:'chibi de cabeça grande',hint:'tipo "Animal Crossing"'},
+    'aventura / vibrante': {vibe:'energética, animada',palette:'saturada (laranja, ciano, magenta)',shading:'cell alto contraste',proportion:'heroica dinâmica',hint:'tipo "Sky Warriors"'},
+    'épico / fantasia': {vibe:'épica, dramática',palette:'profunda (violeta, dourado, esmeralda)',shading:'painterly com drama',proportion:'heroica realista',hint:'tipo "Mistland Saga"'},
+    'militar / sério': {vibe:'séria, tensa',palette:'terrosa dessaturada',shading:'PBR realista',proportion:'realista',hint:'tipo "War Machines"'},
+    'noir / sombrio': {vibe:'misteriosa, soturna',palette:'fria (preto, cinza-azul, vermelho)',shading:'high-contrast',proportion:'realista normal',hint:'tipo "Detective Match dark"'},
+    'nostálgico / pixel': {vibe:'nostálgica, anos 90',palette:'retrô 16-32 cores',shading:'pixel art',proportion:'pixel chibi',hint:'tipo "16-bit cozy"'},
+    'premium / minimalista': {vibe:'elegante, refinada',palette:'monocromática + 1 accent',shading:'flat com espaço negativo',proportion:'silhuetas limpas',hint:'tipo "Monument Valley"'}
+  };
+
+  // === Benchmark data por gênero ===
+  const benchmarkData = {
+    'match-3 / merge': {note:'Match-3 = ~8.7% do mercado. Day 1 retention mais alto. Top performers em US$ 1B+ IAP/ano.',top:[{rank:'#1 puzzle',title:'Royal Match',pub:'Dream Games',tag:'$1.4B em 2025',note:'Onboarding cinemático + LiveOps.'},{rank:'top 5 abr/26',title:'Gossip Harbor',pub:'Microfun',tag:'merge story',note:'$650M em 2025.'},{rank:'evergreen',title:'Candy Crush Saga',pub:'King',tag:'$1.1B em 2025',note:'Loop level + IAP refinada.'},{rank:'sustentado',title:'Gardenscapes',pub:'Playrix',tag:'meta-progressão',note:'$500M+.'}]},
+    'runner': {note:'Runner é gênero de descoberta. Subway Surfers domina há ~10 anos via LiveOps semanal.',top:[{rank:'#1 downloads mar/26',title:'Subway Surfers City',pub:'SYBO',tag:'#1 growth mar/26',note:'Cidades temáticas + TikTok.'},{rank:'1B+ downloads',title:'Subway Surfers',pub:'SYBO',tag:'evergreen',note:'Loop curto reconhecível.'},{rank:'social',title:'Stumble Guys',pub:'Scopely',tag:'multi-runner',note:'BR leve + social.'}]},
+    'idle / clicker': {note:'Idle/clicker dominado por sub-gênero RPG. Polish + voice acting é o baseline.',top:[{rank:'líder visual',title:'AFK Journey',pub:'Lilith Games',tag:'sucessor AFK Arena',note:'Hand-painted, voice acted.'},{rank:'mais baixados',title:'Idle Miner Tycoon',pub:'Kolibri',tag:'tycoon',note:'Top global em downloads.'},{rank:'cute meta',title:'Cookie Run: Kingdom',pub:'Devsisters',tag:'idle RPG cute',note:'Cute + meta builder.'}]},
+    'RPG / RPG-lite': {note:'RPG é o gênero mais lucrativo. Tencent + HoYoverse dominam.',top:[{rank:'#1 revenue jan+abr/26',title:'Honor of Kings',pub:'Tencent',tag:'MOBA-RPG',note:'Skins + heróis cadência mensal.'},{rank:'novo 2026',title:'Honor of Kings: World',pub:'Tencent',tag:'open-world',note:'Expansão da franquia AAA.'},{rank:'cross-platform',title:'Genshin Impact',pub:'HoYoverse',tag:'gacha',note:'Voice + soundtrack premium.'}]},
+    'RTS': {note:'RTS de sobrevivência (Last War, Whiteout) domina 2026.',top:[{rank:'#1 revenue fev+mar/26',title:'Last War: Survival Game',pub:'-',tag:'#2 abr/26',note:'Ad de minijogo + meta complexo.'},{rank:'top 3 abr/26',title:'Whiteout Survival',pub:'Century Games',tag:'survival + city',note:'Sobrevivência inverno + RTS.'},{rank:'evergreen',title:'Clash Royale',pub:'Supercell',tag:'1v1',note:'Partidas curtas.'}]},
+    'battle royale': {note:'Free Fire é o BR mobile #1 globalmente.',top:[{rank:'top 2 dl abr/26',title:'Free Fire',pub:'Garena',tag:'líder LATAM/SEA',note:'BR otimizado low-end.'},{rank:'BR clássico',title:'PUBG Mobile',pub:'Tencent / Krafton',tag:'realista',note:'Competitivo + esports.'},{rank:'casual',title:'Stumble Guys',pub:'Scopely',tag:'BR cute',note:'Wipeout-like.'}]},
+    'sports': {note:'Sports mobile é nicho estável. Tennis Clash da Wildlife é referência em tênis.',top:[{rank:'top 7 revenue abr/26',title:'eFootball',pub:'Konami',tag:'F2P',note:'11v11 com IPs reais.'},{rank:'evergreen',title:'8 Ball Pool',pub:'Miniclip',tag:'casual',note:'Bilhar PvP.'},{rank:'wildlife',title:'Tennis Clash',pub:'Wildlife Studios',tag:'portfólio',note:'Tennis 1v1 stylized.',isWildlife:true}]},
+    'hidden object': {note:'Hidden object é nicho fiel, audiência mais velha. Wooga é referência.',top:[{rank:'líder',title:"June's Journey",pub:'Wooga',tag:'narrativa anos 20',note:'Hidden + story-driven.'},{rank:'mash-up',title:'Manor Cafe',pub:'Gamegos',tag:'híbrido',note:'Hidden + match-3.'},{rank:'wildlife',title:'Detective Match',pub:'Wildlife Studios',tag:'portfólio',note:'Hidden object cartoon.',isWildlife:true}]},
+    'social deduction': {note:'Among Us catapultou o gênero. Mercado nichado, engajamento alto.',top:[{rank:'líder',title:'Among Us',pub:'Innersloth',tag:'cross-platform',note:'Social + dedução.'},{rank:'concorrente',title:'Goose Goose Duck',pub:'Gaggle Studios',tag:'mais modos',note:'Comunidade ativa.'},{rank:'wildlife',title:'Suspects',pub:'Wildlife Studios',tag:'portfólio',note:'Social deduction + investigação.',isWildlife:true}]},
+    'puzzle': {note:'Puzzle hyper-casual explodiu em 2026: Block Blast lidera.',top:[{rank:'#1 dl abr/26',title:'Block Blast!',pub:'Hungry Studio',tag:'tetris-like',note:'UA agressivo + loop minimalista.'},{rank:'top 3 dl abr/26',title:'Arrows Puzzle Escape',pub:'-',tag:'raciocínio',note:'Puzzle rápido em ascensão.'},{rank:'evergreen',title:'2048',pub:'-',tag:'matemático',note:'Loop ad-driven.'}]},
+    'builder / sandbox': {note:'ROBLOX domina sandbox social via UGC.',top:[{rank:'top 4 dl abr/26',title:'ROBLOX',pub:'Roblox Corp',tag:'plataforma',note:'UGC. Domina público jovem.'},{rank:'IP gigante',title:'Minecraft',pub:'Mojang',tag:'cross-platform',note:'Sandbox absoluto.'},{rank:'wildlife',title:'Block Craft 3D',pub:'Wildlife Studios',tag:'portfólio',note:'Mobile Minecraft-like.',isWildlife:true}]}
+  };
+
+  // === Wildlife mood directions (6) ===
+  const wildlifeMoods = [
+    {n:1,name:'Farm Day cozy',style:'fazenda quente, ocre+verde',source:'Asset Hub · farm-day',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b9/a4/ec/b9a4ec3e-d780-03df-cd37-e1e2ef2ea789/AppIcon-1x_U007emarketing-0-10-0-P3-85-220-0.png/512x512bb.jpg',fallback:'Farm Day cozy'},
+    {n:2,name:'Paradise Paws merge',style:'animal merge wholesome',source:'Asset Hub · paradise-paws',img:'',fallback:'Paradise Paws'},
+    {n:3,name:'Zooba stylized',style:'animal cartoon competitivo',source:'Asset Hub · zooba',img:'',fallback:'Zooba'},
+    {n:4,name:'Mistland Saga',style:'RPG fantasia painterly',source:'Asset Hub · mistland-saga',img:'',fallback:'Mistland Saga'},
+    {n:5,name:'Tennis Clash polido',style:'sport cel-shaded premium',source:'Asset Hub · tennis-clash',img:'',fallback:'Tennis Clash'},
+    {n:6,name:'Detective Match',style:'hidden object cartoon',source:'Asset Hub · detective-match',img:'',fallback:'Detective Match'}
+  ];
+
+  // === Style matrix (3x3) ===
+  const matrixCells = [
+    {n:7,y:'wholesome',x:'minimalist',name:'Crossy Road',style:'low-poly cute flat',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1f/f3/9c/1ff39cc7-a4af-4d4a-e8af-b3bdcb9028a9/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:8,y:'wholesome',x:'stylized',name:'CookieRun Kingdom',style:'kawaii cell-shaded',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/58/00/e5/5800e5dd-3c86-dfb7-744d-fa428709b5ca/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:9,y:'wholesome',x:'realistic',name:'Cooking Diary',style:'semi-realista detalhe',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b9/a4/ec/b9a4ec3e-d780-03df-cd37-e1e2ef2ea789/AppIcon-1x_U007emarketing-0-10-0-P3-85-220-0.png/512x512bb.jpg'},
+    {n:10,y:'cool',x:'minimalist',name:'Monument Valley',style:'geom. arquitetural',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/21/8e/d8/218ed8a3-c616-9ec7-419e-368073b9deb7/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:11,y:'cool',x:'stylized',name:'Royal Match',style:'glossy polished',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/33/57/61/3357618c-5970-9214-51cd-fb231ad63eba/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:12,y:'cool',x:'realistic',name:'Honkai Star Rail',style:'anime cinematic',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/10/4a/56104ae6-272f-0619-908e-6ce14305b4fe/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:13,y:'gritty',x:'minimalist',name:'Subway Surfers',style:'graffiti urbano',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/0f/26/01/0f260118-88bc-445e-c72f-072e8b5d6ece/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg'},
+    {n:14,y:'gritty',x:'stylized',name:'Stumble Guys',style:'chunky competitive',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/77/61/7e/77617ea5-0e5a-23d1-88f7-02962dbcd8c6/AppIcon-0-0-1x_U007emarketing-0-5-0-85-220.png/512x512bb.jpg'},
+    {n:15,y:'gritty',x:'realistic',name:'Call of Duty Mobile',style:'PBR militar real',img:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/56/64/5e/56645ecc-1ed3-d882-96c9-3785da2ac981/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg'}
+  ];
+
+  // === Render Wildlife mood grid ===
+  function renderWildlifeMoods(){
+    const grid = $('wildlifeMoodGrid');
+    if(!grid) return;
+    grid.innerHTML = wildlifeMoods.map(m => `
+      <div class="mood-card" data-pin="${m.n}">
+        <div class="mood-num">${m.n}</div>
+        <div class="mood-img">${m.img ? `<img src="${m.img}" alt="${m.name}" loading="lazy">` : `<div class="mood-fallback">${m.fallback}</div>`}</div>
+        <div class="mood-body">
+          <div class="mood-name">${m.name}</div>
+          <div class="mood-style">${m.style}</div>
+          <div class="mood-source">${m.source}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // === Render Style Matrix ===
+  function renderMatrix(){
+    const grid = $('styleMatrix');
+    if(!grid) return;
+    const y = {wholesome:'↑ Wholesome',cool:'Cool',gritty:'↓ Gritty'};
+    let html = `<div></div><div class="matrix-x-label first">← Minimalist</div><div class="matrix-x-label">Stylized</div><div class="matrix-x-label last">Realistic →</div>`;
+    ['wholesome','cool','gritty'].forEach(yKey => {
+      html += `<div class="matrix-y-label">${y[yKey]}</div>`;
+      ['minimalist','stylized','realistic'].forEach(xKey => {
+        const cell = matrixCells.find(c => c.y === yKey && c.x === xKey);
+        if(cell){
+          html += `
+            <div class="matrix-cell" data-pin="${cell.n}">
+              <div class="cell-number">${cell.n}</div>
+              <div class="cell-img"><img src="${cell.img}" loading="lazy" alt="${cell.name}"></div>
+              <div class="cell-meta">
+                <div class="cell-name">${cell.name}</div>
+                <div class="cell-style">${cell.style}</div>
+              </div>
+            </div>
+          `;
+        } else html += `<div></div>`;
+      });
+    });
+    grid.innerHTML = html;
+  }
+
+  // === Pin logic (etapa 4) ===
+  let pinned = new Set();
+  function attachPinHandlers(){
+    $$('[data-pin]').forEach(el => {
+      el.addEventListener('click', () => {
+        const n = parseInt(el.dataset.pin);
+        if(pinned.has(n)) pinned.delete(n);
+        else pinned.add(n);
+        el.classList.toggle('pinned');
+        updatePinSummary();
+      });
+    });
+  }
+  function updatePinSummary(){
+    const sum = $('pinnedSummary');
+    const pin = $('stylePin');
+    const btn = $('phase4Next');
+    const lockPanel = $('lockPanel');
+    const pill = $('stylePill');
+    if(!sum) return;
+    if(pinned.size === 0){
+      sum.textContent = 'nenhum';
+      pin.textContent = 'selecione 1+ pra continuar';
+      btn.disabled = true;
+      lockPanel.style.display = 'none';
+      pill.textContent = 'draft';
+      pill.className = 'status-pill draft';
+    } else {
+      const list = Array.from(pinned).sort((a,b)=>a-b).map(n=>'#'+n).join(', ');
+      sum.textContent = list;
+      pin.textContent = pinned.size + ' pinado' + (pinned.size>1?'s':'');
+      btn.disabled = false;
+      lockPanel.style.display = '';
+      pill.textContent = pinned.size + ' draft';
+    }
+  }
+
+  // === Brief auto-gen ===
   let manualEdit = false;
   let lastGenerated = '';
-
   function buildBrief(){
     const codename = $('f-codename').value || '<codename>';
     const genre = $('f-genre').value;
@@ -979,16 +1017,14 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
     const audience = $('f-audience').value;
     const restrictions = $('f-restrictions').value;
     const hypothesis = $('f-hypothesis').value;
-
     const g = genreData[genre] || {label:genre,loop:'',comparables:[]};
     const m = moodData[mood] || {vibe:'',palette:'',shading:'',proportion:'',hint:''};
     const moodShort = mood.split(' / ')[0];
-
     const lines = [];
     lines.push(`É um ${g.label} ${moodShort}${audience ? ', pensado pra ' + audience : ''}.`);
     if(g.loop) lines.push(`Core loop: o jogador ${g.loop}. <substitua pelo seu hook específico>`);
     lines.push('');
-    if(g.perspective || g.interaction || g.pace || g.canonical){
+    if(g.perspective){
       const gp = [];
       if(g.perspective) gp.push(`Perspectiva: ${g.perspective}.`);
       if(g.interaction) gp.push(`Interação: ${g.interaction}.`);
@@ -1004,98 +1040,107 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
     if(hypothesis){lines.push(''); lines.push(`Hipótese principal a validar: ${hypothesis}.`);}
     return lines.join('\n');
   }
-
   function buildCode(){
     const codename = ($('f-codename').value || 'untitled').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-');
-    // pseudo-hash baseado nos campos
     const seed = $('f-genre').value + $('f-mood').value + $('f-audience').value + $('f-brief').value;
     let h = 0;
     for(let i=0;i<seed.length;i++){h = ((h<<5)-h+seed.charCodeAt(i))|0}
     const hash = Math.abs(h).toString(16).slice(0,4).padEnd(4,'0');
-    const status = manualEdit ? 'edited' : 'unlocked';
-    return `${codename}-${hash} · v0.1 · ${status}`;
+    return `${codename}-${hash} · v0.1`;
   }
-
+  function regenerate(force){
+    const ta = $('f-brief');
+    if(!ta) return;
+    const newBrief = buildBrief();
+    if(force || !manualEdit || ta.value === lastGenerated || ta.value === ''){
+      ta.value = newBrief;
+      lastGenerated = newBrief;
+      manualEdit = false;
+      $('briefStatus').textContent = 'auto · sincronizado';
+      $('briefStatus').classList.remove('dirty');
+    }
+    $('codePreview').textContent = buildCode();
+    renderBenchmark();
+    $('contextText').textContent = ($('f-codename').value || 'novo-projeto') + ' · v0.1';
+  }
+  function markDirty(){
+    if($('f-brief').value !== lastGenerated){
+      manualEdit = true;
+      $('briefStatus').textContent = 'editado · ↻ pra voltar ao auto';
+      $('briefStatus').classList.add('dirty');
+    }
+  }
   function renderBenchmark(){
     const genre = $('f-genre').value;
     const data = benchmarkData[genre];
-    $('benchGenrePill').textContent = genre;
-    if(!data){
-      $('benchNote').textContent = 'Sem benchmark cadastrado pra este gênero.';
-      $('benchGrid').innerHTML = '';
-      return;
-    }
-    $('benchNote').textContent = data.note;
-    const cards = data.top.map(item => `
-      <div class="bench-card${item.isWildlife ? ' wildlife' : ''}">
-        <div class="bench-rank-row">
-          <span class="bench-rank">${item.rank}</span>
-          <span class="bench-tag">${item.tag}</span>
-        </div>
+    const noteEl = $('benchNote');
+    const grid = $('benchGrid');
+    if(!noteEl || !grid) return;
+    if(!data){noteEl.textContent='Sem benchmark.';grid.innerHTML='';return}
+    noteEl.textContent = data.note;
+    grid.innerHTML = data.top.map(item => `
+      <div class="bench-card${item.isWildlife?' wildlife':''}">
+        <div class="bench-rank-row"><span class="bench-rank">${item.rank}</span><span class="bench-tag">${item.tag}</span></div>
         <div class="bench-name">${item.title}</div>
         <div class="bench-pub">${item.pub}</div>
         <div class="bench-card-note">${item.note}</div>
       </div>
     `).join('');
-    $('benchGrid').innerHTML = cards;
   }
 
-  function regenerate(forceOverwrite=false){
-    const ta = $('f-brief');
-    const newBrief = buildBrief();
-    if(forceOverwrite || !manualEdit || ta.value === lastGenerated || ta.value === ''){
-      ta.value = newBrief;
-      lastGenerated = newBrief;
-      manualEdit = false;
-      $('briefStatus').textContent = 'auto · sincronizado com os campos acima';
-      $('briefStatus').classList.remove('dirty');
-    }
-    $('codePreview').textContent = buildCode();
-    renderBenchmark();
+  // === Phase navigation ===
+  let currentPhase = 1;
+  const totalPhases = 10;
+  function goToPhase(n){
+    n = parseInt(n);
+    if(n < 1 || n > totalPhases) return;
+    $$('.phase').forEach(p => {
+      const phaseN = parseInt(p.dataset.phase);
+      if(phaseN === n) p.removeAttribute('hidden');
+      else p.setAttribute('hidden','');
+    });
+    $$('.node').forEach(node => {
+      const phaseN = parseInt(node.dataset.phase);
+      node.classList.remove('active','done','pending');
+      if(phaseN < n) node.classList.add('done');
+      else if(phaseN === n) node.classList.add('active');
+      else node.classList.add('pending');
+    });
+    $$('.track-labels small').forEach(lbl => {
+      const phaseN = parseInt(lbl.dataset.phase);
+      lbl.classList.remove('active','done');
+      if(phaseN < n) lbl.classList.add('done');
+      else if(phaseN === n) lbl.classList.add('active');
+    });
+    const progressPct = ((n - 1) / (totalPhases - 1)) * 100;
+    $('trackProgress').style.width = progressPct + '%';
+    currentPhase = n;
+    location.hash = 'phase-' + n;
+    window.scrollTo({top:0,behavior:'smooth'});
   }
+  $$('[data-next]').forEach(b => b.addEventListener('click', () => goToPhase(b.dataset.next)));
+  $$('.node').forEach(node => node.addEventListener('click', () => goToPhase(node.dataset.phase)));
+  $$('.track-labels small').forEach(lbl => lbl.addEventListener('click', () => goToPhase(lbl.dataset.phase)));
 
-  function markDirty(){
-    if($('f-brief').value !== lastGenerated){
-      manualEdit = true;
-      $('briefStatus').textContent = 'editado manualmente · clique ↻ pra voltar ao auto';
-      $('briefStatus').classList.add('dirty');
-      $('codePreview').textContent = buildCode();
-    }
-  }
-
-  ['f-codename','f-genre','f-mood','f-audience','f-restrictions','f-hypothesis'].forEach(id => {
-    $(id).addEventListener('input', () => regenerate(false));
-    $(id).addEventListener('change', () => regenerate(false));
-  });
-  $('f-brief').addEventListener('input', markDirty);
-  $('regenBtn').addEventListener('click', () => regenerate(true));
-
-  // Estado inicial
-  regenerate(true);
-
-  // === Tab switching + password lock ===
+  // === Tab switching + password ===
   const APPS_PWD = '381';
   const UNLOCK_KEY = 'wl-apps-unlocked';
-
   function showTab(name){
-    document.querySelectorAll('.topnav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-    $('picker-view').style.display = name === 'picker' ? '' : 'none';
-    $('apps-view').style.display = name === 'apps' ? '' : 'none';
-    const sub = $('subtitleText');
-    const ctx = $('contextText');
-    const foot = $('footerNote');
+    $$('.topnav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    $('pipeline-view').hidden = name !== 'pipeline';
+    $('apps-view').hidden = name !== 'apps';
+    $('pipeline-track').style.display = name === 'pipeline' ? '' : 'none';
     if(name === 'apps'){
-      sub.textContent = 'Apps · catálogo Wildlife';
-      ctx.textContent = 'área interna · sessão desbloqueada';
-      foot.textContent = 'apps directory · sessão desbloqueada (sessionStorage)';
+      $('subtitleText').textContent = 'Apps · catálogo Wildlife';
+      $('contextText').textContent = 'área interna · sessão desbloqueada';
+      $('footerNote').textContent = 'apps directory · sessão desbloqueada';
     } else {
-      sub.textContent = 'Mood Picker · mockup v0.3';
-      ctx.textContent = 'cozy-kitchen-game · pre-prod/cozy-kitchen/';
-      foot.textContent = 'picker pattern · interactive';
+      $('subtitleText').textContent = 'Pipeline · mock v0.4';
+      $('contextText').textContent = ($('f-codename').value || 'novo-projeto') + ' · v0.1';
+      $('footerNote').textContent = '10 etapas · hipótese → MVP α';
     }
     window.scrollTo({top:0,behavior:'smooth'});
   }
-
   function tryUnlockApps(){
     if(sessionStorage.getItem(UNLOCK_KEY) === '1'){
       document.querySelector('[data-tab="apps"]').classList.add('unlocked');
@@ -1105,14 +1150,12 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
     $('passwordModal').style.display = 'flex';
     setTimeout(() => $('passwordInput').focus(), 50);
   }
-
-  document.querySelectorAll('.topnav .tab').forEach(t => {
+  $$('.topnav .tab').forEach(t => {
     t.addEventListener('click', () => {
       if(t.dataset.tab === 'apps') tryUnlockApps();
       else showTab(t.dataset.tab);
     });
   });
-
   $('passwordForm').addEventListener('submit', e => {
     e.preventDefault();
     if($('passwordInput').value === APPS_PWD){
@@ -1128,24 +1171,51 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
       $('passwordInput').focus();
     }
   });
-
   $('cancelLock').addEventListener('click', () => {
     $('passwordModal').style.display = 'none';
     $('passwordError').style.display = 'none';
     $('passwordInput').value = '';
   });
-
-  // Esc fecha o modal
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && $('passwordModal').style.display === 'flex'){
-      $('cancelLock').click();
-    }
+    if(e.key === 'Escape' && $('passwordModal').style.display === 'flex') $('cancelLock').click();
   });
-
-  // Pré-marca o tab Apps como unlocked se já tava aberto na sessão
   if(sessionStorage.getItem(UNLOCK_KEY) === '1'){
     document.querySelector('[data-tab="apps"]').classList.add('unlocked');
   }
+
+  // === Form auto-regen ===
+  ['f-codename','f-genre','f-mood','f-audience','f-restrictions','f-hypothesis'].forEach(id => {
+    const el = $(id);
+    if(!el) return;
+    el.addEventListener('input', () => regenerate(false));
+    el.addEventListener('change', () => regenerate(false));
+  });
+  if($('f-brief')) $('f-brief').addEventListener('input', markDirty);
+  if($('regenBtn')) $('regenBtn').addEventListener('click', () => regenerate(true));
+
+  // === Lock style button ===
+  if($('lockStyleBtn')) $('lockStyleBtn').addEventListener('click', () => {
+    $('stylePill').textContent = '🔒 locked';
+    $('stylePill').className = 'status-pill locked';
+    goToPhase(5);
+  });
+
+  // === Init ===
+  renderWildlifeMoods();
+  renderMatrix();
+  attachPinHandlers();
+  regenerate(true);
+
+  // From URL hash
+  const hashMatch = location.hash.match(/phase-(\d+)/);
+  if(hashMatch) goToPhase(hashMatch[1]);
+  else goToPhase(1);
+
+  // Hash navigation back/forward
+  window.addEventListener('hashchange', () => {
+    const m = location.hash.match(/phase-(\d+)/);
+    if(m && parseInt(m[1]) !== currentPhase) goToPhase(m[1]);
+  });
 })();
 </script>
 
