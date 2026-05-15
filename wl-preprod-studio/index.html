@@ -105,6 +105,8 @@ main{padding:36px 24px 60px;max-width:1100px;margin:0 auto}
 .suggestion-banner{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 12px 32px rgba(79,140,255,0.4);cursor:pointer;z-index:50;display:flex;align-items:flex-start;gap:12px;max-width:360px;transform:translateY(120%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity:0;line-height:1.35}
 .suggestion-banner.visible{transform:translateY(0);opacity:1}
 .suggestion-banner-icon{font-size:18px;flex-shrink:0}
+@keyframes pulse-suggested{0%{box-shadow:0 0 0 0 rgba(79,140,255,0.6),inset 0 0 0 1px rgba(79,140,255,0.15)}70%{box-shadow:0 0 0 12px rgba(79,140,255,0),inset 0 0 0 1px rgba(79,140,255,0.15)}100%{box-shadow:0 0 0 0 rgba(79,140,255,0),inset 0 0 0 1px rgba(79,140,255,0.15)}}
+.field.suggested.pulse input,.field.suggested.pulse textarea,.field.suggested.pulse select{animation:pulse-suggested 1.2s ease-out 1}
 .suggestion-banner-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0;flex-shrink:0;margin-left:auto}
 .suggestion-banner-close:hover{background:rgba(255,255,255,0.35)}
 .suggestion-banner-body small{display:block;font-size:11px;opacity:0.85;margin-top:3px;font-weight:400}
@@ -1185,7 +1187,10 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
       el.value = value;
       el.dataset.suggested = 'true';
       const field = el.closest('.field');
-      if(field) field.classList.add('suggested');
+      if(field){
+        field.classList.add('suggested','pulse');
+        setTimeout(() => field.classList.remove('pulse'), 1300);
+      }
       count++;
     });
     currentPreset = presetId;
@@ -1216,7 +1221,8 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
       <button class="suggestion-banner-close" type="button" aria-label="Fechar">×</button>
     `;
     document.body.appendChild(banner);
-    requestAnimationFrame(() => banner.classList.add('visible'));
+    // setTimeout em vez de rAF (mais confiável em qualquer estado de tab)
+    setTimeout(() => banner.classList.add('visible'), 20);
     banner.querySelector('.suggestion-banner-close').addEventListener('click', e => {
       e.stopPropagation();
       banner.classList.remove('visible');
