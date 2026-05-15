@@ -107,6 +107,19 @@ main{padding:36px 24px 60px;max-width:1100px;margin:0 auto}
 .suggestion-banner-icon{font-size:18px;flex-shrink:0}
 @keyframes pulse-suggested{0%{box-shadow:0 0 0 0 rgba(79,140,255,0.6),inset 0 0 0 1px rgba(79,140,255,0.15)}70%{box-shadow:0 0 0 12px rgba(79,140,255,0),inset 0 0 0 1px rgba(79,140,255,0.15)}100%{box-shadow:0 0 0 0 rgba(79,140,255,0),inset 0 0 0 1px rgba(79,140,255,0.15)}}
 .field.suggested.pulse input,.field.suggested.pulse textarea,.field.suggested.pulse select{animation:pulse-suggested 1.2s ease-out 1}
+
+.cascade-indicator{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--fg-muted);line-height:1.4;transition:all 0.3s}
+.cascade-indicator.thinking{border-color:var(--warning);background:rgba(250,204,21,0.08);color:var(--warning)}
+.cascade-indicator.done{border-color:var(--success);background:rgba(74,222,128,0.08);color:var(--success)}
+.cascade-indicator.done .ci-text{color:var(--success)}
+.cascade-indicator.no-match{border-color:var(--fg-dim);color:var(--fg-dim)}
+.ci-dot{width:8px;height:8px;border-radius:50%;background:var(--fg-dim);flex-shrink:0;transition:background 0.2s}
+.cascade-indicator.thinking .ci-dot{background:var(--warning);animation:dot-pulse 1s ease-in-out infinite}
+.cascade-indicator.done .ci-dot{background:var(--success)}
+.cascade-indicator.no-match .ci-dot{background:var(--fg-dim)}
+@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.ci-text{flex:1}
+.ci-text strong{color:inherit;font-weight:600}
 .suggestion-banner-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0;flex-shrink:0;margin-left:auto}
 .suggestion-banner-close:hover{background:rgba(255,255,255,0.35)}
 .suggestion-banner-body small{display:block;font-size:11px;opacity:0.85;margin-top:3px;font-weight:400}
@@ -317,7 +330,10 @@ footer{padding:32px 24px;text-align:center;color:var(--fg-dim);font-size:11px;le
       <div class="field full">
         <span class="field-label">Hipótese central <span class="req">*</span></span>
         <textarea id="h-hipotese" rows="2">Match-3 com tema gastronômico regional brasileiro vai engajar mais mulheres 35+ no Brasil do que qualquer match-3 atualmente nas top 10 BR.</textarea>
-        <span class="field-hint">formato sugerido: "se X, então Y porque Z"</span>
+        <div class="cascade-indicator" id="cascadeIndicator">
+          <span class="ci-dot"></span>
+          <span class="ci-text">enquanto você escreve, eu auto-preencho as 9 etapas seguintes baseado no padrão detectado</span>
+        </div>
       </div>
     </div>
 
@@ -1238,18 +1254,44 @@ claude plugin install wl-preprod-studio@wildlife-preprod</code></pre>
     return (...args) => {clearTimeout(timer); timer = setTimeout(() => fn(...args), ms)};
   }
 
+  // Inline indicator embaixo do textarea de hipótese
+  function setIndicator(state, html){
+    const el = $('cascadeIndicator');
+    if(!el) return;
+    el.className = 'cascade-indicator ' + (state || '');
+    el.querySelector('.ci-text').innerHTML = html;
+  }
+
   // Listen on hipotese pra disparar cascade
+  let thinkingTimer;
   const triggerCascade = debounce(() => {
     const text = $('h-hipotese').value;
-    if(text.length < 30) return; // muito curto pra detectar
+    if(text.length < 30){
+      setIndicator('', 'enquanto você escreve, eu auto-preencho as 9 etapas seguintes baseado no padrão detectado');
+      return;
+    }
     const presetId = detectPreset(text);
     if(presetId && presetId !== currentPreset){
       const result = applyPreset(presetId);
-      if(result && result.count > 0) showSuggestionBanner(result);
+      if(result && result.count > 0){
+        showSuggestionBanner(result);
+        setIndicator('done', `✓ <strong>${result.count} sugestões aplicadas</strong> nas etapas 2-10 · padrão: <strong>${result.label}</strong> · navegue pelos nodes do progress acima pra ver`);
+      }
+    } else if(!presetId){
+      setIndicator('no-match', 'não detectei um padrão conhecido — você segue editando manualmente as próximas etapas');
+    } else {
+      setIndicator('done', `sugestões já aplicadas · padrão: <strong>${presets[currentPreset].label}</strong>`);
     }
-  }, 600);
+  }, 250);
+
   if($('h-hipotese')){
-    $('h-hipotese').addEventListener('input', triggerCascade);
+    $('h-hipotese').addEventListener('input', () => {
+      clearTimeout(thinkingTimer);
+      thinkingTimer = setTimeout(() => {
+        if($('h-hipotese').value.length >= 30) setIndicator('thinking', '✨ analisando padrão…');
+      }, 50);
+      triggerCascade();
+    });
     $('h-hipotese').addEventListener('blur', triggerCascade);
   }
 
