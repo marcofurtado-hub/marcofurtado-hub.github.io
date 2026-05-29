@@ -132,6 +132,13 @@ header nav a:hover{color:#fff}
 .bg-soccer-mp > div{display:none}
 .bg-placeholder{background:repeating-linear-gradient(45deg,#1a1a1a 0 20px,#222 20px 40px)}
 .bg-placeholder .title,.bg-placeholder .subtitle{color:#555}
+.bg-castle{background:
+  radial-gradient(ellipse at 50% 12%,#9fcdef 0%,transparent 55%),
+  radial-gradient(ellipse at 50% 96%,#6e8f4e 0%,transparent 60%),
+  linear-gradient(180deg,#aed4f0 0%,#cdbfa0 52%,#7c8a52 100%)}
+.bg-castle .emoji,.bg-castle .title,.bg-castle .subtitle{
+  text-shadow:0 2px 14px rgba(0,0,0,0.85),0 0 4px rgba(0,0,0,0.7)}
+.bg-castle .subtitle{color:rgba(255,255,255,0.92)}
 
 footer{
   padding:30px 48px 24px;border-top:1px solid #1f1f1f;text-align:center;
@@ -228,6 +235,22 @@ footer a{color:#888;margin:0 8px}
         <span class="chip">SOCCER · 1V1 · MP</span>
         <h3>Soccer 1x1 — Multiplayer</h3>
         <p>Versão real-time pra jogar contra um amigo. Host abre o jogo e ganha um código curto, guest entra com o código, jogam em tempo real via WebRTC peer-to-peer. Build em progresso (mp-v1.0).</p>
+      </div>
+    </a>
+
+    <a class="card" href="../castle-fps/" target="_blank">
+      <span class="beta-badge">BETA</span>
+      <div class="card-bg bg-castle">
+        <div>
+          <div class="emoji">🏰</div>
+          <div class="title">CASTLE<br>FPS</div>
+          <div class="subtitle">PRIMEIRA PESSOA · 3D</div>
+        </div>
+      </div>
+      <div class="card-overlay">
+        <span class="chip">FPS · MEDIEVAL</span>
+        <h3>Castle FPS</h3>
+        <p>FPS num pátio de castelo realista estilizado — céu atmosférico, luz natural do sol e arremesso de pedras. WASD + mouse, espaço pula, clique atira. Three.js com colisão por Octree.</p>
       </div>
     </a>
   </div>

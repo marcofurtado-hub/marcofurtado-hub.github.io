@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>FPS Web — Cena de Teste</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #9fc0e0; overflow: hidden; }
+      #app { position: fixed; inset: 0; }
+      #hud {
+        position: fixed; left: 12px; top: 12px;
+        font: 13px/1.5 system-ui, -apple-system, sans-serif;
+        color: #eaeaf0; background: rgba(0,0,0,.5);
+        padding: 10px 12px; border-radius: 10px; pointer-events: none;
+        backdrop-filter: blur(4px); max-width: 320px; z-index: 3;
+      }
+      #hud b { color: #ffe08a; }
+      #hud .err { color: #ff6b6b; }
+      .muted { opacity: .75; }
+      kbd {
+        font: 11px ui-monospace, monospace; background: #2a2a33; color: #fff;
+        border: 1px solid #444; border-bottom-width: 2px; border-radius: 4px;
+        padding: 0 4px;
+      }
+      /* mira central */
+      #crosshair {
+        position: fixed; left: 50%; top: 50%; width: 20px; height: 20px;
+        margin: -10px 0 0 -10px; display: none; pointer-events: none; z-index: 2;
+      }
+      #crosshair::before, #crosshair::after {
+        content: ""; position: absolute; background: rgba(255,255,255,.85);
+        box-shadow: 0 0 2px rgba(0,0,0,.6);
+      }
+      #crosshair::before { left: 9px; top: 2px; width: 2px; height: 16px; }
+      #crosshair::after  { top: 9px; left: 2px; height: 2px; width: 16px; }
+      /* overlays centrais */
+      #hint, #loading {
+        position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        font: 15px/1.5 system-ui, -apple-system, sans-serif; color: #fff;
+        background: rgba(0,0,0,.6); padding: 14px 20px; border-radius: 12px;
+        text-align: center; backdrop-filter: blur(4px); z-index: 4;
+      }
+      #hint { cursor: pointer; display: none; }
+      #loading { display: block; }
+    </style>
+    <script type="module" crossorigin src="./assets/index-CFztVWgv.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="crosshair"></div>
+    <div id="hud">
+      <div><b>FPS Web</b> — pátio do castelo (three.js)</div>
+      <div class="muted">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover ·
+        <kbd>Espaço</kbd> pular ·
+        mouse = mirar · clique/segura = atirar ·
+        <kbd>Esc</kbd> solta o cursor
+      </div>
+    </div>
+    <div id="hint">Clique para jogar (WASD + mouse)</div>
+    <div id="loading">Carregando nível…</div>
+  </body>
+</html>
