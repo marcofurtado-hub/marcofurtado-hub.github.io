@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Caça-Palavras da Reforma</title>
+<meta name="description" content="Caça-palavras infinito sobre a Bíblia, com curiosidades e aprendizados à luz da Reforma Protestante.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EAE0C8;
+    --paper-deep:#E0D2AF;
+    --ink:#2A2118;
+    --ink-soft:#5A4B38;
+    --red:#8E1D12;
+    --gold:#A87C2A;
+    --line:#C8B68C;
+    --cell:#F2EAD4;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family:'EB Garamond', Georgia, serif;
+    color:var(--ink);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.07 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(120% 90% at 50% 0%, #F0E7CF 0%, var(--paper) 55%, var(--paper-deep) 100%);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:14px 14px 60px;
+  }
+
+  /* ---------- Cabeçalho como frontispício ---------- */
+  .hub-link{
+    align-self:flex-start;
+    font-size:14px; letter-spacing:.08em;
+    color:var(--ink-soft); text-decoration:none;
+    border-bottom:1px solid var(--line);
+    margin-bottom:6px;
+  }
+  .hub-link:hover{ color:var(--red); border-color:var(--red); }
+
+  header{
+    text-align:center;
+    width:min(960px, 100%);
+    padding:10px 0 14px;
+    border-top:3px double var(--ink);
+    border-bottom:3px double var(--ink);
+    margin-bottom:14px;
+    position:relative;
+  }
+  header .anno{
+    font-variant:small-caps; letter-spacing:.35em;
+    font-size:12px; color:var(--ink-soft);
+  }
+  header h1{
+    font-family:'UnifrakturMaguntia', serif;
+    font-weight:400;
+    font-size:clamp(30px, 6.4vw, 54px);
+    line-height:1.05;
+    margin:4px 0 2px;
+  }
+  header h1 .rubrica{ color:var(--red); }
+  header .lema{
+    font-style:italic; font-size:clamp(14px,2.6vw,17px); color:var(--ink-soft);
+  }
+
+  /* ---------- Barra de estado ---------- */
+  .estado{
+    width:min(960px,100%);
+    display:flex; flex-wrap:wrap; gap:8px 18px;
+    justify-content:center; align-items:baseline;
+    font-size:15px; margin-bottom:12px;
+  }
+  .estado b{ font-variant:small-caps; letter-spacing:.12em; font-weight:600; }
+  .estado .tema-atual{
+    width:100%; text-align:center;
+    font-variant:small-caps; letter-spacing:.22em;
+    font-size:clamp(15px,3vw,18px); color:var(--red);
+  }
+
+  /* ---------- Layout principal ---------- */
+  main{
+    width:min(960px,100%);
+    display:grid;
+    grid-template-columns: minmax(0, 540px) minmax(220px, 1fr);
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width:760px){
+    main{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- Grade ---------- */
+  .moldura{
+    border:1px solid var(--ink);
+    outline:1px solid var(--line);
+    outline-offset:3px;
+    background:var(--cell);
+    padding:6px;
+    box-shadow:0 2px 0 rgba(42,33,24,.18);
+  }
+  #grade{
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .celula{
+    aspect-ratio:1/1;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(13px, 3.4vw, 22px);
+    font-weight:500;
+    border-radius:50%;
+    cursor:pointer;
+    transition:background-color .12s ease;
+  }
+  .celula.sel{ background:rgba(168,124,42,.35); }
+  .celula.f0{ background:rgba(142,29,18,.26); }
+  .celula.f1{ background:rgba(31,78,95,.26); }
+  .celula.f2{ background:rgba(74,93,35,.30); }
+  .celula.f3{ background:rgba(92,68,112,.26); }
+  .celula.f4{ background:rgba(122,74,18,.30); }
+  .celula.f5{ background:rgba(20,90,60,.26); }
+
+  /* ---------- Painel: palavras + pergaminho ---------- */
+  .painel h2{
+    font-variant:small-caps; letter-spacing:.2em; font-weight:600;
+    font-size:16px; margin-bottom:8px;
+    border-bottom:1px solid var(--line); padding-bottom:4px;
+  }
+  .palavras{ display:flex; flex-wrap:wrap; gap:6px 10px; margin-bottom:16px; }
+  .chip{
+    font-size:clamp(14px,2.4vw,17px);
+    letter-spacing:.06em;
+    padding:2px 10px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:rgba(242,234,212,.7);
+  }
+  .chip.achada{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+    text-decoration-color:var(--red);
+    text-decoration-thickness:2px;
+    border-style:dashed;
+  }
+
+  /* O panfleto impresso (assinatura visual) */
+  #panfleto{
+    position:relative;
+    border:1px solid var(--ink);
+    background:linear-gradient(180deg,#F4EDD8 0%, #EDE2C3 100%);
+    padding:16px 16px 14px;
+    box-shadow:2px 3px 0 rgba(42,33,24,.2);
+    display:none;
+  }
+  #panfleto.aberto{ display:block; animation:surgir .35s ease; }
+  @keyframes surgir{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  #panfleto .titulo-pal{
+    font-variant:small-caps; letter-spacing:.18em; font-weight:600;
+    color:var(--red); font-size:18px; margin-bottom:6px;
+  }
+  #panfleto .texto{ font-size:16.5px; line-height:1.45; }
+  #panfleto .texto::first-letter{
+    font-family:'UnifrakturMaguntia', serif;
+    font-size:2.6em; float:left; line-height:.82;
+    padding-right:6px; color:var(--red);
+  }
+  .selo{
+    position:absolute; top:-14px; right:-10px;
+    width:42px; height:42px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #B43A2B, var(--red) 70%);
+    color:#F2E6C8; display:flex; align-items:center; justify-content:center;
+    font-size:20px; box-shadow:0 2px 4px rgba(0,0,0,.3);
+    transform:rotate(8deg);
+  }
+  #panfleto.aberto .selo{ animation:carimbo .4s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes carimbo{ from{ transform:scale(2.2) rotate(8deg); opacity:0;} to{ transform:scale(1) rotate(8deg); opacity:1;} }
+
+  /* ---------- Botões ---------- */
+  .acoes{ margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; }
+  button{
+    font-family:inherit; font-size:16px; font-variant:small-caps; letter-spacing:.14em;
+    padding:8px 18px; cursor:pointer;
+    color:var(--ink); background:var(--cell);
+    border:1px solid var(--ink);
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  button:hover{ background:#F8F2DF; }
+  button:active{ transform:translate(2px,2px); box-shadow:none; }
+  button:focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
+  button.principal{ color:#F2E6C8; background:var(--red); border-color:var(--red); box-shadow:2px 2px 0 var(--ink); }
+  button.principal:hover{ background:#A2291C; }
+
+  /* ---------- Modal de rodada concluída ---------- */
+  #veu{
+    position:fixed; inset:0; background:rgba(42,33,24,.45);
+    display:none; align-items:center; justify-content:center; padding:18px;
+  }
+  #veu.aberto{ display:flex; }
+  #cartaz{
+    width:min(440px,100%);
+    background:var(--paper);
+    border:3px double var(--ink);
+    padding:26px 22px; text-align:center;
+    animation:surgir .3s ease;
+  }
+  #cartaz h3{
+    font-family:'UnifrakturMaguntia', serif; font-weight:400;
+    font-size:30px; margin-bottom:6px;
+  }
+  #cartaz .verso{ font-style:italic; color:var(--ink-soft); margin:8px 0 18px; line-height:1.4; }
+
+  footer{
+    margin-top:26px; font-size:13px; color:var(--ink-soft);
+    font-variant:small-caps; letter-spacing:.2em; text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="hub-link" href="https://marcofurtado-hub.github.io/">&larr; voltar ao hub</a>
+
+<header>
+  <div class="anno">anno domini &middot; mdxvii</div>
+  <h1>Caça-Palavras <span class="rubrica">da Reforma</span></h1>
+  <div class="lema">Post tenebras lux — curiosidades bíblicas à luz da Reforma Protestante</div>
+</header>
+
+<div class="estado">
+  <div class="tema-atual" id="temaAtual"></div>
+  <span><b>Rodada</b> <span id="rodada">1</span></span>
+  <span><b>Nesta rodada</b> <span id="achadas">0</span>/<span id="totalRodada">6</span></span>
+  <span><b>Total de palavras</b> <span id="totalGeral">0</span></span>
+</div>
+
+<main>
+  <div>
+    <div class="moldura"><div id="grade" aria-label="Grade do caça-palavras"></div></div>
+    <div class="acoes">
+      <button id="btnNova">Nova grade</button>
+      <button id="btnPular">Pular tema</button>
+    </div>
+  </div>
+
+  <aside class="painel">
+    <h2>Palavras a encontrar</h2>
+    <div class="palavras" id="listaPalavras"></div>
+
+    <h2>Aprendizado</h2>
+    <div id="panfleto">
+      <div class="selo">&#10013;</div>
+      <div class="titulo-pal" id="panTitulo"></div>
+      <div class="texto" id="panTexto"></div>
+    </div>
+    <p id="panVazio" style="color:var(--ink-soft); font-style:italic; font-size:15px;">
+      Encontre uma palavra na grade para revelar uma curiosidade.
+    </p>
+  </aside>
+</main>
+
+<div id="veu" role="dialog" aria-modal="true">
+  <div id="cartaz">
+    <h3>Rodada concluída</h3>
+    <div class="verso" id="versoFinal"></div>
+    <button class="principal" id="btnProxima">Próxima rodada &rarr;</button>
+  </div>
+</div>
+
+<footer>sola scriptura &middot; sola fide &middot; sola gratia &middot; solus christus &middot; soli deo gloria</footer>
+
+<script>
+"use strict";
+
+/* ============================================================
+   CONTEÚDO — temas, palavras e curiosidades
+   ============================================================ */
+const TEMAS = [
+{ nome:"As Cinco Solas", palavras:[
+ ["ESCRITURA","Sola Scriptura: para os reformadores, somente a Bíblia é a autoridade final de fé e prática. Lutero traduziu o Novo Testamento inteiro para o alemão em cerca de onze semanas, escondido no castelo de Wartburg."],
+ ["GRAÇA","Sola Gratia: a salvação é dom imerecido de Deus, não recompensa por esforço humano. Foi a redescoberta dessa graça que libertou Lutero da angústia de tentar merecer o céu."],
+ ["CRISTO","Solus Christus: há um só mediador entre Deus e os homens (1 Timóteo 2:5). A Reforma devolveu a Cristo o lugar central que práticas e intermediários haviam ocupado."],
+ ["GLÓRIA","Soli Deo Gloria: tudo existe para a glória de Deus somente. Séculos depois, Johann Sebastian Bach ainda assinava suas partituras com as iniciais S.D.G."],
+ ["SALVAÇÃO","Pela graça sois salvos, por meio da fé; isto não vem de vós, é dom de Deus (Efésios 2:8-9) — talvez o resumo mais curto de toda a teologia da Reforma."],
+ ["CRUZ","Em Heidelberg (1518), Lutero contrastou a 'teologia da glória' com a 'teologia da cruz': Deus se revela não no espetáculo, mas no Cristo crucificado."],
+ ["MÉRITO","A Reforma negou que méritos humanos pudessem comprar o favor de Deus. O justo viverá pela fé — não pela conta bancária de boas obras."],
+ ["AUTORIDADE","Na Dieta de Worms (1521), Lutero declarou que sua consciência estava cativa à Palavra de Deus: nem papas nem concílios estavam acima da Escritura."]
+]},
+{ nome:"Os Reformadores", palavras:[
+ ["LUTERO","Em 31 de outubro de 1517, Martinho Lutero divulgou 95 teses em Wittenberg questionando as indulgências. Ele não planejava fundar nada — queria um debate acadêmico."],
+ ["CALVINO","João Calvino escreveu as 'Institutas da Religião Cristã' aos 26 anos e transformou Genebra num centro de ensino bíblico que formou pastores para toda a Europa."],
+ ["ZUINGLIO","Ulrico Zuínglio iniciou a Reforma em Zurique pregando o Novo Testamento versículo por versículo — algo revolucionário para a época."],
+ ["TYNDALE","William Tyndale traduziu a Bíblia para o inglês e pagou com a vida (1536). Sonhava que até o menino que conduz o arado conhecesse as Escrituras."],
+ ["WYCLIFFE","John Wycliffe, no século XIV, já defendia a Bíblia na língua do povo. Por antecipar a Reforma em 150 anos, é chamado de 'Estrela da Alva da Reforma'."],
+ ["HUS","Jan Hus, reformador boêmio, foi queimado em 1415. Seu nome significa 'ganso'; diz a tradição que ele profetizou um 'cisne' que viria depois — os luteranos viram em Lutero o cumprimento."],
+ ["KNOX","John Knox levou a Reforma à Escócia e ajudou a moldar o presbiterianismo. Dizem que Maria da Escócia temia mais suas orações do que exércitos."],
+ ["MELANCHTON","Filipe Melanchton, o erudito parceiro de Lutero, redigiu a Confissão de Augsburgo (1530), um dos documentos mais importantes do protestantismo."]
+]},
+{ nome:"Livros da Bíblia", palavras:[
+ ["ROMANOS","Foi meditando em Romanos 1:17 — 'o justo viverá pela fé' — que Lutero sentiu, em suas palavras, ter atravessado portões abertos para o próprio paraíso."],
+ ["GALATAS","Lutero amava tanto a carta aos Gálatas, com sua defesa da liberdade cristã, que brincava chamando-a de 'minha Katharina von Bora', o nome de sua esposa."],
+ ["SALMOS","Calvino chamou os Salmos de 'anatomia de todas as partes da alma': não há emoção humana que não esteja ali, transformada em oração."],
+ ["GENESIS","Lutero dedicou cerca de dez anos de aulas ao livro de Gênesis. Para ele, o Deus criador é o mesmo Deus redentor — a história da salvação começa na primeira página."],
+ ["EXODO","A libertação do Egito tornou-se, para os reformadores, figura da redenção: o povo escravizado é liberto pela graça, antes de receber a Lei."],
+ ["ISAIAS","Isaías é chamado de 'quinto evangelho' por anunciar com séculos de antecedência o Servo Sofredor que carregaria as nossas dores (Isaías 53)."],
+ ["HEBREUS","Hebreus apresenta Cristo como sumo sacerdote definitivo — base bíblica para a Reforma rejeitar qualquer mediação humana entre Deus e o crente."],
+ ["APOCALIPSE","No Apocalipse, quem vence não é o dragão, mas o Cordeiro. Em tempos de perseguição, os reformados encontraram ali coragem para perseverar."]
+]},
+{ nome:"Personagens Bíblicos", palavras:[
+ ["ABRAAO","'Abraão creu no Senhor, e isso lhe foi imputado para justiça' (Gênesis 15:6) — o versículo que Paulo, e depois a Reforma, usaram para ensinar a justificação pela fé."],
+ ["PAULO","O apóstolo Paulo, perseguidor transformado pela graça, escreveu Romanos e Gálatas — as duas cartas que mais incendiaram a Reforma."],
+ ["PEDRO","Pedro chama todos os crentes de 'sacerdócio real' (1 Pedro 2:9). Dessa frase nasceu a doutrina reformada do sacerdócio de todos os santos."],
+ ["DAVI","Depois de cair, Davi orou o Salmo 51: 'Cria em mim, ó Deus, um coração puro.' Para os reformadores, modelo de arrependimento sincero, sem penitências compradas."],
+ ["MOISES","Moisés recebeu a Lei, mas a Lei aponta para além de si mesma: como um pedagogo, ela nos conduz a Cristo (Gálatas 3:24)."],
+ ["ESTER","O livro de Ester não menciona o nome de Deus uma única vez — e mesmo assim Sua providência governa cada detalhe. Deus age até quando parece silencioso."],
+ ["DANIEL","Daniel serviu impérios pagãos sem dobrar os joelhos a eles. Inspirou gerações de protestantes perseguidos a obedecer a Deus antes que aos homens."],
+ ["RUTE","Rute, estrangeira acolhida pelo resgatador Boaz, entrou na genealogia de Cristo: a graça de Deus sempre alcançou além das fronteiras de Israel."]
+]},
+{ nome:"A Reforma na História", palavras:[
+ ["WITTENBERG","A porta da Igreja do Castelo de Wittenberg funcionava como mural da universidade. Foi ali que as 95 teses começaram a mudar a história."],
+ ["TESES","As 95 teses eram em latim, para acadêmicos. Sem autorização de Lutero, foram traduzidas e impressas — e em duas semanas circulavam por toda a Alemanha."],
+ ["IMPRENSA","A prensa de tipos móveis foi o 'aplicativo' da Reforma: panfletos baratos espalhavam ideias em dias. Sem ela, talvez Lutero tivesse o destino de Hus."],
+ ["GUTENBERG","O primeiro grande livro impresso por Gutenberg, por volta de 1455, foi justamente a Bíblia. A tecnologia nasceu servindo às Escrituras."],
+ ["GENEBRA","Genebra acolheu refugiados de toda a Europa e abrigou a academia de Calvino. John Knox a chamou de 'a mais perfeita escola de Cristo desde os apóstolos'."],
+ ["WORMS","'Aqui estou; não posso fazer de outro modo.' Na Dieta de Worms (1521), diante do imperador, Lutero recusou-se a negar o que havia escrito."],
+ ["INDULGENCIA","A venda de indulgências por Tetzel — 'tão logo a moeda no cofre tilinta, a alma do purgatório se levanta' — foi o estopim das 95 teses."],
+ ["WARTBURG","Declarado fora da lei, Lutero foi 'sequestrado' por amigos e escondido no castelo de Wartburg, onde, disfarçado de 'cavaleiro Jorge', traduziu o Novo Testamento."]
+]},
+{ nome:"Doutrinas da Graça", palavras:[
+ ["JUSTIFICACAO","Para Lutero, a justificação pela fé é 'o artigo pelo qual a igreja permanece de pé ou cai': Deus declara justo o pecador por causa de Cristo, não de seus méritos."],
+ ["REDENCAO","Redenção é linguagem de mercado de escravos: fostes comprados por preço (1 Coríntios 6:20). O preço foi o próprio sangue de Cristo."],
+ ["ALIANCA","A teologia da aliança, desenvolvida por reformadores como Bullinger e Calvino, lê toda a Bíblia como uma única história: Deus se comprometendo com seu povo."],
+ ["PERDAO","A primeira das 95 teses diz que toda a vida do cristão deve ser de arrependimento — não um ato comprado no balcão, mas um caminhar diário."],
+ ["EVANGELHO","Os reformadores insistiam: o evangelho não é bom conselho a cumprir, é boa notícia a crer. Conselho diz 'faça'; notícia anuncia 'está feito'."],
+ ["ELEICAO","A eleição, ensinava Calvino, não é tema para especulação fria, mas conforto pastoral: a salvação repousa na escolha fiel de Deus, não na instabilidade humana."],
+ ["SANTIDADE","Para a Reforma, santidade não é fugir do mundo, mas servir a Deus dentro dele — na oficina, no lar e no mercado, tanto quanto no templo."],
+ ["CONVERSAO","Conversão é mais que virar a página: é novo nascimento (João 3). Lutero descreveu a sua como 'nascer de novo e entrar pelo paraíso de portas abertas'."]
+]},
+{ nome:"Vida Cristã Reformada", palavras:[
+ ["VOCACAO","Lutero ensinou que todo ofício honesto é vocação santa: a ordenhadora e o sapateiro servem a Deus tanto quanto o pregador. O trabalho comum ganhou dignidade."],
+ ["TRABALHO","'Deus ordenha as vacas por meio da vocação da ordenhadora', dizia Lutero: o trabalho cotidiano é uma das máscaras pelas quais Deus cuida do mundo."],
+ ["FAMILIA","Ao casar-se com Katharina von Bora, uma ex-freira, Lutero transformou o lar pastoral em escola de fé — com mesa cheia, música e catecismo às crianças."],
+ ["ORACAO","'Tenho tanto a fazer hoje que passarei as primeiras três horas em oração' — frase atribuída a Lutero. Quanto maior a tarefa, maior a dependência."],
+ ["HINOS","Lutero compôs 'Castelo Forte é o Nosso Deus' a partir do Salmo 46 e devolveu o canto à congregação: antes, o povo apenas assistia; agora, cantava a própria fé."],
+ ["CATECISMO","O Pequeno Catecismo (1529) foi escrito para os pais ensinarem a fé em casa. A Reforma apostou que teologia é assunto de cozinha, não só de academia."],
+ ["COMUNHAO","A Reforma devolveu o cálice aos leigos na Ceia: se todos são sacerdotes, todos participam plenamente da mesa do Senhor."],
+ ["BIBLIA","Antes da Reforma, Bíblias eram acorrentadas a púlpitos e escritas em latim. A grande revolução foi colocá-la na língua — e nas mãos — do povo."]
+]},
+{ nome:"Imagens dos Salmos", palavras:[
+ ["PASTOR","'O Senhor é o meu pastor; nada me faltará' (Salmo 23). Calvino via aqui o resumo da vida cristã: confiança total no cuidado diário de Deus."],
+ ["REFUGIO","'Deus é o nosso refúgio e fortaleza' (Salmo 46) — o salmo que inspirou o hino-símbolo da Reforma, cantado por Lutero nos dias mais sombrios."],
+ ["ROCHA","Na Bíblia, Deus é a Rocha: fundamento que não se move. Os reformadores buscavam exatamente isso — alicerçar a fé em algo mais firme que tradições humanas."],
+ ["TORRE","'Torre forte é o nome do Senhor' (Provérbios 18:10). Curiosamente, Lutero contava que sua descoberta do evangelho aconteceu estudando numa torre do mosteiro."],
+ ["LAMPADA","'Lâmpada para os meus pés é a tua palavra' (Salmo 119:105). A Reforma acreditou nisso ao pé da letra: luz para o povo era Bíblia aberta na língua do povo."],
+ ["ALELUIA","Aleluia significa 'louvai ao Senhor' em hebraico. É uma das poucas palavras que atravessou todas as línguas do mundo sem precisar de tradução."],
+ ["LOUVOR","Para a Reforma, o louvor não é desempenho de poucos, mas resposta de todos. Soli Deo Gloria: a vida inteira como culto."],
+ ["ESCUDO","'Tu, Senhor, és o meu escudo' (Salmo 3:3). Davi orou isso fugindo do próprio filho — a fé reformada aprendeu a orar assim em meio a guerras e exílios."]
+]}
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const TAM = 12;            // grade 12x12
+const PALAVRAS_POR_RODADA = 6;
+const DIRECOES = [[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+const FREQ = "AAAAAEEEEEOOOOSSSRRRIIINNDDMMUUTTCCLLPPGVBHFQJXZ";
+
+let ordemTemas = [];
+let indiceTema = 0;
+let rodada = 1;
+let totalGeral = 0;
+let grade = [];            // matriz de letras
+let palavrasRodada = [];   // [{chave, exibe, dica, achada}]
+let achadasRodada = 0;
+let corIdx = 0;
+
+const salvar = () => { try{ localStorage.setItem("cpReforma", JSON.stringify({rodada, totalGeral})); }catch(e){} };
+const carregar = () => { try{
+  const d = JSON.parse(localStorage.getItem("cpReforma"));
+  if(d){ rodada = d.rodada||1; totalGeral = d.totalGeral||0; }
+}catch(e){} };
+
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+const embaralhar = a => { const c=[...a]; for(let i=c.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [c[i],c[j]]=[c[j],c[i]]; } return c; };
+
+/* ============================================================
+   GERAÇÃO DA GRADE
+   ============================================================ */
+function gerarRodada(){
+  if(indiceTema >= ordemTemas.length){ ordemTemas = embaralhar(TEMAS.map((_,i)=>i)); indiceTema = 0; }
+  const tema = TEMAS[ordemTemas[indiceTema]];
+
+  // tenta montar uma grade válida com 6 palavras do tema
+  for(let tentativa=0; tentativa<40; tentativa++){
+    const escolhidas = embaralhar(tema.palavras).slice(0, PALAVRAS_POR_RODADA);
+    const g = Array.from({length:TAM}, ()=>Array(TAM).fill(""));
+    let ok = true;
+
+    for(const [exibe] of escolhidas.sort((a,b)=>norm(b[0]).length-norm(a[0]).length)){
+      if(!colocar(g, norm(exibe))){ ok = false; break; }
+    }
+    if(!ok) continue;
+
+    // preencher vazios
+    for(let r=0;r<TAM;r++) for(let c=0;c<TAM;c++)
+      if(!g[r][c]) g[r][c] = FREQ[Math.floor(Math.random()*FREQ.length)];
+
+    grade = g;
+    palavrasRodada = escolhidas.map(([exibe,dica]) => ({chave:norm(exibe), exibe, dica, achada:false}));
+    achadasRodada = 0;
+    corIdx = 0;
+    desenhar(tema.nome);
+    return;
+  }
+  // fallback improvável: tenta o próximo tema
+  indiceTema++;
+  gerarRodada();
+}
+
+function colocar(g, palavra){
+  for(let t=0;t<300;t++){
+    const [dr,dc] = DIRECOES[Math.floor(Math.random()*DIRECOES.length)];
+    const r0 = Math.floor(Math.random()*TAM);
+    const c0 = Math.floor(Math.random()*TAM);
+    const rf = r0 + dr*(palavra.length-1);
+    const cf = c0 + dc*(palavra.length-1);
+    if(rf<0||rf>=TAM||cf<0||cf>=TAM) continue;
+    let cabe = true;
+    for(let i=0;i<palavra.length;i++){
+      const ch = g[r0+dr*i][c0+dc*i];
+      if(ch && ch !== palavra[i]){ cabe=false; break; }
+    }
+    if(!cabe) continue;
+    for(let i=0;i<palavra.length;i++) g[r0+dr*i][c0+dc*i] = palavra[i];
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   RENDERIZAÇÃO
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const elGrade = $("grade");
+
+function desenhar(nomeTema){
+  $("temaAtual").textContent = "Tema: " + nomeTema;
+  $("rodada").textContent = rodada;
+  $("achadas").textContent = achadasRodada;
+  $("totalRodada").textContent = palavrasRodada.length;
+  $("totalGeral").textContent = totalGeral;
+
+  elGrade.innerHTML = "";
+  for(let r=0;r<TAM;r++) for(let c=0;c<TAM;c++){
+    const d = document.createElement("div");
+    d.className = "celula";
+    d.textContent = grade[r][c];
+    d.dataset.r = r; d.dataset.c = c;
+    elGrade.appendChild(d);
+  }
+
+  const lista = $("listaPalavras");
+  lista.innerHTML = "";
+  for(const p of palavrasRodada){
+    const chip = document.createElement("span");
+    chip.className = "chip" + (p.achada ? " achada" : "");
+    chip.textContent = p.exibe;
+    chip.id = "chip-" + p.chave;
+    lista.appendChild(chip);
+  }
+}
+
+function celula(r,c){ return elGrade.children[r*TAM + c]; }
+
+/* ============================================================
+   SELEÇÃO (mouse e toque)
+   ============================================================ */
+let arrastando = false, inicio = null, caminho = [];
+
+function posParaCelula(x,y){
+  const ret = elGrade.getBoundingClientRect();
+  const c = Math.floor((x-ret.left)/(ret.width/TAM));
+  const r = Math.floor((y-ret.top)/(ret.height/TAM));
+  if(r<0||r>=TAM||c<0||c>=TAM) return null;
+  return {r,c};
+}
+
+function tracar(de, ate){
+  let dr = ate.r-de.r, dc = ate.c-de.c;
+  let passos;
+  if(dr===0 && dc===0) passos = 0;
+  else if(dr===0) passos = Math.abs(dc);
+  else if(dc===0) passos = Math.abs(dr);
+  else if(Math.abs(dr)===Math.abs(dc)) passos = Math.abs(dr);
+  else return null; // não é linha reta
+  const ur = Math.sign(dr), uc = Math.sign(dc);
+  const cels = [];
+  for(let i=0;i<=passos;i++) cels.push({r:de.r+ur*i, c:de.c+uc*i});
+  return cels;
+}
+
+function limparSel(){ for(const p of caminho) celula(p.r,p.c).classList.remove("sel"); caminho = []; }
+
+elGrade.addEventListener("pointerdown", e=>{
+  const p = posParaCelula(e.clientX, e.clientY);
+  if(!p) return;
+  arrastando = true; inicio = p;
+  elGrade.setPointerCapture(e.pointerId);
+  limparSel();
+  caminho = [p];
+  celula(p.r,p.c).classList.add("sel");
+});
+
+elGrade.addEventListener("pointermove", e=>{
+  if(!arrastando) return;
+  const p = posParaCelula(e.clientX, e.clientY);
+  if(!p) return;
+  const novo = tracar(inicio, p);
+  if(!novo) return;
+  limparSel();
+  caminho = novo;
+  for(const q of caminho) celula(q.r,q.c).classList.add("sel");
+});
+
+function terminarSelecao(){
+  if(!arrastando) return;
+  arrastando = false;
+  if(caminho.length >= 2){
+    const texto = caminho.map(p=>grade[p.r][p.c]).join("");
+    const inverso = [...texto].reverse().join("");
+    const alvo = palavrasRodada.find(p=>!p.achada && (p.chave===texto || p.chave===inverso));
+    if(alvo) return encontrou(alvo);
+  }
+  limparSel();
+}
+elGrade.addEventListener("pointerup", terminarSelecao);
+elGrade.addEventListener("pointercancel", terminarSelecao);
+
+/* ============================================================
+   ACHOU UMA PALAVRA
+   ============================================================ */
+function encontrou(p){
+  p.achada = true;
+  achadasRodada++; totalGeral++;
+  const cor = "f" + (corIdx++ % 6);
+  for(const q of caminho){ const cel = celula(q.r,q.c); cel.classList.remove("sel"); cel.classList.add(cor); }
+  caminho = [];
+  $("chip-"+p.chave).classList.add("achada");
+  $("achadas").textContent = achadasRodada;
+  $("totalGeral").textContent = totalGeral;
+
+  $("panTitulo").textContent = p.exibe;
+  $("panTexto").textContent = p.dica;
+  $("panVazio").style.display = "none";
+  const pan = $("panfleto");
+  pan.classList.remove("aberto");
+  void pan.offsetWidth; // reinicia animação
+  pan.classList.add("aberto");
+
+  salvar();
+  if(achadasRodada === palavrasRodada.length) setTimeout(fimDeRodada, 700);
+}
+
+const VERSOS = [
+  "“Lâmpada para os meus pés é a tua palavra.” — Salmo 119:105",
+  "“O justo viverá pela fé.” — Romanos 1:17",
+  "“A graça vos basta.” — 2 Coríntios 12:9",
+  "“Conhecereis a verdade, e a verdade vos libertará.” — João 8:32",
+  "“Deus é o nosso refúgio e fortaleza.” — Salmo 46:1",
+  "“Examinai as Escrituras.” — João 5:39",
+  "“Tudo quanto fizerdes, fazei-o para a glória de Deus.” — 1 Coríntios 10:31"
+];
+
+function fimDeRodada(){
+  $("versoFinal").textContent = VERSOS[Math.floor(Math.random()*VERSOS.length)];
+  $("veu").classList.add("aberto");
+}
+
+$("btnProxima").addEventListener("click", ()=>{
+  $("veu").classList.remove("aberto");
+  rodada++; indiceTema++;
+  salvar();
+  esconderPanfleto();
+  gerarRodada();
+});
+
+$("btnNova").addEventListener("click", ()=>{ esconderPanfleto(); gerarRodada(); });
+$("btnPular").addEventListener("click", ()=>{ indiceTema++; esconderPanfleto(); gerarRodada(); });
+
+function esconderPanfleto(){
+  $("panfleto").classList.remove("aberto");
+  $("panVazio").style.display = "block";
+}
+
+/* ============================================================
+   INÍCIO
+   ============================================================ */
+carregar();
+ordemTemas = embaralhar(TEMAS.map((_,i)=>i));
+gerarRodada();
+</script>
+</body>
+</html>
