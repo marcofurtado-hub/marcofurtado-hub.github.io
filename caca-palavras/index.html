@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Caça-Palavras da Reforma</title>
-<meta name="description" content="Caça-palavras infinito sobre a Bíblia, com curiosidades e aprendizados à luz da Reforma Protestante.">
+<title>Caça-Palavras da Bíblia</title>
+<meta name="description" content="Caça-palavras infinito sobre a Bíblia: encontre as palavras e descubra curiosidades das Escrituras.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#EAE0C8;
     --paper-deep:#E0D2AF;
     --ink:#2A2118;
     --ink-soft:#5A4B38;
-    --red:#8E1D12;
-    --gold:#A87C2A;
+    --vinho:#7B212E;
+    --ouro:#A87C2A;
     --line:#C8B68C;
     --cell:#F2EAD4;
   }
@@ -34,7 +34,7 @@
     padding:14px 14px 60px;
   }
 
-  /* ---------- Cabeçalho como frontispício ---------- */
+  /* ---------- Cabeçalho como página de rosto ---------- */
   .hub-link{
     align-self:flex-start;
     font-size:14px; letter-spacing:.08em;
@@ -42,29 +42,28 @@
     border-bottom:1px solid var(--line);
     margin-bottom:6px;
   }
-  .hub-link:hover{ color:var(--red); border-color:var(--red); }
+  .hub-link:hover{ color:var(--vinho); border-color:var(--vinho); }
 
   header{
     text-align:center;
     width:min(960px, 100%);
-    padding:10px 0 14px;
+    padding:12px 0 14px;
     border-top:3px double var(--ink);
     border-bottom:3px double var(--ink);
     margin-bottom:14px;
-    position:relative;
   }
-  header .anno{
-    font-variant:small-caps; letter-spacing:.35em;
-    font-size:12px; color:var(--ink-soft);
+  header .ornamento{
+    color:var(--ouro); font-size:14px; letter-spacing:.5em;
   }
   header h1{
-    font-family:'UnifrakturMaguntia', serif;
-    font-weight:400;
-    font-size:clamp(30px, 6.4vw, 54px);
-    line-height:1.05;
-    margin:4px 0 2px;
+    font-family:'Cinzel', Georgia, serif;
+    font-weight:700;
+    font-size:clamp(24px, 5.4vw, 44px);
+    letter-spacing:.06em;
+    line-height:1.12;
+    margin:6px 0 4px;
   }
-  header h1 .rubrica{ color:var(--red); }
+  header h1 .rubrica{ color:var(--vinho); }
   header .lema{
     font-style:italic; font-size:clamp(14px,2.6vw,17px); color:var(--ink-soft);
   }
@@ -80,7 +79,7 @@
   .estado .tema-atual{
     width:100%; text-align:center;
     font-variant:small-caps; letter-spacing:.22em;
-    font-size:clamp(15px,3vw,18px); color:var(--red);
+    font-size:clamp(15px,3vw,18px); color:var(--vinho);
   }
 
   /* ---------- Layout principal ---------- */
@@ -121,14 +120,14 @@
     transition:background-color .12s ease;
   }
   .celula.sel{ background:rgba(168,124,42,.35); }
-  .celula.f0{ background:rgba(142,29,18,.26); }
+  .celula.f0{ background:rgba(123,33,46,.26); }
   .celula.f1{ background:rgba(31,78,95,.26); }
   .celula.f2{ background:rgba(74,93,35,.30); }
   .celula.f3{ background:rgba(92,68,112,.26); }
   .celula.f4{ background:rgba(122,74,18,.30); }
   .celula.f5{ background:rgba(20,90,60,.26); }
 
-  /* ---------- Painel: palavras + pergaminho ---------- */
+  /* ---------- Painel: palavras + página iluminada ---------- */
   .painel h2{
     font-variant:small-caps; letter-spacing:.2em; font-weight:600;
     font-size:16px; margin-bottom:8px;
@@ -146,13 +145,13 @@
   .chip.achada{
     color:var(--ink-soft);
     text-decoration:line-through;
-    text-decoration-color:var(--red);
+    text-decoration-color:var(--vinho);
     text-decoration-thickness:2px;
     border-style:dashed;
   }
 
-  /* O panfleto impresso (assinatura visual) */
-  #panfleto{
+  /* A página iluminada (assinatura visual) */
+  #pagina{
     position:relative;
     border:1px solid var(--ink);
     background:linear-gradient(180deg,#F4EDD8 0%, #EDE2C3 100%);
@@ -160,27 +159,27 @@
     box-shadow:2px 3px 0 rgba(42,33,24,.2);
     display:none;
   }
-  #panfleto.aberto{ display:block; animation:surgir .35s ease; }
+  #pagina.aberta{ display:block; animation:surgir .35s ease; }
   @keyframes surgir{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
-  #panfleto .titulo-pal{
+  #pagina .titulo-pal{
     font-variant:small-caps; letter-spacing:.18em; font-weight:600;
-    color:var(--red); font-size:18px; margin-bottom:6px;
+    color:var(--vinho); font-size:18px; margin-bottom:6px;
   }
-  #panfleto .texto{ font-size:16.5px; line-height:1.45; }
-  #panfleto .texto::first-letter{
-    font-family:'UnifrakturMaguntia', serif;
-    font-size:2.6em; float:left; line-height:.82;
-    padding-right:6px; color:var(--red);
+  #pagina .texto{ font-size:16.5px; line-height:1.45; }
+  #pagina .texto::first-letter{
+    font-family:'Cinzel', Georgia, serif;
+    font-size:2.4em; float:left; line-height:.86;
+    padding-right:7px; color:var(--ouro); font-weight:700;
   }
   .selo{
     position:absolute; top:-14px; right:-10px;
     width:42px; height:42px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #B43A2B, var(--red) 70%);
+    background:radial-gradient(circle at 35% 30%, #9A3242, var(--vinho) 70%);
     color:#F2E6C8; display:flex; align-items:center; justify-content:center;
     font-size:20px; box-shadow:0 2px 4px rgba(0,0,0,.3);
     transform:rotate(8deg);
   }
-  #panfleto.aberto .selo{ animation:carimbo .4s cubic-bezier(.2,1.6,.4,1); }
+  #pagina.aberta .selo{ animation:carimbo .4s cubic-bezier(.2,1.6,.4,1); }
   @keyframes carimbo{ from{ transform:scale(2.2) rotate(8deg); opacity:0;} to{ transform:scale(1) rotate(8deg); opacity:1;} }
 
   /* ---------- Botões ---------- */
@@ -194,9 +193,9 @@
   }
   button:hover{ background:#F8F2DF; }
   button:active{ transform:translate(2px,2px); box-shadow:none; }
-  button:focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
-  button.principal{ color:#F2E6C8; background:var(--red); border-color:var(--red); box-shadow:2px 2px 0 var(--ink); }
-  button.principal:hover{ background:#A2291C; }
+  button:focus-visible{ outline:2px solid var(--vinho); outline-offset:2px; }
+  button.principal{ color:#F2E6C8; background:var(--vinho); border-color:var(--vinho); box-shadow:2px 2px 0 var(--ink); }
+  button.principal:hover{ background:#8E2A39; }
 
   /* ---------- Modal de rodada concluída ---------- */
   #veu{
@@ -212,14 +211,14 @@
     animation:surgir .3s ease;
   }
   #cartaz h3{
-    font-family:'UnifrakturMaguntia', serif; font-weight:400;
-    font-size:30px; margin-bottom:6px;
+    font-family:'Cinzel', Georgia, serif; font-weight:700;
+    font-size:24px; letter-spacing:.06em; margin-bottom:6px;
   }
   #cartaz .verso{ font-style:italic; color:var(--ink-soft); margin:8px 0 18px; line-height:1.4; }
 
   footer{
-    margin-top:26px; font-size:13px; color:var(--ink-soft);
-    font-variant:small-caps; letter-spacing:.2em; text-align:center;
+    margin-top:26px; font-size:14px; color:var(--ink-soft);
+    font-style:italic; text-align:center; max-width:520px; line-height:1.4;
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -232,9 +231,9 @@
 <a class="hub-link" href="https://marcofurtado-hub.github.io/">&larr; voltar ao hub</a>
 
 <header>
-  <div class="anno">anno domini &middot; mdxvii</div>
-  <h1>Caça-Palavras <span class="rubrica">da Reforma</span></h1>
-  <div class="lema">Post tenebras lux — curiosidades bíblicas à luz da Reforma Protestante</div>
+  <div class="ornamento">&#10045; &#10045; &#10045;</div>
+  <h1>Caça-Palavras <span class="rubrica">da Bíblia</span></h1>
+  <div class="lema">Encontre as palavras escondidas e descubra o que as Escrituras dizem sobre elas</div>
 </header>
 
 <div class="estado">
@@ -257,14 +256,14 @@
     <h2>Palavras a encontrar</h2>
     <div class="palavras" id="listaPalavras"></div>
 
-    <h2>Aprendizado</h2>
-    <div id="panfleto">
+    <h2>O que a Bíblia diz</h2>
+    <div id="pagina">
       <div class="selo">&#10013;</div>
-      <div class="titulo-pal" id="panTitulo"></div>
-      <div class="texto" id="panTexto"></div>
+      <div class="titulo-pal" id="pagTitulo"></div>
+      <div class="texto" id="pagTexto"></div>
     </div>
-    <p id="panVazio" style="color:var(--ink-soft); font-style:italic; font-size:15px;">
-      Encontre uma palavra na grade para revelar uma curiosidade.
+    <p id="pagVazio" style="color:var(--ink-soft); font-style:italic; font-size:15px;">
+      Encontre uma palavra na grade para revelar uma curiosidade das Escrituras.
     </p>
   </aside>
 </main>
@@ -277,7 +276,7 @@
   </div>
 </div>
 
-<footer>sola scriptura &middot; sola fide &middot; sola gratia &middot; solus christus &middot; soli deo gloria</footer>
+<footer>&laquo;Lâmpada para os meus pés é a tua palavra e luz para o meu caminho.&raquo;<br>Salmo 119:105</footer>
 
 <script>
 "use strict";
@@ -286,85 +285,85 @@
    CONTEÚDO — temas, palavras e curiosidades
    ============================================================ */
 const TEMAS = [
-{ nome:"As Cinco Solas", palavras:[
- ["ESCRITURA","Sola Scriptura: para os reformadores, somente a Bíblia é a autoridade final de fé e prática. Lutero traduziu o Novo Testamento inteiro para o alemão em cerca de onze semanas, escondido no castelo de Wartburg."],
- ["GRAÇA","Sola Gratia: a salvação é dom imerecido de Deus, não recompensa por esforço humano. Foi a redescoberta dessa graça que libertou Lutero da angústia de tentar merecer o céu."],
- ["CRISTO","Solus Christus: há um só mediador entre Deus e os homens (1 Timóteo 2:5). A Reforma devolveu a Cristo o lugar central que práticas e intermediários haviam ocupado."],
- ["GLÓRIA","Soli Deo Gloria: tudo existe para a glória de Deus somente. Séculos depois, Johann Sebastian Bach ainda assinava suas partituras com as iniciais S.D.G."],
- ["SALVAÇÃO","Pela graça sois salvos, por meio da fé; isto não vem de vós, é dom de Deus (Efésios 2:8-9) — talvez o resumo mais curto de toda a teologia da Reforma."],
- ["CRUZ","Em Heidelberg (1518), Lutero contrastou a 'teologia da glória' com a 'teologia da cruz': Deus se revela não no espetáculo, mas no Cristo crucificado."],
- ["MÉRITO","A Reforma negou que méritos humanos pudessem comprar o favor de Deus. O justo viverá pela fé — não pela conta bancária de boas obras."],
- ["AUTORIDADE","Na Dieta de Worms (1521), Lutero declarou que sua consciência estava cativa à Palavra de Deus: nem papas nem concílios estavam acima da Escritura."]
+{ nome:"Quem é Jesus", palavras:[
+ ["CORDEIRO","“Eis o Cordeiro de Deus, que tira o pecado do mundo!” (João 1:29). Do Éden ao Apocalipse, toda a história da Bíblia aponta para esse único sacrifício, perfeito e suficiente."],
+ ["CAMINHO","Jesus não disse que mostraria o caminho — disse “Eu sou o caminho” (João 14:6). A salvação não é um mapa para seguir, é uma Pessoa para conhecer."],
+ ["VERDADE","“Que é a verdade?”, perguntou Pilatos (João 18:38) — sem perceber que a Verdade em pessoa estava diante dele, prestes a dar a vida pelo mundo."],
+ ["VIDA","“Eu vim para que tenham vida, e a tenham em abundância” (João 10:10). João resume: “nele estava a vida, e a vida era a luz dos homens” (João 1:4)."],
+ ["MEDIADOR","“Há um só Deus e um só mediador entre Deus e os homens: Cristo Jesus, homem” (1 Timóteo 2:5). Para chegar ao Pai, ninguém além dele é necessário."],
+ ["EMANUEL","Emanuel significa “Deus conosco” (Mateus 1:23). O Deus que acendeu as estrelas escolheu nascer numa manjedoura para estar perto de nós."],
+ ["SALVADOR","O nome Jesus significa “o Senhor salva” (Mateus 1:21). Repare no verbo: ele salva de fato — não apenas oferece uma ajuda para que nos salvemos."],
+ ["MESSIAS","Messias quer dizer “Ungido”. Estudiosos contam centenas de profecias do Antigo Testamento cumpridas em Jesus — local de nascimento, linhagem, morte e ressurreição."]
 ]},
-{ nome:"Os Reformadores", palavras:[
- ["LUTERO","Em 31 de outubro de 1517, Martinho Lutero divulgou 95 teses em Wittenberg questionando as indulgências. Ele não planejava fundar nada — queria um debate acadêmico."],
- ["CALVINO","João Calvino escreveu as 'Institutas da Religião Cristã' aos 26 anos e transformou Genebra num centro de ensino bíblico que formou pastores para toda a Europa."],
- ["ZUINGLIO","Ulrico Zuínglio iniciou a Reforma em Zurique pregando o Novo Testamento versículo por versículo — algo revolucionário para a época."],
- ["TYNDALE","William Tyndale traduziu a Bíblia para o inglês e pagou com a vida (1536). Sonhava que até o menino que conduz o arado conhecesse as Escrituras."],
- ["WYCLIFFE","John Wycliffe, no século XIV, já defendia a Bíblia na língua do povo. Por antecipar a Reforma em 150 anos, é chamado de 'Estrela da Alva da Reforma'."],
- ["HUS","Jan Hus, reformador boêmio, foi queimado em 1415. Seu nome significa 'ganso'; diz a tradição que ele profetizou um 'cisne' que viria depois — os luteranos viram em Lutero o cumprimento."],
- ["KNOX","John Knox levou a Reforma à Escócia e ajudou a moldar o presbiterianismo. Dizem que Maria da Escócia temia mais suas orações do que exércitos."],
- ["MELANCHTON","Filipe Melanchton, o erudito parceiro de Lutero, redigiu a Confissão de Augsburgo (1530), um dos documentos mais importantes do protestantismo."]
+{ nome:"A Salvação", palavras:[
+ ["GRAÇA","Graça é favor que não se merece. “Pela graça sois salvos, mediante a fé; e isto não vem de vós, é dom de Deus” (Efésios 2:8) — do começo ao fim, iniciativa dele."],
+ ["DADIVA","“O salário do pecado é a morte, mas o dom gratuito de Deus é a vida eterna” (Romanos 6:23). Salário se ganha trabalhando; presente, só se recebe."],
+ ["CRUZ","A cruz não foi um acidente, mas o centro do plano: “nós o amamos porque ele nos amou primeiro” (1 João 4:19). O amor de Deus sempre dá o primeiro passo."],
+ ["PERDAO","“Quanto dista o oriente do ocidente, assim afasta de nós as nossas transgressões” (Salmo 103:12). Oriente e ocidente nunca se encontram — de propósito."],
+ ["REDENCAO","Redenção é linguagem de resgate: “fostes comprados por preço” (1 Coríntios 6:20). O preço não foi prata nem ouro, mas o próprio sangue de Cristo."],
+ ["ESCOLHIDOS","“Nos escolheu nele antes da fundação do mundo” (Efésios 1:4). Antes de você existir, já era amado — a salvação repousa em algo mais firme que os nossos altos e baixos."],
+ ["SALVACAO","“Não há salvação em nenhum outro; porque debaixo do céu não existe nenhum outro nome, dado entre os homens, pelo qual importa que sejamos salvos” (Atos 4:12)."],
+ ["EVANGELHO","Evangelho significa “boa notícia”. Não é um conselho a cumprir, é um anúncio a crer: na cruz, Jesus declarou “está consumado” (João 19:30) — obra completa."]
 ]},
 { nome:"Livros da Bíblia", palavras:[
- ["ROMANOS","Foi meditando em Romanos 1:17 — 'o justo viverá pela fé' — que Lutero sentiu, em suas palavras, ter atravessado portões abertos para o próprio paraíso."],
- ["GALATAS","Lutero amava tanto a carta aos Gálatas, com sua defesa da liberdade cristã, que brincava chamando-a de 'minha Katharina von Bora', o nome de sua esposa."],
- ["SALMOS","Calvino chamou os Salmos de 'anatomia de todas as partes da alma': não há emoção humana que não esteja ali, transformada em oração."],
- ["GENESIS","Lutero dedicou cerca de dez anos de aulas ao livro de Gênesis. Para ele, o Deus criador é o mesmo Deus redentor — a história da salvação começa na primeira página."],
- ["EXODO","A libertação do Egito tornou-se, para os reformadores, figura da redenção: o povo escravizado é liberto pela graça, antes de receber a Lei."],
- ["ISAIAS","Isaías é chamado de 'quinto evangelho' por anunciar com séculos de antecedência o Servo Sofredor que carregaria as nossas dores (Isaías 53)."],
- ["HEBREUS","Hebreus apresenta Cristo como sumo sacerdote definitivo — base bíblica para a Reforma rejeitar qualquer mediação humana entre Deus e o crente."],
- ["APOCALIPSE","No Apocalipse, quem vence não é o dragão, mas o Cordeiro. Em tempos de perseguição, os reformados encontraram ali coragem para perseverar."]
+ ["GENESIS","Já no Éden, Deus promete o descendente que esmagaria a cabeça da serpente (Gênesis 3:15). A primeira página da Bíblia já anuncia Cristo."],
+ ["EXODO","O cordeiro pascal, cujo sangue nos umbrais livrou da morte (Êxodo 12), aponta séculos adiante para “Cristo, nosso Cordeiro pascal” (1 Coríntios 5:7)."],
+ ["SALMOS","Salmos é o livro que Jesus mais citou. Na cruz, ele orou o Salmo 22 — escrito cerca de mil anos antes, descrevendo até a divisão de suas vestes."],
+ ["ISAIAS","Escrito uns 700 anos antes da cruz, Isaías 53 a descreve em detalhes: “ele foi traspassado pelas nossas transgressões e moído pelas nossas iniquidades”."],
+ ["JOAO","João conta por que escreveu seu evangelho: “para que creiais que Jesus é o Cristo, o Filho de Deus, e para que, crendo, tenhais vida em seu nome” (João 20:31)."],
+ ["ROMANOS","Romanos guarda uma das frases mais libertadoras da Bíblia: “nenhuma condenação há para os que estão em Cristo Jesus” (Romanos 8:1)."],
+ ["HEBREUS","Hebreus apresenta Jesus como sacerdote perfeito e definitivo: “pode salvar totalmente os que por ele se chegam a Deus, vivendo sempre para interceder por eles” (7:25)."],
+ ["APOCALIPSE","No Apocalipse, quem vence não é o dragão, mas o Cordeiro. E o final já está escrito: “enxugará dos seus olhos toda lágrima” (Apocalipse 21:4)."]
 ]},
-{ nome:"Personagens Bíblicos", palavras:[
- ["ABRAAO","'Abraão creu no Senhor, e isso lhe foi imputado para justiça' (Gênesis 15:6) — o versículo que Paulo, e depois a Reforma, usaram para ensinar a justificação pela fé."],
- ["PAULO","O apóstolo Paulo, perseguidor transformado pela graça, escreveu Romanos e Gálatas — as duas cartas que mais incendiaram a Reforma."],
- ["PEDRO","Pedro chama todos os crentes de 'sacerdócio real' (1 Pedro 2:9). Dessa frase nasceu a doutrina reformada do sacerdócio de todos os santos."],
- ["DAVI","Depois de cair, Davi orou o Salmo 51: 'Cria em mim, ó Deus, um coração puro.' Para os reformadores, modelo de arrependimento sincero, sem penitências compradas."],
- ["MOISES","Moisés recebeu a Lei, mas a Lei aponta para além de si mesma: como um pedagogo, ela nos conduz a Cristo (Gálatas 3:24)."],
- ["ESTER","O livro de Ester não menciona o nome de Deus uma única vez — e mesmo assim Sua providência governa cada detalhe. Deus age até quando parece silencioso."],
- ["DANIEL","Daniel serviu impérios pagãos sem dobrar os joelhos a eles. Inspirou gerações de protestantes perseguidos a obedecer a Deus antes que aos homens."],
- ["RUTE","Rute, estrangeira acolhida pelo resgatador Boaz, entrou na genealogia de Cristo: a graça de Deus sempre alcançou além das fronteiras de Israel."]
+{ nome:"Personagens da Bíblia", palavras:[
+ ["ABRAAO","“Abraão creu no Senhor, e isso lhe foi creditado como justiça” (Gênesis 15:6) — ele foi declarado justo pela fé séculos antes de a Lei sequer existir."],
+ ["MOISES","Moisés ergueu a serpente de bronze no deserto para que quem olhasse vivesse (Números 21). Jesus aplicou a cena a si mesmo e à cruz (João 3:14-15)."],
+ ["DAVI","Depois de cair feio, Davi não tentou compensar: orou. “Cria em mim, ó Deus, um coração puro” (Salmo 51:10). Coração quebrantado, Deus não despreza."],
+ ["RUTE","Rute, estrangeira e viúva, foi resgatada por Boaz e entrou na genealogia de Jesus (Mateus 1:5). A graça de Deus sempre alcançou quem parecia estar de fora."],
+ ["ESTER","O livro de Ester não menciona o nome de Deus nenhuma vez — e ainda assim cada “coincidência” da história mostra a providência dele governando tudo nos bastidores."],
+ ["DANIEL","Daniel serviu a impérios pagãos sem dobrar os joelhos a eles, certo de que “é Deus quem remove reis e estabelece reis” (Daniel 2:21)."],
+ ["PEDRO","Pedro negou Jesus três vezes — e foi restaurado três vezes diante de uma fogueira (João 21). A queda não cancelou o chamado: quem o segurou foi o Mestre."],
+ ["PAULO","Paulo perseguia a igreja quando Cristo o alcançou na estrada. Ele mesmo resumiu: “onde abundou o pecado, superabundou a graça” (Romanos 5:20)."]
 ]},
-{ nome:"A Reforma na História", palavras:[
- ["WITTENBERG","A porta da Igreja do Castelo de Wittenberg funcionava como mural da universidade. Foi ali que as 95 teses começaram a mudar a história."],
- ["TESES","As 95 teses eram em latim, para acadêmicos. Sem autorização de Lutero, foram traduzidas e impressas — e em duas semanas circulavam por toda a Alemanha."],
- ["IMPRENSA","A prensa de tipos móveis foi o 'aplicativo' da Reforma: panfletos baratos espalhavam ideias em dias. Sem ela, talvez Lutero tivesse o destino de Hus."],
- ["GUTENBERG","O primeiro grande livro impresso por Gutenberg, por volta de 1455, foi justamente a Bíblia. A tecnologia nasceu servindo às Escrituras."],
- ["GENEBRA","Genebra acolheu refugiados de toda a Europa e abrigou a academia de Calvino. John Knox a chamou de 'a mais perfeita escola de Cristo desde os apóstolos'."],
- ["WORMS","'Aqui estou; não posso fazer de outro modo.' Na Dieta de Worms (1521), diante do imperador, Lutero recusou-se a negar o que havia escrito."],
- ["INDULGENCIA","A venda de indulgências por Tetzel — 'tão logo a moeda no cofre tilinta, a alma do purgatório se levanta' — foi o estopim das 95 teses."],
- ["WARTBURG","Declarado fora da lei, Lutero foi 'sequestrado' por amigos e escondido no castelo de Wartburg, onde, disfarçado de 'cavaleiro Jorge', traduziu o Novo Testamento."]
+{ nome:"Promessas de Deus", palavras:[
+ ["ALIANCA","De Noé a Abraão e a Davi, é sempre Deus quem se compromete primeiro. O arco-íris foi dado como assinatura de uma promessa (Gênesis 9:13)."],
+ ["PROMESSA","“Todas quantas são as promessas de Deus, têm nele o ‘sim’” (2 Coríntios 1:20). Em Cristo, nenhuma promessa fica em aberto."],
+ ["ESPERANCA","A Bíblia chama a esperança de “âncora da alma, segura e firme” (Hebreus 6:19). Não é otimismo vago: é certeza apoiada no que Deus já fez."],
+ ["HERANCA","Pedro fala de “uma herança incorruptível, sem mácula, imarcescível, reservada nos céus” para os que creem (1 Pedro 1:4). Reservada — com nome e tudo."],
+ ["PERSEVERANCA","“Aquele que começou boa obra em vós há de completá-la até ao Dia de Cristo Jesus” (Filipenses 1:6). Quem sustenta a caminhada, do início ao fim, é Deus."],
+ ["DESCANSO","“Vinde a mim, todos os que estais cansados e sobrecarregados, e eu vos aliviarei” (Mateus 11:28). O convite não é para os fortes — é para os exaustos."],
+ ["VITORIA","“Em todas estas coisas somos mais que vencedores, por meio daquele que nos amou” (Romanos 8:37) — e nada, diz o texto, pode nos separar desse amor."],
+ ["COROA","“Bem-aventurado o homem que suporta a provação; porque, depois de aprovado, receberá a coroa da vida” (Tiago 1:12)."]
 ]},
-{ nome:"Doutrinas da Graça", palavras:[
- ["JUSTIFICACAO","Para Lutero, a justificação pela fé é 'o artigo pelo qual a igreja permanece de pé ou cai': Deus declara justo o pecador por causa de Cristo, não de seus méritos."],
- ["REDENCAO","Redenção é linguagem de mercado de escravos: fostes comprados por preço (1 Coríntios 6:20). O preço foi o próprio sangue de Cristo."],
- ["ALIANCA","A teologia da aliança, desenvolvida por reformadores como Bullinger e Calvino, lê toda a Bíblia como uma única história: Deus se comprometendo com seu povo."],
- ["PERDAO","A primeira das 95 teses diz que toda a vida do cristão deve ser de arrependimento — não um ato comprado no balcão, mas um caminhar diário."],
- ["EVANGELHO","Os reformadores insistiam: o evangelho não é bom conselho a cumprir, é boa notícia a crer. Conselho diz 'faça'; notícia anuncia 'está feito'."],
- ["ELEICAO","A eleição, ensinava Calvino, não é tema para especulação fria, mas conforto pastoral: a salvação repousa na escolha fiel de Deus, não na instabilidade humana."],
- ["SANTIDADE","Para a Reforma, santidade não é fugir do mundo, mas servir a Deus dentro dele — na oficina, no lar e no mercado, tanto quanto no templo."],
- ["CONVERSAO","Conversão é mais que virar a página: é novo nascimento (João 3). Lutero descreveu a sua como 'nascer de novo e entrar pelo paraíso de portas abertas'."]
+{ nome:"Um Novo Coração", palavras:[
+ ["PECADO","“Todos pecaram e carecem da glória de Deus” (Romanos 3:23). O diagnóstico é universal — por isso a solução precisou vir de fora de nós."],
+ ["CORACAO","“Dar-vos-ei coração novo e porei dentro de vós espírito novo” (Ezequiel 36:26). Repare: Deus não promete reformar o coração antigo — promete um novo."],
+ ["MISERICORDIA","“As misericórdias do Senhor são a causa de não sermos consumidos... renovam-se cada manhã” (Lamentações 3:22-23). Todo amanhecer é um recomeço assinado por Deus."],
+ ["COMPAIXAO","Vendo as multidões, Jesus “compadeceu-se delas, porque estavam aflitas e exaustas como ovelhas que não têm pastor” (Mateus 9:36)."],
+ ["RENASCER","“Necessário vos é nascer de novo” (João 3:7). E Jesus compara o novo nascimento ao vento, que “sopra onde quer” (3:8) — obra do Espírito, não esforço humano."],
+ ["HUMILDADE","“Deus resiste aos soberbos, mas dá graça aos humildes” (Tiago 4:6). Na parábola de Jesus, quem voltou justificado foi o cobrador de impostos, não o religioso (Lucas 18)."],
+ ["ARREPENDER","Arrepender-se é mudar de mente e de direção. Jesus disse que há “alegria no céu por um pecador que se arrepende” (Lucas 15:7) — festa, literalmente."],
+ ["SANTIDADE","Santidade é ser separado para Deus. Não é perfeição instantânea, é direção: uma obra que o Espírito faz de dentro para fora, dia após dia."]
 ]},
-{ nome:"Vida Cristã Reformada", palavras:[
- ["VOCACAO","Lutero ensinou que todo ofício honesto é vocação santa: a ordenhadora e o sapateiro servem a Deus tanto quanto o pregador. O trabalho comum ganhou dignidade."],
- ["TRABALHO","'Deus ordenha as vacas por meio da vocação da ordenhadora', dizia Lutero: o trabalho cotidiano é uma das máscaras pelas quais Deus cuida do mundo."],
- ["FAMILIA","Ao casar-se com Katharina von Bora, uma ex-freira, Lutero transformou o lar pastoral em escola de fé — com mesa cheia, música e catecismo às crianças."],
- ["ORACAO","'Tenho tanto a fazer hoje que passarei as primeiras três horas em oração' — frase atribuída a Lutero. Quanto maior a tarefa, maior a dependência."],
- ["HINOS","Lutero compôs 'Castelo Forte é o Nosso Deus' a partir do Salmo 46 e devolveu o canto à congregação: antes, o povo apenas assistia; agora, cantava a própria fé."],
- ["CATECISMO","O Pequeno Catecismo (1529) foi escrito para os pais ensinarem a fé em casa. A Reforma apostou que teologia é assunto de cozinha, não só de academia."],
- ["COMUNHAO","A Reforma devolveu o cálice aos leigos na Ceia: se todos são sacerdotes, todos participam plenamente da mesa do Senhor."],
- ["BIBLIA","Antes da Reforma, Bíblias eram acorrentadas a púlpitos e escritas em latim. A grande revolução foi colocá-la na língua — e nas mãos — do povo."]
+{ nome:"Vida com Deus", palavras:[
+ ["ORACAO","Jesus levantava de madrugada, “alta noite”, para orar num lugar deserto (Marcos 1:35). Se o Filho de Deus dependia de oração, quanto mais nós."],
+ ["BIBLIA","São 66 livros, cerca de 40 autores e uns 1500 anos de escrita — e uma única história. No caminho de Emaús, Jesus mostrou que o centro dela é ele mesmo (Lucas 24:27)."],
+ ["LOUVOR","Paulo e Silas, presos e açoitados, cantavam hinos à meia-noite na prisão (Atos 16:25). Louvor de verdade não depende das circunstâncias."],
+ ["COMUNHAO","A primeira igreja perseverava “na doutrina dos apóstolos e na comunhão, no partir do pão e nas orações” (Atos 2:42). Ninguém foi feito para seguir sozinho."],
+ ["GRATIDAO","Dos dez leprosos curados por Jesus, um só voltou para agradecer (Lucas 17). “Em tudo dai graças” (1 Tessalonicenses 5:18) continua sendo um convite raro de aceitar."],
+ ["SERVICO","“O Filho do Homem não veio para ser servido, mas para servir e dar a sua vida em resgate por muitos” (Marcos 10:45). A grandeza, no Reino, é de avental."],
+ ["TRABALHO","“Tudo quanto fizerdes, fazei-o de todo o coração, como para o Senhor” (Colossenses 3:23). Qualquer trabalho honesto pode virar culto — a mesa de escritório também é altar."],
+ ["FAMILIA","“Eu e a minha casa serviremos ao Senhor” (Josué 24:15). E a fé se ensina em casa, no dia a dia: assentado, andando pelo caminho, ao deitar e ao levantar (Deuteronômio 6:7)."]
 ]},
 { nome:"Imagens dos Salmos", palavras:[
- ["PASTOR","'O Senhor é o meu pastor; nada me faltará' (Salmo 23). Calvino via aqui o resumo da vida cristã: confiança total no cuidado diário de Deus."],
- ["REFUGIO","'Deus é o nosso refúgio e fortaleza' (Salmo 46) — o salmo que inspirou o hino-símbolo da Reforma, cantado por Lutero nos dias mais sombrios."],
- ["ROCHA","Na Bíblia, Deus é a Rocha: fundamento que não se move. Os reformadores buscavam exatamente isso — alicerçar a fé em algo mais firme que tradições humanas."],
- ["TORRE","'Torre forte é o nome do Senhor' (Provérbios 18:10). Curiosamente, Lutero contava que sua descoberta do evangelho aconteceu estudando numa torre do mosteiro."],
- ["LAMPADA","'Lâmpada para os meus pés é a tua palavra' (Salmo 119:105). A Reforma acreditou nisso ao pé da letra: luz para o povo era Bíblia aberta na língua do povo."],
- ["ALELUIA","Aleluia significa 'louvai ao Senhor' em hebraico. É uma das poucas palavras que atravessou todas as línguas do mundo sem precisar de tradução."],
- ["LOUVOR","Para a Reforma, o louvor não é desempenho de poucos, mas resposta de todos. Soli Deo Gloria: a vida inteira como culto."],
- ["ESCUDO","'Tu, Senhor, és o meu escudo' (Salmo 3:3). Davi orou isso fugindo do próprio filho — a fé reformada aprendeu a orar assim em meio a guerras e exílios."]
+ ["PASTOR","“O Senhor é o meu pastor; nada me faltará” (Salmo 23:1). Jesus completa a imagem: “eu sou o bom pastor; o bom pastor dá a vida pelas suas ovelhas” (João 10:11)."],
+ ["REFUGIO","“Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia” (Salmo 46:1). Bem presente: não um socorro distante, mas um abrigo já de portas abertas."],
+ ["ROCHA","Deus é chamado de Rocha por toda a Bíblia. Jesus usou a imagem: casa construída na rocha não cai quando vem a tempestade (Mateus 7:24-25)."],
+ ["TORRE","“Torre forte é o nome do Senhor; para ela corre o justo e está seguro” (Provérbios 18:10). Note o verbo: não é passear até ela — é correr."],
+ ["LAMPADA","“Lâmpada para os meus pés é a tua palavra e luz para o meu caminho” (Salmo 119:105). A lâmpada da época iluminava um passo de cada vez — e era o bastante."],
+ ["ESCUDO","“Tu, Senhor, és o meu escudo” (Salmo 3:3). Davi orou isso fugindo do próprio filho Absalão — dá para orar assim até nos piores capítulos da vida."],
+ ["AGUAS","“Guia-me mansamente a águas tranquilas” (Salmo 23:2). E Jesus se ofereceu como a fonte: quem beber da água que ele dá “nunca mais terá sede” (João 4:14)."],
+ ["ALELUIA","Aleluia significa “louvai ao Senhor” em hebraico — uma das poucas palavras do mundo que atravessou quase todas as línguas sem precisar de tradução."]
 ]}
 ];
 
@@ -385,9 +384,9 @@ let palavrasRodada = [];   // [{chave, exibe, dica, achada}]
 let achadasRodada = 0;
 let corIdx = 0;
 
-const salvar = () => { try{ localStorage.setItem("cpReforma", JSON.stringify({rodada, totalGeral})); }catch(e){} };
+const salvar = () => { try{ localStorage.setItem("cpBiblia", JSON.stringify({rodada, totalGeral})); }catch(e){} };
 const carregar = () => { try{
-  const d = JSON.parse(localStorage.getItem("cpReforma"));
+  const d = JSON.parse(localStorage.getItem("cpBiblia"));
   if(d){ rodada = d.rodada||1; totalGeral = d.totalGeral||0; }
 }catch(e){} };
 
@@ -401,7 +400,6 @@ function gerarRodada(){
   if(indiceTema >= ordemTemas.length){ ordemTemas = embaralhar(TEMAS.map((_,i)=>i)); indiceTema = 0; }
   const tema = TEMAS[ordemTemas[indiceTema]];
 
-  // tenta montar uma grade válida com 6 palavras do tema
   for(let tentativa=0; tentativa<40; tentativa++){
     const escolhidas = embaralhar(tema.palavras).slice(0, PALAVRAS_POR_RODADA);
     const g = Array.from({length:TAM}, ()=>Array(TAM).fill(""));
@@ -412,7 +410,6 @@ function gerarRodada(){
     }
     if(!ok) continue;
 
-    // preencher vazios
     for(let r=0;r<TAM;r++) for(let c=0;c<TAM;c++)
       if(!g[r][c]) g[r][c] = FREQ[Math.floor(Math.random()*FREQ.length)];
 
@@ -423,7 +420,6 @@ function gerarRodada(){
     desenhar(tema.nome);
     return;
   }
-  // fallback improvável: tenta o próximo tema
   indiceTema++;
   gerarRodada();
 }
@@ -560,13 +556,13 @@ function encontrou(p){
   $("achadas").textContent = achadasRodada;
   $("totalGeral").textContent = totalGeral;
 
-  $("panTitulo").textContent = p.exibe;
-  $("panTexto").textContent = p.dica;
-  $("panVazio").style.display = "none";
-  const pan = $("panfleto");
-  pan.classList.remove("aberto");
-  void pan.offsetWidth; // reinicia animação
-  pan.classList.add("aberto");
+  $("pagTitulo").textContent = p.exibe;
+  $("pagTexto").textContent = p.dica;
+  $("pagVazio").style.display = "none";
+  const pag = $("pagina");
+  pag.classList.remove("aberta");
+  void pag.offsetWidth; // reinicia animação
+  pag.classList.add("aberta");
 
   salvar();
   if(achadasRodada === palavrasRodada.length) setTimeout(fimDeRodada, 700);
@@ -574,12 +570,12 @@ function encontrou(p){
 
 const VERSOS = [
   "“Lâmpada para os meus pés é a tua palavra.” — Salmo 119:105",
-  "“O justo viverá pela fé.” — Romanos 1:17",
-  "“A graça vos basta.” — 2 Coríntios 12:9",
   "“Conhecereis a verdade, e a verdade vos libertará.” — João 8:32",
+  "“A tua palavra é a verdade.” — João 17:17",
   "“Deus é o nosso refúgio e fortaleza.” — Salmo 46:1",
-  "“Examinai as Escrituras.” — João 5:39",
-  "“Tudo quanto fizerdes, fazei-o para a glória de Deus.” — 1 Coríntios 10:31"
+  "“Examinais as Escrituras, porque julgais ter nelas a vida eterna, e são elas mesmas que testificam de mim.” — João 5:39",
+  "“O céu e a terra passarão, mas as minhas palavras não hão de passar.” — Mateus 24:35",
+  "“Quão doces são as tuas palavras ao meu paladar! Mais que o mel à minha boca.” — Salmo 119:103"
 ];
 
 function fimDeRodada(){
@@ -591,16 +587,16 @@ $("btnProxima").addEventListener("click", ()=>{
   $("veu").classList.remove("aberto");
   rodada++; indiceTema++;
   salvar();
-  esconderPanfleto();
+  esconderPagina();
   gerarRodada();
 });
 
-$("btnNova").addEventListener("click", ()=>{ esconderPanfleto(); gerarRodada(); });
-$("btnPular").addEventListener("click", ()=>{ indiceTema++; esconderPanfleto(); gerarRodada(); });
+$("btnNova").addEventListener("click", ()=>{ esconderPagina(); gerarRodada(); });
+$("btnPular").addEventListener("click", ()=>{ indiceTema++; esconderPagina(); gerarRodada(); });
 
-function esconderPanfleto(){
-  $("panfleto").classList.remove("aberto");
-  $("panVazio").style.display = "block";
+function esconderPagina(){
+  $("pagina").classList.remove("aberta");
+  $("pagVazio").style.display = "block";
 }
 
 /* ============================================================
