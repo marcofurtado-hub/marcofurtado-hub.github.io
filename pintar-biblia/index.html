@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pintar a Bíblia — Color by Number</title>
+<meta name="description" content="Pinte por número lindas imagens bíblicas em pixel art. Para crianças e adultos.">
+<meta name="theme-color" content="#EAE0C8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EAE0C8;
+    --paper-deep:#E0D2AF;
+    --ink:#2A2118;
+    --ink-soft:#5A4B38;
+    --vinho:#7B212E;
+    --ouro:#A87C2A;
+    --line:#C8B68C;
+    --cell:#F2EAD4;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; overflow:hidden; }
+  body{
+    font-family:'EB Garamond', Georgia, serif;
+    color:var(--ink);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.07 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(120% 90% at 50% 0%, #F0E7CF 0%, var(--paper) 55%, var(--paper-deep) 100%);
+    height:100%;
+  }
+  .scroller{ height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; padding:12px 12px 40px; }
+
+  /* ---------- Topo ---------- */
+  .hub-link{
+    align-self:flex-start;
+    font-size:14px; letter-spacing:.08em;
+    color:var(--ink-soft); text-decoration:none;
+    border-bottom:1px solid var(--line);
+    margin-bottom:8px;
+  }
+  .hub-link:hover{ color:var(--vinho); border-color:var(--vinho); }
+
+  header.rosto{
+    text-align:center;
+    width:min(960px, 100%);
+    padding:10px 0 12px;
+    border-top:3px double var(--ink);
+    border-bottom:3px double var(--ink);
+    margin-bottom:14px;
+  }
+  header.rosto .ornamento{ color:var(--ouro); font-size:13px; letter-spacing:.5em; }
+  header.rosto h1{
+    font-family:'Cinzel', Georgia, serif; font-weight:700;
+    font-size:clamp(24px, 5.4vw, 42px); letter-spacing:.05em; line-height:1.1; margin:6px 0 2px;
+  }
+  header.rosto h1 .rubrica{ color:var(--vinho); }
+  header.rosto .lema{ font-style:italic; font-size:clamp(13px,2.6vw,16px); color:var(--ink-soft); }
+
+  /* ---------- GALERIA ---------- */
+  #galeria{ width:min(960px,100%); }
+  .galeria-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:16px; padding:4px 0 30px;
+  }
+  @media (max-width:520px){ .galeria-grid{ grid-template-columns:repeat(2,1fr); gap:12px; } }
+  .quadro{
+    position:relative; cursor:pointer; text-align:center;
+    background:linear-gradient(180deg,#F4EDD8,#EAdfBF);
+    border:1px solid var(--ink); outline:1px solid var(--line); outline-offset:3px;
+    padding:10px 8px 12px; border-radius:3px;
+    box-shadow:0 2px 0 rgba(42,33,24,.18);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .quadro:hover{ transform:translateY(-3px); box-shadow:0 8px 18px rgba(42,33,24,.28); }
+  .quadro:active{ transform:translateY(0); }
+  .quadro .mini{
+    height:128px; display:flex; align-items:center; justify-content:center;
+    background:#FBF7EA; border:1px solid var(--line); border-radius:2px; padding:6px;
+  }
+  .quadro canvas{ max-width:100%; max-height:100%; width:auto; height:auto; image-rendering:pixelated; display:block; }
+  .quadro .nome{ font-family:'Cinzel',serif; font-weight:500; font-size:14px; margin-top:8px; line-height:1.15; }
+  .quadro .nivel{ font-size:11px; color:var(--ouro); letter-spacing:.18em; margin-top:2px; }
+  .quadro .selo-ok{
+    position:absolute; top:-10px; right:-8px; width:32px; height:32px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #9A3242, var(--vinho) 70%);
+    color:#F2E6C8; display:none; align-items:center; justify-content:center;
+    font-size:16px; box-shadow:0 2px 4px rgba(0,0,0,.3); transform:rotate(8deg);
+  }
+  .quadro.feito .selo-ok{ display:flex; }
+  .quadro .barra{
+    height:5px; margin-top:8px; background:rgba(42,33,24,.12); border-radius:3px; overflow:hidden;
+  }
+  .quadro .barra > i{ display:block; height:100%; width:0; background:var(--ouro); transition:width .3s ease; }
+
+  /* ---------- TELA DE JOGO ---------- */
+  #jogo{ display:none; width:100%; height:100%; position:fixed; inset:0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.07 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(120% 90% at 50% 0%, #F0E7CF 0%, var(--paper) 55%, var(--paper-deep) 100%);
+    flex-direction:column; }
+  #jogo.ativo{ display:flex; }
+
+  .barra-topo{
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .barra-topo .voltar{
+    font-size:14px; letter-spacing:.06em; color:var(--ink-soft); cursor:pointer;
+    background:none; border:none; font-family:inherit; padding:6px 4px;
+  }
+  .barra-topo .voltar:hover{ color:var(--vinho); }
+  .barra-topo .titulo{
+    flex:1; text-align:center; font-family:'Cinzel',serif; font-weight:500;
+    font-size:clamp(15px,3.6vw,20px); letter-spacing:.04em;
+  }
+  .barra-topo .titulo small{ display:block; font-family:'EB Garamond',serif; font-style:italic; font-size:12px; color:var(--ink-soft); letter-spacing:0; }
+  .barra-topo .pct{ font-size:13px; color:var(--ouro); min-width:42px; text-align:right; font-variant-numeric:tabular-nums; }
+
+  #palco{ flex:1; position:relative; overflow:hidden; touch-action:none; }
+  #tela{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  .ferramentas{
+    position:absolute; right:10px; top:10px; display:flex; flex-direction:column; gap:8px; z-index:5;
+  }
+  .ferramentas button{
+    width:42px; height:42px; border-radius:50%; border:1px solid var(--ink);
+    background:rgba(250,247,234,.92); color:var(--ink); font-size:18px; cursor:pointer;
+    box-shadow:0 2px 0 rgba(42,33,24,.25); display:flex; align-items:center; justify-content:center;
+    font-family:inherit; line-height:1;
+  }
+  .ferramentas button:hover{ background:#fff; }
+  .ferramentas button:active{ transform:translateY(2px); box-shadow:none; }
+  .ferramentas .dica{ background:var(--vinho); color:#F2E6C8; border-color:var(--vinho); font-size:15px; }
+
+  /* paleta de cores embaixo */
+  #paleta{
+    display:flex; gap:8px; overflow-x:auto; padding:10px 12px 12px;
+    border-top:1px solid var(--line); background:rgba(244,237,216,.6);
+    -webkit-overflow-scrolling:touch; scrollbar-width:thin;
+  }
+  .tinta{
+    flex:0 0 auto; width:50px; height:58px; border-radius:6px; cursor:pointer;
+    border:2px solid rgba(42,33,24,.25); position:relative;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cinzel',serif; font-weight:700; font-size:20px;
+    transition:transform .12s ease, box-shadow .12s ease;
+    box-shadow:0 2px 0 rgba(42,33,24,.2);
+  }
+  .tinta:active{ transform:scale(.94); }
+  .tinta.sel{ border-color:var(--ink); transform:translateY(-4px) scale(1.06); box-shadow:0 6px 12px rgba(42,33,24,.4); }
+  .tinta .resta{
+    position:absolute; bottom:-2px; right:-2px; min-width:18px; height:18px; padding:0 3px;
+    background:var(--ink); color:#F2E6C8; border-radius:9px; font-family:'EB Garamond',serif;
+    font-size:11px; font-weight:400; display:flex; align-items:center; justify-content:center;
+  }
+  .tinta.pronta{ opacity:.4; }
+  .tinta.pronta .resta{ background:var(--ouro); }
+  .tinta.pronta::after{ content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:24px; color:rgba(255,255,255,.9); text-shadow:0 1px 2px rgba(0,0,0,.4); }
+
+  /* ---------- Modal conclusão ---------- */
+  #veu{ position:fixed; inset:0; background:rgba(42,33,24,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:50; }
+  #veu.aberto{ display:flex; }
+  #cartaz{
+    width:min(440px,100%); background:var(--paper); border:3px double var(--ink);
+    padding:22px 22px 24px; text-align:center; animation:surgir .35s ease; position:relative;
+  }
+  #cartaz .ornamento{ color:var(--ouro); font-size:13px; letter-spacing:.5em; }
+  #cartaz h3{ font-family:'Cinzel',serif; font-weight:700; font-size:23px; letter-spacing:.05em; margin:8px 0 4px; }
+  #cartaz .obra{ width:160px; height:160px; image-rendering:pixelated; margin:6px auto 12px; display:block; border:1px solid var(--line); background:#FBF7EA; }
+  #cartaz .verso{ font-style:italic; color:var(--ink); margin:6px 0 4px; line-height:1.4; }
+  #cartaz .ref{ font-variant:small-caps; letter-spacing:.14em; color:var(--vinho); font-size:14px; margin-bottom:18px; }
+  #cartaz .acoes{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  @keyframes surgir{ from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;} }
+
+  button.btn{
+    font-family:inherit; font-size:15px; font-variant:small-caps; letter-spacing:.12em;
+    padding:9px 18px; cursor:pointer; color:var(--ink); background:var(--cell);
+    border:1px solid var(--ink); box-shadow:2px 2px 0 var(--ink);
+  }
+  button.btn:hover{ background:#F8F2DF; }
+  button.btn:active{ transform:translate(2px,2px); box-shadow:none; }
+  button.btn.principal{ color:#F2E6C8; background:var(--vinho); border-color:var(--vinho); }
+  button.btn.principal:hover{ background:#8E2A39; }
+
+  footer.rodape{ margin-top:18px; font-size:13px; color:var(--ink-soft); font-style:italic; text-align:center; max-width:520px; line-height:1.4; }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ===================== GALERIA ===================== -->
+<div class="scroller" id="telaGaleria">
+  <a class="hub-link" href="https://marcofurtado-hub.github.io/">&larr; voltar ao hub</a>
+  <header class="rosto">
+    <div class="ornamento">&#10045; &#10045; &#10045;</div>
+    <h1>Pintar a <span class="rubrica">Bíblia</span></h1>
+    <div class="lema">Escolha um quadro e dê vida a ele pintando por número</div>
+  </header>
+  <div id="galeria"><div class="galeria-grid" id="grade-galeria"></div></div>
+  <footer class="rodape">&laquo;Tudo quanto fizerdes, fazei-o de todo o coração, como para o Senhor.&raquo;<br>Colossenses 3:23</footer>
+</div>
+
+<!-- ===================== JOGO ===================== -->
+<div id="jogo">
+  <div class="barra-topo">
+    <button class="voltar" id="btnVoltar">&larr; galeria</button>
+    <div class="titulo" id="tituloJogo">—<small id="subJogo"></small></div>
+    <div class="pct" id="pctJogo">0%</div>
+  </div>
+  <div id="palco">
+    <canvas id="tela"></canvas>
+    <div class="ferramentas">
+      <button id="btnMais" title="Aproximar">+</button>
+      <button id="btnMenos" title="Afastar">&minus;</button>
+      <button id="btnAjustar" title="Ajustar à tela">⤢</button>
+      <button class="dica" id="btnDica" title="Dica (revela 1)">💡</button>
+    </div>
+  </div>
+  <div id="paleta"></div>
+</div>
+
+<!-- ===================== MODAL ===================== -->
+<div id="veu" role="dialog" aria-modal="true">
+  <div id="cartaz">
+    <div class="ornamento">&#10045; &#10045; &#10045;</div>
+    <h3 id="cartTitulo">Obra concluída</h3>
+    <canvas class="obra" id="cartObra" width="160" height="160"></canvas>
+    <div class="verso" id="cartVerso"></div>
+    <div class="ref" id="cartRef"></div>
+    <div class="acoes">
+      <button class="btn" id="btnGaleria2">galeria</button>
+      <button class="btn principal" id="btnProxima">próxima &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   TOOLKIT DE PIXEL ART — desenho em grade com cores hex
+   0 = célula vazia (papel, não pintável)
+   ============================================================ */
+function G(w,h){ return {w,h, d:new Array(w*h).fill(0)}; }
+function inb(g,x,y){ return x>=0&&x<g.w&&y>=0&&y<g.h; }
+function px(g,x,y,c){ if(inb(g,x,y)) g.d[y*g.w+x]=c; }
+function get(g,x,y){ return inb(g,x,y)? g.d[y*g.w+x] : 0; }
+function rect(g,x,y,w,h,c){ for(let j=0;j<h;j++) for(let i=0;i<w;i++) px(g,x+i,y+j,c); }
+function hline(g,x,y,len,c){ for(let i=0;i<len;i++) px(g,x+i,y,c); }
+function vline(g,x,y,len,c){ for(let i=0;i<len;i++) px(g,x,y+i,c); }
+function ellipse(g,cx,cy,rx,ry,c){
+  for(let y=-ry;y<=ry;y++) for(let x=-rx;x<=rx;x++){
+    if((x*x)/(rx*rx+.0001)+(y*y)/(ry*ry+.0001) <= 1.04) px(g,cx+x,cy+y,c);
+  }
+}
+function disc(g,cx,cy,r,c){ ellipse(g,cx,cy,r,r,c); }
+/* raio triangular (estrela / sol): da base (largura 2*hb) afina até a ponta */
+function ray(g,cx,cy,len,hb,dir,c){
+  for(let i=0;i<=len;i++){
+    const hw=Math.round(hb*(1-i/len));
+    for(let j=-hw;j<=hw;j++){
+      if(dir==='u') px(g,cx+j,cy-i,c);
+      else if(dir==='d') px(g,cx+j,cy+i,c);
+      else if(dir==='l') px(g,cx-i,cy+j,c);
+      else px(g,cx+i,cy+j,c);
+    }
+  }
+}
+/* triângulo preenchido (varredura por linha) */
+function tri(g,ax,ay,bx,by,cxp,cyp,c){
+  const minY=Math.min(ay,by,cyp), maxY=Math.max(ay,by,cyp);
+  const E=(x0,y0,x1,y1,y,o)=>{ if(y0===y1) return; if((y0<=y&&y<=y1)||(y1<=y&&y<=y0)){ const t=(y-y0)/(y1-y0); o.push(x0+(x1-x0)*t); } };
+  for(let y=minY;y<=maxY;y++){ const xs=[]; E(ax,ay,bx,by,y,xs); E(bx,by,cxp,cyp,y,xs); E(cxp,cyp,ax,ay,y,xs);
+    if(xs.length){ const a=Math.round(Math.min(...xs)), b=Math.round(Math.max(...xs)); for(let x=a;x<=b;x++) px(g,x,y,c); } }
+}
+/* carimbo a partir de linhas de texto, usando um mapa char->cor */
+function stamp(g,ox,oy,rows,map){
+  for(let j=0;j<rows.length;j++){ const r=rows[j];
+    for(let i=0;i<r.length;i++){ const ch=r[i]; if(ch in map && map[ch]!==0) px(g,ox+i,oy+j,map[ch]); }
+  }
+}
+/* espelha a metade esquerda para a direita (simetria vertical) */
+function mirrorX(g){ for(let y=0;y<g.h;y++) for(let x=0;x<Math.floor(g.w/2);x++){ const c=get(g,x,y); if(c) px(g,g.w-1-x,y,c); } }
+/* espelha metade superior para baixo (simetria horizontal) */
+function mirrorY(g){ for(let x=0;x<g.w;x++) for(let y=0;y<Math.floor(g.h/2);y++){ const c=get(g,x,y); if(c) px(g,x,g.h-1-y,c); } }
+/* contorno automático: pinta de 'oc' as células vazias vizinhas (8-viz) de qualquer cor */
+function outline(g,oc){
+  const s=g.d.slice();
+  for(let y=0;y<g.h;y++) for(let x=0;x<g.w;x++){
+    if(s[y*g.w+x]!==0) continue;
+    let near=false;
+    for(let dy=-1;dy<=1&&!near;dy++) for(let dx=-1;dx<=1;dx++){
+      if(!dx&&!dy) continue; const nx=x+dx,ny=y+dy;
+      if(nx<0||nx>=g.w||ny<0||ny>=g.h) continue;
+      const v=s[ny*g.w+nx]; if(v!==0 && v!==oc){ near=true; break; }
+    }
+    if(near) g.d[y*g.w+x]=oc;
+  }
+}
+
+/* converte grade de hex -> {w,h,palette,data} com números por luminância */
+function indexize(g){
+  const set=[]; const seen=new Set();
+  for(const c of g.d){ if(c!==0 && !seen.has(c)){ seen.add(c); set.push(c); } }
+  const lum=hex=>{ const r=parseInt(hex.slice(1,3),16),gg=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return .299*r+.587*gg+.114*b; };
+  set.sort((a,b)=>lum(a)-lum(b));
+  const map=new Map(); set.forEach((c,i)=>map.set(c,i+1));
+  const data=g.d.map(c=> c===0?0:map.get(c));
+  return { w:g.w, h:g.h, palette:[null,...set], data };
+}
+
+/* ============================================================
+   PALETA DE CORES NOMEADAS
+   ============================================================ */
+const INK='#3b2a17';
+const OUROH='#ffe9a8', OURO='#f3c44d', OUROD='#c6881b', OURODD='#8c5e12';
+const VERMH='#f0796a', VERM='#d6453f', VERMD='#9e2630';
+const CEUH='#dff1fb', CEU='#a9def4', CEUD='#5aa6d8', AGUA='#3a82b8', AGUAD='#1f5580';
+const VERDH='#abe07a', VERD='#5aa83e', VERDD='#356b22';
+const BRANCO='#fbf7ea', BRANS='#dcd4c0', BRAND='#b8b0a0';
+const CINZ='#bfc4c9', CINZD='#828a90', CINZDD='#525960';
+const MADH='#caa066', MAD='#9c6b35', MADD='#5e3a18';
+const PELE='#f3c590', PELED='#cf9a63';
+const ROXO='#9a63c4', ROXOD='#5d3a86';
+const ROSA='#f4a6c2', ROSAD='#d77199';
+const LARJ='#f4923b', LARJD='#d4661c';
+const CREM='#f4ead0', CREMD='#d8c79b';
+
+/* ============================================================
+   AS 12 OBRAS — funções de desenho
+   ============================================================ */
+
+// 1) A CRUZ ---------------------------------------------------
+function imgCruz(){
+  const g=G(15,18);
+  rect(g,6,1,4,16,OURO);
+  rect(g,1,5,13,4,OURO);
+  // brilho (topo/esq)
+  hline(g,6,1,4,OUROH); vline(g,6,1,16,OUROH);
+  hline(g,1,5,13,OUROH); vline(g,1,5,4,OUROH);
+  // sombra (base/dir)
+  hline(g,6,16,4,OUROD); vline(g,9,1,16,OUROD);
+  hline(g,1,8,13,OUROD); vline(g,13,5,4,OUROD);
+  // núcleo
+  rect(g,7,9,2,7,OURO); rect(g,7,6,2,2,OURO);
+  outline(g,INK);
+  return g;
+}
+
+// 2) PEIXE (Ichthys) -----------------------------------------
+function imgPeixe(){
+  const g=G(22,13);
+  ellipse(g,9,6,7,4,CEUD);           // corpo
+  // cauda à direita
+  for(let i=0;i<=5;i++){ const hw=i; for(let j=-hw;j<=hw;j++) px(g,16+i,6+j,CEUD); }
+  px(g,21,6,0); px(g,20,6,0);        // recorte da cauda
+  // brilho na barriga superior / sombra embaixo
+  for(let x=3;x<=15;x++){ px(g,x,3,CEUH); }
+  for(let x=4;x<=15;x++){ px(g,x,9,AGUA); }
+  // barbatana de cima e de baixo
+  stamp(g,8,1,["####"],{ '#':CEU });
+  stamp(g,8,11,["####"],{ '#':AGUA });
+  // olho na frente (esq)
+  ellipse(g,5,5,1,1,BRANCO); px(g,5,5,INK);
+  // boca
+  px(g,2,6,INK);
+  outline(g,INK);
+  return g;
+}
+
+// 3) CORAÇÃO com cruz ----------------------------------------
+function imgCoracao(){
+  const g=G(17,16);
+  for(let y=0;y<g.h;y++) for(let x=0;x<g.w;x++){
+    const X=(x-8)/6.3, Y=(11.3-y)/6.3;
+    const v=Math.pow(X*X+Y*Y-1,3) - X*X*Y*Y*Y;
+    if(v<=0) px(g,x,y,VERM);
+  }
+  // sombra base-direita
+  for(let y=0;y<g.h;y++) for(let x=0;x<g.w;x++){ if(get(g,x,y)===VERM && (x>9||y>10)) px(g,x,y,VERMD); }
+  // brilho lóbulo esq
+  stamp(g,3,3,["##","# "],{ '#':VERMH });
+  // cruzinha dourada no centro
+  rect(g,8,6,1,5,OURO); rect(g,7,7,3,1,OURO);
+  px(g,8,6,OUROH);
+  outline(g,INK);
+  return g;
+}
+
+// 4) ESTRELA DE BELÉM ----------------------------------------
+function imgEstrela(){
+  const g=G(19,21);
+  const cx=9, cy=8;
+  ray(g,cx,cy,7,3,'u',OURO);
+  ray(g,cx,cy,12,3,'d',OURO);
+  ray(g,cx,cy,8,3,'l',OURO);
+  ray(g,cx,cy,8,3,'r',OURO);
+  disc(g,cx,cy,3,OUROH);             // brilho central
+  // pontas mais claras nas bordas de cima/esq
+  ray(g,cx,cy,7,1,'u',OUROH);
+  ray(g,cx,cy,8,1,'l',OUROH);
+  // sombra leve nas pontas baixa/dir
+  for(let i=6;i<=12;i++) px(g,cx+1,cy+i,OUROD);
+  for(let i=5;i<=8;i++) px(g,cx+i,cy+1,OUROD);
+  // faíscas
+  px(g,cx-7,cy-5,OUROH); px(g,cx+7,cy-4,OUROH); px(g,cx-6,cy+8,OUROH);
+  outline(g,INK);
+  return g;
+}
+
+// 5) VELA — a luz do mundo -----------------------------------
+function imgVela(){
+  const g=G(15,21);
+  // corpo da vela (col 5-9), y8..17
+  rect(g,5,8,5,9,CREM);
+  vline(g,5,8,9,BRANCO);             // brilho esq
+  vline(g,9,8,9,CREMD);              // sombra dir
+  // castiçal dourado
+  rect(g,3,17,9,2,OURO); rect(g,4,19,7,1,OUROD); hline(g,3,17,9,OUROH);
+  rect(g,6,16,3,1,OURO);
+  // pavio
+  px(g,7,7,INK); px(g,7,6,INK);
+  // chama
+  stamp(g,5,1,[
+    "  o  ",
+    " ooo ",
+    "oofoo",
+    "offfo",
+    "offfo",
+    " ofo ",
+  ],{ 'o':LARJ, 'f':OURO });
+  px(g,7,3,OUROH); px(g,7,4,OUROH);  // miolo claro
+  px(g,7,1,OUROH);
+  // brilho ao redor (halo) — faíscas
+  px(g,3,4,OURO); px(g,11,4,OURO); px(g,4,2,OUROH); px(g,10,2,OUROH);
+  outline(g,INK);
+  return g;
+}
+
+// 6) POMBA descendo (Espírito Santo) — simétrica --------------
+function imgPomba(){
+  const g=G(23,17);
+  ellipse(g,11,9,3,5,BRANCO);            // corpo (oval vertical)
+  disc(g,11,13,2,BRANCO);                // cabeça (embaixo)
+  tri(g, 9,7, 1,1, 9,11, BRANCO);        // asa esquerda em V (sobe p/ cima)
+  px(g,3,4,BRAND); px(g,5,6,BRAND);      // 2 penas marcadas
+  px(g,4,3,BRANS); px(g,6,5,BRANS);      // sombra entre penas
+  px(g,10,12,INK);                       // olho esquerdo
+  mirrorX(g);                            // espelha asa/penas/olho -> lado direito
+  px(g,11,8,BRANS); px(g,11,11,BRANS);   // leve sombra central no corpo
+  // bico dourado (centro, ponta pra baixo)
+  px(g,11,15,OURO); px(g,10,15,OURO); px(g,12,15,OURO); px(g,11,16,OUROD);
+  // ramo de oliveira no bico
+  stamp(g,9,15,[
+    "g   g",
+    " l g ",
+  ],{ 'g':VERD, 'l':VERDH });
+  outline(g,INK);
+  return g;
+}
+
+// 7) ARCO-ÍRIS, sol e nuvens ---------------------------------
+function imgArcoiris(){
+  const g=G(24,15);
+  const cx=12, cy=14;
+  const cores=[VERM,LARJ,OURO,VERD,CEUD,ROXO];
+  for(let k=0;k<cores.length;k++){
+    const R=12-k*2;
+    for(let a=0;a<=180;a+=2){
+      const rad=a*Math.PI/180;
+      const x=Math.round(cx+Math.cos(rad)*R), y=Math.round(cy-Math.sin(rad)*R);
+      for(let t=0;t<2;t++) px(g,x,y+t,cores[k]);
+    }
+  }
+  // sol no canto
+  disc(g,3,3,2,OURO); disc(g,3,3,1,OUROH);
+  for(const [dx,dy] of [[3,0],[-3,0],[0,3],[0,-3],[2,2],[-2,2],[2,-2],[-2,-2]]) px(g,3+dx,3+dy,OURO);
+  // nuvens nas pontas
+  ellipse(g,2,13,2,1,BRANCO); ellipse(g,4,13,2,1,BRANCO);
+  ellipse(g,20,13,2,1,BRANCO); ellipse(g,22,13,2,1,BRANCO);
+  return g;
+}
+
+// 8) OVELHA — o Bom Pastor -----------------------------------
+function imgOvelha(){
+  const g=G(22,17);
+  // lã (corpo) — discos sobrepostos
+  disc(g,11,8,5,BRANCO); disc(g,7,9,4,BRANCO); disc(g,15,9,4,BRANCO);
+  disc(g,9,6,3,BRANCO); disc(g,13,6,3,BRANCO);
+  // sombra inferior da lã
+  for(let x=0;x<g.w;x++) for(let y=0;y<g.h;y++){ if(get(g,x,y)===BRANCO && y>=11) px(g,x,y,BRANS); }
+  // cabeça escura (esq)
+  ellipse(g,4,9,2,3,CINZDD);
+  px(g,2,7,CINZDD);                  // orelha
+  px(g,3,7,BRANCO); px(g,4,7,BRANCO);// topete
+  // olho + focinho
+  px(g,4,9,BRANCO); px(g,3,10,BRANCO);
+  // pernas
+  rect(g,8,14,2,3,CINZDD); rect(g,13,14,2,3,CINZDD);
+  // auréola dourada (pastor)
+  for(let a=200;a<=340;a+=12){ const r=a*Math.PI/180; px(g,Math.round(4+Math.cos(r)*4),Math.round(5+Math.sin(r)*3),OURO); }
+  outline(g,INK);
+  return g;
+}
+
+// 9) BÍBLIA aberta -------------------------------------------
+function imgBiblia(){
+  const g=G(23,16);
+  // capa (vinho) embaixo
+  stamp(g,1,9,[
+    "lllllllllllllllllllll",
+    "lllllllllllllllllllll",
+    " lllllllllllllllllll ",
+  ],{ 'l':VERMD });
+  // páginas (dois trapézios claros que se encontram na lombada)
+  stamp(g,1,2,[
+    "         #         ",
+    "        ###        ",
+    "      #######      ",
+    "    ###########    ",
+    "  ###############  ",
+    " ################# ",
+    " ################# ",
+    " ################# ",
+    " ################# ",
+    "  ###############  ",
+  ],{ '#':CREM });
+  // lombada central
+  vline(g,10,3,9,CREMD); vline(g,11,3,9,CREMD);
+  // linhas de texto (espaçadas, deixando o creme da página aparecer)
+  for(let y=6;y<=10;y+=2){ hline(g,4,y,4,CINZD); hline(g,14,y,4,CINZD); }
+  // marcador
+  vline(g,16,11,3,OURO); px(g,16,14,OUROD);
+  outline(g,INK);
+  return g;
+}
+
+// 10) CÁLICE e PÃO — a Ceia -----------------------------------
+function imgCalice(){
+  const g=G(20,19);
+  // TAÇA — copo que afunila do topo (12 largura) até a haste (4)
+  for(let y=0;y<=5;y++){ const w=Math.round(12-(12-4)*y/5); const x=Math.round(10-w/2); hline(g,x,3+y,w,OURO); }
+  // vinho na boca da taça
+  hline(g,5,3,10,VERM); hline(g,5,4,10,VERMD); hline(g,5,3,10,VERMH);
+  hline(g,6,4,8,VERM);
+  // brilho/sombra do copo
+  for(let y=3;y<=8;y++){ const l=get(g,0,y); }
+  px(g,5,4,OUROH); px(g,4,3,OUROH);
+  // haste
+  rect(g,9,9,2,4,OURO); vline(g,9,9,4,OUROH);
+  rect(g,8,10,4,1,OURO);                 // nó da haste
+  // base (trapézio largo)
+  hline(g,7,13,6,OURO); hline(g,6,14,8,OURO); hline(g,5,15,10,OURO);
+  hline(g,5,15,10,OUROH); hline(g,6,16,8,OUROD);
+  // pãezinhos redondos dos lados
+  disc(g,3,15,2,CREM); px(g,3,14,MADH); px(g,2,15,MADH); px(g,4,15,MADH); px(g,3,16,MADD);
+  disc(g,16,15,2,CREM); px(g,16,14,MADH); px(g,15,15,MADH); px(g,17,15,MADH); px(g,16,16,MADD);
+  outline(g,INK);
+  return g;
+}
+
+// 11) TÁBUAS DA LEI ------------------------------------------
+function imgTabuas(){
+  const g=G(21,18);
+  // duas tábuas de pedra, topo arredondado
+  function tabua(ox){
+    rect(g,ox,4,7,12,CINZ);
+    hline(g,ox+1,3,5,CINZ); hline(g,ox+2,2,3,CINZ);  // topo arredondado
+    vline(g,ox,5,11,CINZD); hline(g,ox,15,7,CINZD);   // sombra
+    vline(g,ox+6,5,11,CINZD);
+    vline(g,ox+1,4,11,BRANS);                          // brilho
+  }
+  tabua(2); tabua(12);
+  // algarismos (linhas) representando os mandamentos
+  for(let i=0;i<5;i++){ hline(g,4,5+i*2,3,CINZDD); hline(g,14,5+i*2,3,CINZDD); }
+  outline(g,INK);
+  return g;
+}
+
+// 12) ARCA DE NOÉ (nível 3) ----------------------------------
+function imgArca(){
+  const g=G(28,22);
+  // água embaixo
+  rect(g,0,18,28,4,AGUA);
+  for(let x=0;x<28;x+=3) px(g,x,18,CEUD);
+  hline(g,0,18,28,CEU);
+  // casco do barco
+  stamp(g,2,13,[
+    "ooooooooooooooooooooooo",
+    " ooooooooooooooooooooo ",
+    "  ooooooooooooooooooo  ",
+    "   ooooooooooooooooo   ",
+    "     ooooooooooooo    ",
+  ],{ 'o':MAD });
+  // tábuas do casco (sombra)
+  hline(g,3,15,21,MADD); hline(g,4,17,19,MADD);
+  hline(g,2,13,23,MADH);
+  // cabine
+  rect(g,8,7,14,6,MADH);
+  rect(g,8,7,14,1,MADD);
+  // telhado
+  stamp(g,6,4,[
+    "      ######      ",
+    "    ##########    ",
+    "  ##############  ",
+    "##################",
+  ],{ '#':VERMD });
+  hline(g,6,7,18,VERM);
+  // porta + janelas
+  rect(g,13,9,4,4,MADD); px(g,16,11,OURO);
+  disc(g,10,10,1,CEU); disc(g,19,10,1,CEU);
+  // girafa espiando
+  rect(g,17,1,2,7,OURO); px(g,19,2,OURO); px(g,19,1,OURO); // pescoço+cabeça
+  px(g,17,1,OURODD); px(g,18,2,OURODD);                    // manchas
+  px(g,19,2,INK);                                          // olho? ajustar
+  // arco-íris pequeno no céu
+  const cx=22, cy=8; const cc=[VERM,OURO,VERD,CEUD];
+  for(let k=0;k<cc.length;k++){ const R=7-k; for(let a=10;a<=90;a+=4){ const r=a*Math.PI/180; px(g,Math.round(cx+Math.cos(r)*R), Math.round(cy-Math.sin(r)*R), cc[k]); } }
+  outline(g,INK);
+  return g;
+}
+
+/* ============================================================
+   CATÁLOGO DAS OBRAS
+   ============================================================ */
+const OBRAS = [
+  { id:'cruz',     nome:'A Cruz',            nivel:1, build:imgCruz,
+    ref:'1 Coríntios 1:18', verso:'“A palavra da cruz é poder de Deus para os que são salvos.”' },
+  { id:'peixe',    nome:'O Peixe',           nivel:1, build:imgPeixe,
+    ref:'Mateus 4:19', verso:'“Vinde após mim, e eu vos farei pescadores de homens.”' },
+  { id:'coracao',  nome:'O Amor',            nivel:1, build:imgCoracao,
+    ref:'1 João 4:19', verso:'“Nós amamos porque ele nos amou primeiro.”' },
+  { id:'estrela',  nome:'Estrela de Belém',  nivel:1, build:imgEstrela,
+    ref:'Mateus 2:10', verso:'“Ao verem a estrela, alegraram-se com grande e intenso júbilo.”' },
+  { id:'vela',     nome:'A Luz do Mundo',    nivel:2, build:imgVela,
+    ref:'Mateus 5:14', verso:'“Vós sois a luz do mundo. Não se pode esconder uma cidade sobre um monte.”' },
+  { id:'pomba',    nome:'A Pomba',           nivel:2, build:imgPomba,
+    ref:'Mateus 3:16', verso:'“Viu o Espírito de Deus descendo como pomba e pousando sobre ele.”' },
+  { id:'arcoiris', nome:'A Aliança',         nivel:2, build:imgArcoiris,
+    ref:'Gênesis 9:13', verso:'“Porei o meu arco nas nuvens, e ele será o sinal da aliança.”' },
+  { id:'ovelha',   nome:'O Bom Pastor',      nivel:2, build:imgOvelha,
+    ref:'João 10:11', verso:'“Eu sou o bom pastor; o bom pastor dá a vida pelas ovelhas.”' },
+  { id:'biblia',   nome:'A Palavra',         nivel:2, build:imgBiblia,
+    ref:'Salmo 119:105', verso:'“Lâmpada para os meus pés é a tua palavra, e luz para o meu caminho.”' },
+  { id:'calice',   nome:'A Ceia',            nivel:2, build:imgCalice,
+    ref:'Lucas 22:19', verso:'“Isto é o meu corpo oferecido por vós; fazei isto em memória de mim.”' },
+  { id:'tabuas',   nome:'Os Mandamentos',    nivel:2, build:imgTabuas,
+    ref:'Êxodo 20:1', verso:'“E falou Deus todas estas palavras.”' },
+  { id:'arca',     nome:'A Arca de Noé',     nivel:3, build:imgArca,
+    ref:'Gênesis 6:19', verso:'“De tudo o que vive, de toda a carne, dois de cada espécie farás entrar na arca.”' },
+];
+
+// constrói + indexa todas
+OBRAS.forEach(o=>{ const g=o.build(); const ix=indexize(g); o.w=ix.w; o.h=ix.h; o.palette=ix.palette; o.data=ix.data;
+  o.total=ix.data.reduce((a,c)=>a+(c?1:0),0);
+  o.cont=[]; for(let i=1;i<o.palette.length;i++) o.cont[i]=ix.data.reduce((a,c)=>a+(c===i?1:0),0);
+});
+
+/* ============================================================
+   PERSISTÊNCIA
+   ============================================================ */
+const KEY='pintarBibliaV1';
+let SAVE={ prog:{}, done:{} };
+try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s){ SAVE=s; SAVE.prog=SAVE.prog||{}; SAVE.done=SAVE.done||{}; } }catch(e){}
+function salvar(){ try{ localStorage.setItem(KEY, JSON.stringify(SAVE)); }catch(e){} }
+function progDe(o){
+  const raw=SAVE.prog[o.id];
+  const arr=new Uint8Array(o.w*o.h);
+  if(raw && raw.length===o.w*o.h){ for(let i=0;i<raw.length;i++) arr[i]= raw[i]==='1'?1:0; }
+  return arr;
+}
+function gravarProg(o,painted){
+  let s=''; for(let i=0;i<painted.length;i++) s+= painted[i]?'1':'0';
+  SAVE.prog[o.id]=s; salvar();
+}
+
+/* ============================================================
+   GALERIA
+   ============================================================ */
+const $=id=>document.getElementById(id);
+function pintaCanvasCompleto(cv, o, scale){
+  const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  const s=scale; cv.width=o.w*s; cv.height=o.h*s;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  for(let y=0;y<o.h;y++) for(let x=0;x<o.w;x++){ const t=o.data[y*o.w+x]; if(!t) continue;
+    ctx.fillStyle=o.palette[t]; ctx.fillRect(x*s,y*s,s,s); }
+}
+function montarGaleria(){
+  const grade=$('grade-galeria'); grade.innerHTML='';
+  OBRAS.forEach(o=>{
+    const painted=progDe(o);
+    const feitos=painted.reduce((a,c)=>a+c,0);
+    const pct=Math.round(feitos/o.total*100);
+    const completo = SAVE.done[o.id] || feitos===o.total;
+    const card=document.createElement('div');
+    card.className='quadro'+(completo?' feito':'');
+    const niv='◆'.repeat(o.nivel)+'◇'.repeat(3-o.nivel);
+    card.innerHTML=`<div class="selo-ok">✓</div><div class="mini"><canvas></canvas></div>
+      <div class="nome">${o.nome}</div>
+      <div class="nivel">${niv}</div>
+      <div class="barra"><i style="width:${completo?100:pct}%"></i></div>`;
+    const cv=card.querySelector('canvas');
+    // miniatura: arte completa (prévia) ou progresso? mostramos prévia completa em tom suave se não feito
+    pintaCanvasCompleto(cv, o, 6);
+    if(!completo){ cv.style.filter='grayscale(.35) opacity(.92)'; }
+    card.onclick=()=>abrirObra(o);
+    grade.appendChild(card);
+  });
+}
+
+/* ============================================================
+   MOTOR DO JOGO
+   ============================================================ */
+const canvas=$('tela'); const cx2=canvas.getContext('2d');
+let cur=null, painted=null, sel=0, feitos=0;
+let view={scale:1, ox:0, oy:0, min:1, max:1};
+let dpr=Math.min(window.devicePixelRatio||1, 2.5);
+
+function abrirObra(o){
+  cur=o; painted=progDe(o); feitos=painted.reduce((a,c)=>a+c,0); sel=0;
+  $('telaGaleria').style.display='none';
+  $('jogo').classList.add('ativo');
+  $('tituloJogo').firstChild.textContent=o.nome;
+  $('subJogo').textContent=o.ref;
+  montarPaleta();
+  resize(); ajustar();
+  // seleciona a primeira cor incompleta
+  selecionarPrimeira();
+  desenhar(); atualizarPct();
+}
+function voltarGaleria(){
+  $('jogo').classList.remove('ativo');
+  $('telaGaleria').style.display='flex';
+  $('veu').classList.remove('aberto');
+  montarGaleria();
+}
+
+function pintadosDaCor(i){ let n=0; for(let k=0;k<cur.data.length;k++) if(cur.data[k]===i && painted[k]) n++; return n; }
+
+function montarPaleta(){
+  const pal=$('paleta'); pal.innerHTML='';
+  for(let i=1;i<cur.palette.length;i++){
+    const t=document.createElement('div');
+    t.className='tinta'; t.dataset.i=i;
+    t.style.background=cur.palette[i];
+    t.style.color = corContraste(cur.palette[i]);
+    t.innerHTML=`${i}<span class="resta"></span>`;
+    t.onclick=()=>{ sel=i; refreshPaleta(); desenhar(); };
+    pal.appendChild(t);
+  }
+  refreshPaleta();
+}
+function refreshPaleta(){
+  const pal=$('paleta');
+  [...pal.children].forEach(t=>{
+    const i=+t.dataset.i;
+    const resta=cur.cont[i]-pintadosDaCor(i);
+    t.querySelector('.resta').textContent=resta;
+    t.classList.toggle('sel', i===sel);
+    t.classList.toggle('pronta', resta<=0);
+  });
+}
+function selecionarPrimeira(){
+  for(let i=1;i<cur.palette.length;i++){ if(cur.cont[i]-pintadosDaCor(i)>0){ sel=i; break; } }
+  refreshPaleta();
+}
+function corContraste(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return (.299*r+.587*g+.114*b)>150 ? 'rgba(40,30,15,.85)' : 'rgba(255,250,235,.95)';
+}
+
+/* ---- canvas / view ---- */
+function resize(){
+  const palco=$('palco'); const w=palco.clientWidth, h=palco.clientHeight;
+  canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  cx2.setTransform(dpr,0,0,dpr,0,0);
+}
+function ajustar(){
+  const w=$('palco').clientWidth, h=$('palco').clientHeight;
+  const pad=24;
+  view.min=Math.min((w-pad)/cur.w, (h-pad)/cur.h);
+  view.max=view.min*9;
+  view.scale=view.min;
+  view.ox=(w-cur.w*view.scale)/2;
+  view.oy=(h-cur.h*view.scale)/2;
+  desenhar();
+}
+function clampView(){
+  const w=$('palco').clientWidth, h=$('palco').clientHeight;
+  view.scale=Math.max(view.min, Math.min(view.max, view.scale));
+  const iw=cur.w*view.scale, ih=cur.h*view.scale;
+  const mx=Math.min(40, w*0.4), my=Math.min(40,h*0.4);
+  if(iw<=w) view.ox=(w-iw)/2; else view.ox=Math.max(w-iw-mx, Math.min(mx, view.ox));
+  if(ih<=h) view.oy=(h-ih)/2; else view.oy=Math.max(h-ih-my, Math.min(my, view.oy));
+}
+function desenhar(){
+  const w=$('palco').clientWidth, h=$('palco').clientHeight;
+  cx2.clearRect(0,0,w,h);
+  const s=view.scale, ox=view.ox, oy=view.oy;
+  cx2.imageSmoothingEnabled=false;
+  cx2.textAlign='center'; cx2.textBaseline='middle';
+  const fonte=`${Math.max(7,Math.floor(s*0.6))}px ui-monospace, Menlo, monospace`;
+  for(let y=0;y<cur.h;y++) for(let x=0;x<cur.w;x++){
+    const i=y*cur.w+x; const t=cur.data[i]; if(!t) continue;
+    const X=ox+x*s, Y=oy+y*s;
+    if(X>w||Y>h||X+s<0||Y+s<0) continue;
+    if(painted[i]){
+      cx2.fillStyle=cur.palette[t]; cx2.fillRect(X,Y,s+0.6,s+0.6);
+    } else {
+      const isSel=(t===sel);
+      cx2.fillStyle= isSel? '#fbe7ad' : '#f4eedf';
+      cx2.fillRect(X,Y,s,s);
+      cx2.strokeStyle='rgba(60,45,25,0.13)'; cx2.lineWidth=1;
+      cx2.strokeRect(X+0.5,Y+0.5,s-1,s-1);
+      if(s>=9){
+        cx2.fillStyle= isSel? '#7a4b12' : '#9c968a';
+        cx2.font=fonte; cx2.fillText(t, X+s/2, Y+s/2+0.5);
+      }
+    }
+  }
+}
+function atualizarPct(){ $('pctJogo').textContent=Math.round(feitos/cur.total*100)+'%'; }
+
+/* ---- pintar ---- */
+function celulaEm(clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  const lx=clientX-r.left, ly=clientY-r.top;
+  const x=Math.floor((lx-view.ox)/view.scale), y=Math.floor((ly-view.oy)/view.scale);
+  if(x<0||x>=cur.w||y<0||y>=cur.h) return null;
+  return {x,y,i:y*cur.w+x};
+}
+let salvarTimer=null;
+function pintarEm(clientX,clientY){
+  const c=celulaEm(clientX,clientY); if(!c) return;
+  const t=cur.data[c.i];
+  if(!t || painted[c.i]) return;
+  if(t!==sel) return;                 // só pinta a cor selecionada
+  painted[c.i]=1; feitos++;
+  // desenha só a célula (rápido)
+  desenharCelula(c.x,c.y);
+  refreshPaletaThrottle();
+  atualizarPct();
+  clearTimeout(salvarTimer); salvarTimer=setTimeout(()=>gravarProg(cur,painted),400);
+  if(feitos===cur.total) setTimeout(concluir,300);
+  else if(cur.cont[sel]-pintadosDaCor(sel)<=0){ selecionarPrimeira(); desenhar(); }
+}
+function desenharCelula(x,y){
+  const s=view.scale, X=view.ox+x*s, Y=view.oy+y*s, t=cur.data[y*cur.w+x];
+  cx2.fillStyle=cur.palette[t]; cx2.fillRect(X,Y,s+0.6,s+0.6);
+}
+let rpTimer=null;
+function refreshPaletaThrottle(){ if(rpTimer) return; rpTimer=setTimeout(()=>{ rpTimer=null; refreshPaleta(); },120); }
+
+/* ---- gestos: 1 dedo pinta, 2 dedos zoom/pan ---- */
+const pts=new Map(); let pintando=false, gesto=null, moveu=false;
+function rel(e){ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top, cx:e.clientX, cy:e.clientY}; }
+function gestoAtual(){ const a=[...pts.values()]; const dx=a[0].x-a[1].x, dy=a[0].y-a[1].y; return {cx:(a[0].x+a[1].x)/2, cy:(a[0].y+a[1].y)/2, d:Math.hypot(dx,dy)}; }
+
+canvas.addEventListener('pointerdown',e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pts.set(e.pointerId, rel(e));
+  if(pts.size===1){ pintando=true; moveu=false; pintarEm(e.clientX,e.clientY); }
+  else { pintando=false; gesto=gestoAtual(); }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, rel(e));
+  if(pts.size>=2){
+    const ng=gestoAtual();
+    if(gesto){
+      const k=ng.d/(gesto.d||1);
+      zoomEm(view.scale*k, ng.cx, ng.cy);
+      view.ox+=ng.cx-gesto.cx; view.oy+=ng.cy-gesto.cy;
+      clampView(); desenhar();
+    }
+    gesto=ng;
+  } else if(pintando){
+    pintarEm(e.clientX,e.clientY);
+  }
+});
+function fim(e){
+  pts.delete(e.pointerId);
+  if(pts.size<2) gesto=null;
+  if(pts.size===0) pintando=false;
+}
+canvas.addEventListener('pointerup',fim);
+canvas.addEventListener('pointercancel',fim);
+canvas.addEventListener('pointerleave',e=>{ if(pts.size<=1){ /* mantém */ } });
+
+function zoomEm(novo, px, py){
+  const r=canvas.getBoundingClientRect();
+  const lx=px-r.left, ly=py-r.top;
+  const ns=Math.max(view.min, Math.min(view.max, novo));
+  const f=ns/view.scale;
+  view.ox = lx-(lx-view.ox)*f;
+  view.oy = ly-(ly-view.oy)*f;
+  view.scale=ns;
+}
+$('btnMais').onclick=()=>{ const w=$('palco').clientWidth/2,h=$('palco').clientHeight/2; zoomEm(view.scale*1.4, w+canvas.getBoundingClientRect().left, h+canvas.getBoundingClientRect().top); clampView(); desenhar(); };
+$('btnMenos').onclick=()=>{ const w=$('palco').clientWidth/2,h=$('palco').clientHeight/2; zoomEm(view.scale*0.72, w+canvas.getBoundingClientRect().left, h+canvas.getBoundingClientRect().top); clampView(); desenhar(); };
+$('btnAjustar').onclick=ajustar;
+canvas.addEventListener('wheel',e=>{ e.preventDefault(); zoomEm(view.scale*(e.deltaY<0?1.12:0.89), e.clientX, e.clientY); clampView(); desenhar(); },{passive:false});
+
+/* ---- dica ---- */
+$('btnDica').onclick=()=>{
+  const livres=[]; for(let i=0;i<cur.data.length;i++) if(cur.data[i] && !painted[i]) livres.push(i);
+  if(!livres.length) return;
+  // prioriza a cor selecionada; senão qualquer uma
+  let alvo=livres.filter(i=>cur.data[i]===sel);
+  if(!alvo.length){ alvo=livres; sel=cur.data[alvo[Math.floor(Math.random()*alvo.length)]]; }
+  const i=alvo[Math.floor(Math.random()*alvo.length)];
+  painted[i]=1; feitos++;
+  desenharCelula(i%cur.w, Math.floor(i/cur.w));
+  refreshPaleta(); atualizarPct(); gravarProg(cur,painted);
+  if(feitos===cur.total) setTimeout(concluir,300);
+  else if(cur.cont[sel]-pintadosDaCor(sel)<=0){ selecionarPrimeira(); }
+  desenhar();
+};
+
+/* ---- conclusão ---- */
+function concluir(){
+  SAVE.done[cur.id]=1; gravarProg(cur,painted);
+  // anima zoom suave pro centro mostrando a arte limpa
+  desenhar();
+  setTimeout(()=>{
+    pintaCanvasCompleto($('cartObra'), cur, 8);
+    const cv=$('cartObra'); const m=Math.max(cv.width,cv.height); cv.style.width='160px'; cv.style.height=160*cv.height/cv.width+'px';
+    $('cartTitulo').textContent=cur.nome+' ✦';
+    $('cartVerso').textContent=cur.verso;
+    $('cartRef').textContent=cur.ref;
+    $('veu').classList.add('aberto');
+  }, 500);
+}
+$('btnGaleria2').onclick=voltarGaleria;
+$('btnProxima').onclick=()=>{
+  const idx=OBRAS.indexOf(cur);
+  // próxima não concluída, senão a seguinte
+  let prox=null;
+  for(let k=1;k<=OBRAS.length;k++){ const o=OBRAS[(idx+k)%OBRAS.length]; if(!SAVE.done[o.id]){ prox=o; break; } }
+  if(!prox) prox=OBRAS[(idx+1)%OBRAS.length];
+  $('veu').classList.remove('aberto');
+  abrirObra(prox);
+};
+$('btnVoltar').onclick=voltarGaleria;
+
+window.addEventListener('resize',()=>{ if($('jogo').classList.contains('ativo')){ resize(); clampView(); desenhar(); } });
+
+/* ============================================================
+   INÍCIO
+   ============================================================ */
+montarGaleria();
+</script>
+</body>
+</html>
