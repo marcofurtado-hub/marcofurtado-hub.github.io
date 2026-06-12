@@ -352,22 +352,11 @@ function imgCruz(){
 
 // 2) PEIXE (Ichthys) -----------------------------------------
 function imgPeixe(){
-  const g=G(22,13);
-  ellipse(g,9,6,7,4,CEUD);           // corpo
-  // cauda à direita
-  for(let i=0;i<=5;i++){ const hw=i; for(let j=-hw;j<=hw;j++) px(g,16+i,6+j,CEUD); }
-  px(g,21,6,0); px(g,20,6,0);        // recorte da cauda
-  // brilho na barriga superior / sombra embaixo
-  for(let x=3;x<=15;x++){ px(g,x,3,CEUH); }
-  for(let x=4;x<=15;x++){ px(g,x,9,AGUA); }
-  // barbatana de cima e de baixo
-  stamp(g,8,1,["####"],{ '#':CEU });
-  stamp(g,8,11,["####"],{ '#':AGUA });
-  // olho na frente (esq)
-  ellipse(g,5,5,1,1,BRANCO); px(g,5,5,INK);
-  // boca
-  px(g,2,6,INK);
-  outline(g,INK);
+  const P=["#0C516F","#245166","#3B7698","#528FB1","#75B8CE","#7EBBCD","#C0BFB1"];
+  const D="000000000000000000000222200000000000000000000000000000002111111020000000000000000000000000002111111120700000000000000000000000000211311111000000000000000000000000000021111111110000000000000000000000000000111111111110000000000000000000000006555555554311106000000000000000000065555555555555542060000003110600000025555555555555555552000002111207000006555555555555555555556000011112020000655555555555555555555556001111100000005557775555555555555555552011111060002555327755555445555555555553111110702555555177555331155555555555531111206001555555555411111455555555554411112000002334555551111114555555555444111120000013455555541111355555555554431111200004445555555531113555555554444111111020003455555555541145555555444420111110200000445555555554555555444443000111100000000344455555555554444444300700111200000000034444444444444444430070000211000000000013444444444444430027000000000700000000111223444444320007200000000670000000002110002111111007200000000000000000000002102002111110700000000000000000000000000070002111100000000000000000000000000007000000211100000000000000000000000000000000000000060000000000000000000000000000000000267000000000000000";
+  const CH="0123456789abcdefghijklmnopqrstuvwxyz";
+  const W=38,H=30,g=G(W,H);
+  for(let i=0;i<D.length;i++){ const k=CH.indexOf(D[i]); if(k>0) g.d[i]=P[k-1]; }
   return g;
 }
 
@@ -394,19 +383,27 @@ function imgCoracao(){
 function imgEstrela(){
   const g=G(19,21);
   const cx=9, cy=8;
-  ray(g,cx,cy,7,3,'u',OURO);
-  ray(g,cx,cy,12,3,'d',OURO);
-  ray(g,cx,cy,8,3,'l',OURO);
-  ray(g,cx,cy,8,3,'r',OURO);
-  disc(g,cx,cy,3,OUROH);             // brilho central
-  // pontas mais claras nas bordas de cima/esq
-  ray(g,cx,cy,7,1,'u',OUROH);
-  ray(g,cx,cy,8,1,'l',OUROH);
-  // sombra leve nas pontas baixa/dir
-  for(let i=6;i<=12;i++) px(g,cx+1,cy+i,OUROD);
-  for(let i=5;i<=8;i++) px(g,cx+i,cy+1,OUROD);
-  // faíscas
-  px(g,cx-7,cy-5,OUROH); px(g,cx+7,cy-4,OUROH); px(g,cx-6,cy+8,OUROH);
+  // --- METADE ESQUERDA (será espelhada p/ a direita) ---
+  // braço horizontal (ponta esquerda)
+  ray(g,cx,cy,8,2,'l',OURO);
+  // braço de cima (metade esq do raio vertical superior)
+  for(let i=0;i<=6;i++){ const hw=Math.round(2*(1-i/6)); for(let j=0;j<=hw;j++) px(g,cx-j,cy-i,OURO); }
+  // braço de baixo curto (a cauda longa vem depois, simétrica)
+  for(let i=0;i<=2;i++){ for(let j=0;j<=2-i;j++) px(g,cx-j,cy+i,OURO); }
+  // diagonais curtas (cintilação 8 pontas)
+  for(let i=1;i<=3;i++){ const h=Math.max(0,2-i); for(let j=0;j<=h;j++){ px(g,cx-i-j,cy-i,OURO); px(g,cx-i-j,cy+i,OURO); } }
+  mirrorX(g);                        // simetria horizontal perfeita
+  // --- CAUDA-GUIA inferior (assimetria vertical intencional) ---
+  ray(g,cx,cy,11,2,'d',OURO);
+  // --- HUE-SHIFT ---
+  // brilho radial (luz sup-esq): diagonal de pixels claros no miolo + pontas cima/esq
+  for(let dy=-3;dy<=0;dy++){ const w=3+dy; for(let dx=0;dx<=w;dx++) px(g,cx-dx,cy+dy,OUROH); }
+  ray(g,cx,cy,6,1,'u',OUROH);
+  ray(g,cx,cy,7,1,'l',OUROH);
+  px(g,cx,cy+1,OUROH); px(g,cx,cy+2,OUROH);  // luz desce p/ topo da cauda
+  // sombra quente, FINA, só na borda inf-dir (não atravessa o centro)
+  px(g,cx+1,cy+1,OUROD); px(g,cx+2,cy+1,OUROD); px(g,cx+1,cy+2,OUROD);
+  for(let i=3;i<=10;i++) px(g,cx+1,cy+i,OUROD);      // borda direita da cauda
   outline(g,INK);
   return g;
 }
@@ -486,23 +483,11 @@ function imgArcoiris(){
 
 // 8) OVELHA — o Bom Pastor -----------------------------------
 function imgOvelha(){
-  const g=G(22,17);
-  // lã (corpo) — discos sobrepostos
-  disc(g,11,8,5,BRANCO); disc(g,7,9,4,BRANCO); disc(g,15,9,4,BRANCO);
-  disc(g,9,6,3,BRANCO); disc(g,13,6,3,BRANCO);
-  // sombra inferior da lã
-  for(let x=0;x<g.w;x++) for(let y=0;y<g.h;y++){ if(get(g,x,y)===BRANCO && y>=11) px(g,x,y,BRANS); }
-  // cabeça escura (esq)
-  ellipse(g,4,9,2,3,CINZDD);
-  px(g,2,7,CINZDD);                  // orelha
-  px(g,3,7,BRANCO); px(g,4,7,BRANCO);// topete
-  // olho + focinho
-  px(g,4,9,BRANCO); px(g,3,10,BRANCO);
-  // pernas
-  rect(g,8,14,2,3,CINZDD); rect(g,13,14,2,3,CINZDD);
-  // auréola dourada (pastor)
-  for(let a=200;a<=340;a+=12){ const r=a*Math.PI/180; px(g,Math.round(4+Math.cos(r)*4),Math.round(5+Math.sin(r)*3),OURO); }
-  outline(g,INK);
+  const P=["#715A51","#927367","#B3937E","#BF9780","#CEAD91","#DBC3A9","#F8F3E0"];
+  const D="000000033540000000000000000000000000000377777775000000000000000000000000677777777760000000000000000000000067777777777400000000000000000012237777777777761000000000000000001211677777777776300000000000000000042325677777777650000000000000000000052225366666665000000000000000000001232221365233200000000000000000000253222267611220000000000000000000133222123772222200433000000000000021122352577622225777777500000000002122233377763667777777777400000000011222257635666677777777771000000000222255556777777777777777756100000000166667777777777777777776770000000005677777777777777777777577500000001667777777777777777777766760000000056777777777777777777776675000000005677777777777777777777566300000000057777777777777677777655200000000005667777777777667777761000000000000036677777667657777765000000000000001357777666666677776400000000000000033777756666657777500000000000000002257763553222567730000000000000000211222777611152531000000000000000021122377751126221000000000000000001112237772112622200000000000000002111222555111332220000000002555555211111255511152111555554000555555555521255555555311355555300000000144335555555555532440000000";
+  const CH="0123456789abcdefghijklmnopqrstuvwxyz";
+  const W=34,H=33,g=G(W,H);
+  for(let i=0;i<D.length;i++){ const k=CH.indexOf(D[i]); if(k>0) g.d[i]=P[k-1]; }
   return g;
 }
 
@@ -582,43 +567,53 @@ function imgTabuas(){
 
 // 12) ARCA DE NOÉ (nível 3) ----------------------------------
 function imgArca(){
-  const g=G(28,22);
-  // água embaixo
-  rect(g,0,18,28,4,AGUA);
-  for(let x=0;x<28;x+=3) px(g,x,18,CEUD);
-  hline(g,0,18,28,CEU);
-  // casco do barco
-  stamp(g,2,13,[
-    "ooooooooooooooooooooooo",
-    " ooooooooooooooooooooo ",
-    "  ooooooooooooooooooo  ",
-    "   ooooooooooooooooo   ",
-    "     ooooooooooooo    ",
-  ],{ 'o':MAD });
-  // tábuas do casco (sombra)
-  hline(g,3,15,21,MADD); hline(g,4,17,19,MADD);
-  hline(g,2,13,23,MADH);
-  // cabine
-  rect(g,8,7,14,6,MADH);
-  rect(g,8,7,14,1,MADD);
-  // telhado
-  stamp(g,6,4,[
-    "      ######      ",
-    "    ##########    ",
-    "  ##############  ",
-    "##################",
-  ],{ '#':VERMD });
-  hline(g,6,7,18,VERM);
-  // porta + janelas
-  rect(g,13,9,4,4,MADD); px(g,16,11,OURO);
-  disc(g,10,10,1,CEU); disc(g,19,10,1,CEU);
-  // girafa espiando
-  rect(g,17,1,2,7,OURO); px(g,19,2,OURO); px(g,19,1,OURO); // pescoço+cabeça
-  px(g,17,1,OURODD); px(g,18,2,OURODD);                    // manchas
-  px(g,19,2,INK);                                          // olho? ajustar
-  // arco-íris pequeno no céu
-  const cx=22, cy=8; const cc=[VERM,OURO,VERD,CEUD];
-  for(let k=0;k<cc.length;k++){ const R=7-k; for(let a=10;a<=90;a+=4){ const r=a*Math.PI/180; px(g,Math.round(cx+Math.cos(r)*R), Math.round(cy-Math.sin(r)*R), cc[k]); } }
+  const P=["#74482C","#675447","#8D5934","#3B7D94","#368EA3","#C7603D","#54A0AE","#82A884","#DEB140"];
+  const D="000000000000002166632000000000000000000000000066666666666200000000000000000000666999999999666000000000000000000669999999999999661000000000000000699999888888899996610000000000000699998887775778899966200000000000669998875200004578999660000000000220028770000000004589996600000000010200870000000000047899660000000000000000000033300000488996600000000029960000231113000005899660000000999996000331111132000488966000000099999600331136311330002299620000000000690321361133113002000061000000000039000331222313448884400000000000003900033222211344788440020000000000392001322221118478842020200000000039200332222113884484002020000001003930033222211388844787400000000363699223322221138783331202000000031333366666336666633333120200000003133111111311113111111110000000000313333333333333333333311020000000021333333333111133333311102000000000111333333333333333311100000000000021133333333333333331110200000000000111131333333333311110000000000000001111133383333131112000000005772002777411777711177751005755000455577777777777777777755777754008007755577775557775557777545577500000557777557777755777755577775440200024555555555555555755555555440020000000000455554245555520444200020000000002000000000000000000000280000000000000002220000222200000000000";
+  const CH="0123456789abcdefghijklmnopqrstuvwxyz";
+  const W=34,H=36,g=G(W,H);
+  for(let i=0;i<D.length;i++){ const k=CH.indexOf(D[i]); if(k>0) g.d[i]=P[k-1]; }
+  return g;
+}
+
+// 13) A MANJEDOURA — o Natal (nível 3) -----------------------
+function imgManjedoura(){
+  const P=["#603125","#784530","#955F33","#B49061","#CF934D","#E0A128","#E2A45B","#E8BD38","#F4C25A","#E9C099"];
+  const D="00000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000460000000000000000000000000000000006680000000000000000000000000000066666666600000000000000000000000000046666640000000000000000000000000000066668000000000000000000000000000000666660000000000000000000000000000006004600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001111000000000000000000000000000001117313400000000000000000000040000137a7a717000000000000000000004a000137aaaaa77400000000000000000004a7003aaaaa73a7500000000000000000004aa0177aaaaaa77400440000000000000000aaa3aaa7aaaaa7000000550000000000000aaa17a3aa73aa00000000680000000000047aa23a77aaaa0000000005688400000005667aa7777aa70000000000a6664000000566697777a77000004000004a96664000005666666777a00000405a44a99996800000053366699967a755aaaaaa999666654000000236666666666999666666666663300000000212336666666966663333331221000000001113336363363333333322111100000000001111313333333221122222211000000000011111112112223333333211100000000000111111133333333332111111000000000000111111332212222222211110000000000001111112233333332111111400000000000421372123333322232372114000000005773117773321133666666661117994000997633366663113666666666631136799049999997766632166666666777777799994008999999973312667799999999999998000000048999973369999999999997840000000000000000000444444440000000000000";
+  const CH="0123456789abcdefghijklmnopqrstuvwxyz";
+  const W=35,H=40,g=G(W,H);
+  for(let i=0;i<D.length;i++){ const k=CH.indexOf(D[i]); if(k>0) g.d[i]=P[k-1]; }
+  return g;
+}
+
+// 14) A ÂNCORA — a esperança (nível 2, simétrica) ------------
+function imgAncora(){
+  const g=G(17,21);
+  const cx=8;
+  // --- METADE ESQUERDA (espelhada depois) ---
+  // argola no topo
+  ellipse(g,cx,2,2,2,CINZD);
+  // haste vertical central
+  rect(g,cx-1,3,2,14,CINZD);
+  vline(g,cx-1,3,14,CINZ);                 // brilho na borda esq (luz)
+  // travessão (a cruz da âncora)
+  hline(g,cx-4,6,5,CINZD); px(g,cx-4,5,CINZD); px(g,cx-4,7,CINZD);
+  vline(g,cx-1,6,1,CINZ);
+  // braço curvo inferior (pata) + farpa
+  for(let i=0;i<4;i++){ px(g,cx-1-i,15+ (i<2?0:1) ,CINZD); }   // curva descendo
+  px(g,cx-4,16,CINZD); px(g,cx-5,16,CINZD); px(g,cx-5,15,CINZD); px(g,cx-5,14,CINZD); // sobe a ponta
+  px(g,cx-4,17,CINZD); px(g,cx-3,17,CINZD); px(g,cx-2,17,CINZD); // base
+  px(g,cx-6,13,CINZD);                      // farpa externa
+  mirrorX(g);
+  // furo da argola (vazado) — centro
+  px(g,cx,2,0);
+  // corda dourada passando pela argola (toque bíblico + cor)
+  px(g,cx-1,0,OURO); px(g,cx,0,OURO); px(g,cx+1,0,OURO);
+  px(g,cx-2,1,OURO); px(g,cx+2,1,OURO);
+  px(g,cx+3,1,OUROD); px(g,cx+4,2,OUROD); px(g,cx+4,3,OUROD); // ponta da corda solta
+  // sombra do metal (hue-shift: lado dir mais escuro)
+  vline(g,cx+1,4,12,CINZDD);
+  px(g,cx+5,16,CINZDD); px(g,cx+5,15,CINZDD);
+  px(g,cx-2,7,CINZDD);                      // sombra sob travessão esq
   outline(g,INK);
   return g;
 }
@@ -626,6 +621,15 @@ function imgArca(){
 /* ============================================================
    CATÁLOGO DAS OBRAS
    ============================================================ */
+function imgDavi(){
+  const P=["#5D2920","#674E46","#A07259","#BE6E4D","#B48D68","#E3A970","#C5B5A2","#D7B59D","#EAE6D2"];
+  const D="000000000000000000000000000000001000000000000020000011111100000000001000021111111000000000370001111111111000000279001111111111120000019793111111114111000005777311114133611100001759971113366655120000197997116336633612000019799963633665364220001779998666666666203000037999998669966003000001999997998664003000000139799997346100000000056899998116663300000006659998631536662000000264666666156666640000000186635631666566020000015793366136633650000000197716661561186000000001951666515116200000000013366663136203000000000113555536520000000000011111111311000000000001533535111122000000000166366611110300000000216655663112020000000011666666650230000000021166666666020000000001116666666600000000000002666666660200000000002045666664020000000000004688884220000000000000569579622000000000000058779962200000000000005879998220000000000000697999860000000000024166777764440000000314311377773133350200000000000000000000220000022323333333322000";
+  const CH="0123456789abcdefghijklmnopqrstuvwxyz";
+  const W=22,H=42,g=G(W,H);
+  for(let i=0;i<D.length;i++){ const k=CH.indexOf(D[i]); if(k>0) g.d[i]=P[k-1]; }
+  return g;
+}
+
 const OBRAS = [
   { id:'cruz',     nome:'A Cruz',            nivel:1, build:imgCruz,
     ref:'1 Coríntios 1:18', verso:'“A palavra da cruz é poder de Deus para os que são salvos.”' },
@@ -651,6 +655,12 @@ const OBRAS = [
     ref:'Êxodo 20:1', verso:'“E falou Deus todas estas palavras.”' },
   { id:'arca',     nome:'A Arca de Noé',     nivel:3, build:imgArca,
     ref:'Gênesis 6:19', verso:'“De tudo o que vive, de toda a carne, dois de cada espécie farás entrar na arca.”' },
+  { id:'manjedoura', nome:'A Manjedoura',    nivel:3, build:imgManjedoura,
+    ref:'Lucas 2:7', verso:'“E o deitou numa manjedoura, porque não havia lugar para eles na hospedaria.”' },
+  { id:'ancora',   nome:'A Esperança',       nivel:2, build:imgAncora,
+    ref:'Hebreus 6:19', verso:'“Temos esta esperança como âncora da alma, firme e segura.”' },
+  { id:'davi',     nome:'Davi e Golias',     nivel:2, build:imgDavi,
+    ref:'1 Samuel 17:45', verso:'“Tu vens a mim com espada, mas eu vou a ti em nome do Senhor dos Exércitos.”' },
 ];
 
 // constrói + indexa todas
