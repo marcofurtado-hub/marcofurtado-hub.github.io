@@ -3,40 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05060d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Xadrez Surfers">
 <title>♟ Xadrez Surfers</title>
 <style>
   :root{ --cyan:#37e0ff; --red:#ff436b; --gold:#ffd24a; --ink:#eef2ff; --dim:#8b93ab; }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;height:100%;overflow:hidden;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none;}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;}
   body{
     font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; color:var(--ink);
     background:#05060d; user-select:none; -webkit-user-select:none; touch-action:none;
     display:flex; align-items:center; justify-content:center;
   }
-  #app{position:relative; width:100%; max-width:480px; height:100%; overflow:hidden;}
+  #app{position:relative; width:100%; max-width:480px; height:100vh; height:100dvh; overflow:hidden;}
   canvas{display:block; width:100%; height:100%; touch-action:none;}
 
   /* HUD */
   #hud{position:absolute; inset:0; pointer-events:none; z-index:5;}
   #score{
-    position:absolute; top:10px; left:0; right:0; text-align:center;
+    position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
     font-size:40px; font-weight:800; letter-spacing:.02em;
     text-shadow:0 2px 14px rgba(0,0,0,.6); font-variant-numeric:tabular-nums;
   }
-  #best{position:absolute; top:14px; left:14px; font-size:11px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase;}
+  #best{position:absolute; top:calc(12px + env(safe-area-inset-top)); left:calc(14px + env(safe-area-inset-left)); font-size:11px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase;}
   #hp{
-    position:absolute; top:60px; left:50%; transform:translateX(-50%); width:210px; max-width:62%;
+    position:absolute; top:calc(58px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); width:210px; max-width:62%;
     height:18px; border-radius:10px; background:rgba(255,255,255,.08); border:1px solid #2a3146; overflow:hidden;
   }
   #hp .fill{position:absolute; left:0; top:0; bottom:0; width:50%; background:#5fd36a; transition:width .12s linear, background .25s;}
   #hp .txt{position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;
     font-size:11px; font-weight:800; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.7); letter-spacing:.06em;}
   #combo{
-    position:absolute; top:86px; left:0; right:0; text-align:center; font-size:18px; font-weight:800;
+    position:absolute; top:calc(84px + env(safe-area-inset-top)); left:0; right:0; text-align:center; font-size:18px; font-weight:800;
     color:var(--gold); text-shadow:0 0 16px rgba(255,210,74,.6); opacity:0; transition:opacity .2s;
   }
   #piece-chip{
-    position:absolute; left:14px; bottom:16px; display:flex; align-items:center; gap:10px;
+    position:absolute; left:calc(14px + env(safe-area-inset-left)); bottom:calc(16px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:10px;
     background:rgba(12,16,28,.7); border:1px solid #283150; border-radius:14px; padding:8px 14px 8px 10px;
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
@@ -44,9 +49,16 @@
   #piece-chip .lbl b{display:block; font-size:14px; letter-spacing:.1em;}
   #piece-chip .lbl span{font-size:10.5px; color:var(--dim); letter-spacing:.04em;}
   #speed{
-    position:absolute; right:14px; bottom:20px; font-size:11px; color:var(--dim);
+    position:absolute; right:calc(14px + env(safe-area-inset-right)); bottom:calc(20px + env(safe-area-inset-bottom)); font-size:11px; color:var(--dim);
     letter-spacing:.1em; text-transform:uppercase; text-align:right;
   }
+  /* aviso de girar (landscape em telas baixas = celular deitado) */
+  #rotate{position:absolute; inset:0; z-index:40; display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; text-align:center; background:#05060d; color:var(--ink); font-weight:800; letter-spacing:.1em;}
+  #rotate .ic{font-size:54px; animation:rot 2s ease-in-out infinite;}
+  #rotate small{color:var(--dim); font-weight:600; letter-spacing:.14em; text-transform:uppercase; font-size:11px;}
+  @keyframes rot{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(78deg)}}
+  @media (orientation:landscape) and (max-height:560px){ #rotate{display:flex} }
   #speed b{display:block; color:#cdd6ee; font-size:16px;}
 
   /* overlays */
@@ -97,13 +109,16 @@
     <div id="speed">veloc.<b>1.0×</b></div>
   </div>
 
+  <!-- ROTATE (celular deitado) -->
+  <div id="rotate"><div class="ic">📱</div>Gire o celular<small>jogue na vertical</small></div>
+
   <!-- TITLE -->
   <div class="overlay" id="title">
     <p class="kicker">endless chess runner</p>
     <h1 class="logo">XADREZ<br>SURFERS</h1>
     <ul class="how">
       <li><span class="k">🏃</span><span>O tabuleiro <b>desce como esteira</b>. Se você ficar pra trás e cair pela base, <b>game over</b>.</span></li>
-      <li><span class="k">🍽️</span><span>Você <b>avança comendo</b> peças inimigas — toque numa peça destacada pra capturar e seguir em frente.</span></li>
+      <li><span class="k">🍽️</span><span>Você <b>avança comendo</b> peças — <b>toque</b> num alvo ou <b>deslize</b> (↑ frente, ←→ lados) pra capturar e seguir.</span></li>
       <li><span class="k">🔁</span><span>Você se move como a peça que <b>é agora</b>. Comeu um cavalo? <b>Vira cavalo</b>. Comeu uma fraca? <b>Rebaixa</b>. Escolha bem.</span></li>
       <li><span class="k">❤️</span><span>Comer dá <b>vida</b> (peão +1 … dama +9). Peças de <b>aura vermelha te atacam</b> — ficar na zona delas no pulso tira vida. <b>Vida 0 = fim</b>.</span></li>
     </ul>
@@ -157,7 +172,7 @@ let ATK_PERIOD = 0.9;        // intervalo entre pulsos de ataque inimigo (s)
 // ---------- canvas ----------
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-let dpr = Math.max(1, Math.min(3, window.devicePixelRatio||1));
+let dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));   // cap 2 p/ performance mobile
 let W=400, H=800, horizonY=120, laneW=72;
 // câmera (plano inclinado) — TILT maior = mais "de cima"
 let TILT=1.0, CAMH=11.6, CAMBACK=3.5, CYf=0.62, LANEf=0.185, LANEmax=84, FOCAL=1, CY=500;
@@ -361,13 +376,31 @@ function doMove(m){
 }
 
 // ---------- input ----------
-function pick(px,py){
-  if(state!=='run'||countdown>0||moveCD>0) return;
+function pick(px,py){    // TOQUE: vai pro alvo mais perto do dedo (tolerante)
+  if(state!=='run'||countdown>0||moveCD>0||!reach.length) return;
   let bestM=null, bestD=1e9;
   for(const m of reach){ const d=Math.hypot(px-m.sx, py-m.sy); if(d<bestD){ bestD=d; bestM=m; } }
-  if(bestM && bestD < Math.max(38, laneW*0.62*bestM.sc)) doMove(bestM);
+  if(bestM && bestD < laneW*3.2) doMove(bestM);
 }
-canvas.addEventListener('pointerdown',e=>{ const r=canvas.getBoundingClientRect(); pick(e.clientX-r.left, e.clientY-r.top); });
+function swipeMove(dir){   // DESLIZE: melhor alvo na direção
+  if(state!=='run'||countdown>0||moveCD>0||!reach.length) return;
+  const pc=player.c; let cand;
+  if(dir==='left')       cand=reach.filter(m=>m.c<pc).sort((a,b)=>(a.c-b.c)||(b.r-a.r)||(a.danger-b.danger));
+  else if(dir==='right') cand=reach.filter(m=>m.c>pc).sort((a,b)=>(b.c-a.c)||(b.r-a.r)||(a.danger-b.danger));
+  else                   cand=reach.slice().sort((a,b)=>(b.r-a.r)||(Math.abs(a.c-pc)-Math.abs(b.c-pc))||(a.danger-b.danger));
+  if(!cand.length) cand=reach.slice().sort((a,b)=>(b.r-a.r));
+  doMove(cand[0]);
+}
+let touchStart=null;
+canvas.addEventListener('pointerdown',e=>{ const r=canvas.getBoundingClientRect(); touchStart={x:e.clientX-r.left,y:e.clientY-r.top}; });
+canvas.addEventListener('pointerup',e=>{
+  if(!touchStart) return; const r=canvas.getBoundingClientRect();
+  const ux=e.clientX-r.left, uy=e.clientY-r.top, dx=ux-touchStart.x, dy=uy-touchStart.y;
+  if(Math.hypot(dx,dy)>26) swipeMove(Math.abs(dy)>=Math.abs(dx) ? (dy<0?'up':'down') : (dx<0?'left':'right'));
+  else pick(touchStart.x, touchStart.y);
+  touchStart=null;
+});
+canvas.addEventListener('pointercancel',()=>{ touchStart=null; });
 addEventListener('keydown',e=>{ // atalhos p/ desktop: escolhe alvo na direção
   if(state!=='run') return;
   const map={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u'};
@@ -498,7 +531,7 @@ function drawPiece(x,y,sc,type,ally,pop){
 
   // corpo extrudado: empilha o glyph de baixo (escuro) p/ cima (claro) = volume 3D
   const H = S*0.36;
-  const steps = Math.max(4, Math.min(28, Math.round(H)));
+  const steps = Math.max(3, Math.min(15, Math.round(H*0.6)));   // menos camadas = mais leve no mobile
   const baseY = y + S*0.12;
   for(let i=0;i<=steps;i++){
     const f=i/steps;
