@@ -491,7 +491,6 @@ function drawTrack(){
       ctx.fillStyle=`rgb(${base[0]*f|0},${base[1]*f|0},${base[2]*f|0})`;
       ctx.fill();
       if(threats.has(key(c,r))){ const inten=(0.16+0.34*atkTele)*f; ctx.fillStyle='rgba(255,58,92,'+inten.toFixed(3)+')'; ctx.fill(); }
-      ctx.strokeStyle='rgba(120,160,230,.10)'; ctx.lineWidth=1; ctx.stroke();
     }
   }
 }
@@ -513,40 +512,38 @@ function drawTargets(){
     ctx.restore();
   }
 }
+// peças pré-renderizadas em sprite (1x) e desenhadas com drawImage = bem mais leve no mobile
+const SS=192, baseS=140; let pieceSprites=null;
+function renderPieceSprite(cx,type,ally){
+  const S=baseS, g=GLYPH[type], x=SS/2, y=SS/2;
+  cx.clearRect(0,0,SS,SS); cx.textAlign='center'; cx.textBaseline='middle';
+  cx.font=`${Math.round(S)}px "Apple Symbols","Segoe UI Symbol","Noto Sans Symbols2",system-ui,sans-serif`;
+  cx.fillStyle='rgba(0,0,0,0.40)'; cx.beginPath(); cx.ellipse(x,y+S*0.36,S*0.34,S*0.12,0,0,Math.PI*2); cx.fill();
+  const dark=ally?[120,98,42]:[12,13,18], lite=ally?[255,247,226]:[96,104,124];
+  const mid=[(dark[0]+lite[0])/2,(dark[1]+lite[1])/2,(dark[2]+lite[2])/2], rgb=a=>`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
+  const H=S*0.36, steps=12, baseY=y+S*0.12;
+  for(let i=0;i<=steps;i++){ const f=i/steps;
+    cx.fillStyle=rgb([dark[0]+(mid[0]-dark[0])*f,dark[1]+(mid[1]-dark[1])*f,dark[2]+(mid[2]-dark[2])*f]);
+    cx.fillText(g,x,baseY-f*H); }
+  const grad=cx.createLinearGradient(x,baseY-H-S*0.45,x,baseY-H+S*0.35);
+  grad.addColorStop(0,rgb(lite)); grad.addColorStop(1,rgb(mid));
+  cx.fillStyle=grad; cx.fillText(g,x,baseY-H);
+  cx.lineWidth=Math.max(0.8,S*0.014); cx.strokeStyle=ally?'rgba(55,224,255,0.6)':'rgba(255,93,126,0.7)';
+  cx.strokeText(g,x,baseY-H);
+}
+function buildSprites(){ pieceSprites={};
+  for(const ally of [true,false]) for(const ty of ['K','Q','R','B','N','P']){
+    const cv=document.createElement('canvas'); cv.width=SS; cv.height=SS;
+    renderPieceSprite(cv.getContext('2d'),ty,ally); pieceSprites[(ally?'w':'b')+ty]=cv; }
+}
 function drawPiece(x,y,sc,type,ally,pop){
-  const S=laneW*0.98*sc*(pop?1+pop*0.45:1);
-  const g=GLYPH[type];
-  ctx.save();
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font=`${Math.round(S)}px "Apple Symbols","Segoe UI Symbol","Noto Sans Symbols2",system-ui,sans-serif`;
-
-  // sombra de contato no piso (peça "em pé")
-  ctx.fillStyle='rgba(0,0,0,0.40)';
-  ctx.beginPath(); ctx.ellipse(x, y+S*0.36, S*0.34, S*0.12, 0, 0, Math.PI*2); ctx.fill();
-
-  const dark = ally?[120,98,42]:[12,13,18];
-  const lite = ally?[255,247,226]:[96,104,124];
-  const mid  = [(dark[0]+lite[0])/2,(dark[1]+lite[1])/2,(dark[2]+lite[2])/2];
-  const rgb  = a=>`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
-
-  // corpo extrudado: empilha o glyph de baixo (escuro) p/ cima (claro) = volume 3D
-  const H = S*0.36;
-  const steps = Math.max(3, Math.min(15, Math.round(H*0.6)));   // menos camadas = mais leve no mobile
-  const baseY = y + S*0.12;
-  for(let i=0;i<=steps;i++){
-    const f=i/steps;
-    ctx.fillStyle=rgb([dark[0]+(mid[0]-dark[0])*f, dark[1]+(mid[1]-dark[1])*f, dark[2]+(mid[2]-dark[2])*f]);
-    ctx.fillText(g, x, baseY - f*H);
-  }
-  // face superior iluminada (com glow do jogador) + contorno
-  if(ally){ ctx.shadowColor='rgba(55,224,255,0.6)'; ctx.shadowBlur=S*0.28; }
-  const grad=ctx.createLinearGradient(x, baseY-H-S*0.45, x, baseY-H+S*0.35);
-  grad.addColorStop(0, rgb(lite)); grad.addColorStop(1, rgb(mid));
-  ctx.fillStyle=grad; ctx.fillText(g, x, baseY-H);
-  ctx.shadowBlur=0;
-  ctx.lineWidth=Math.max(0.8,S*0.014); ctx.strokeStyle= ally?'rgba(55,224,255,0.6)':'rgba(255,93,126,0.7)';
-  ctx.strokeText(g, x, baseY-H);
-  ctx.restore();
+  if(!pieceSprites) buildSprites();
+  const spr=pieceSprites[(ally?'w':'b')+type];
+  const drawS=laneW*0.98*sc*(pop?1+pop*0.45:1), f=drawS/baseS, dw=SS*f, dh=SS*f;
+  if(ally){ const pulse=0.5+0.5*Math.sin(t*4);
+    ctx.save(); ctx.shadowColor=`rgba(55,224,255,${(0.5+pulse*0.35).toFixed(2)})`; ctx.shadowBlur=drawS*0.22;
+    ctx.drawImage(spr,x-dw/2,y-dh/2,dw,dh); ctx.restore(); }
+  else ctx.drawImage(spr,x-dw/2,y-dh/2,dw,dh);
 }
 function drawEntities(){
   const r0=Math.floor(scroll)-1, r1=Math.floor(scroll)+VIS+3;
@@ -641,7 +638,7 @@ $('btn-play').addEventListener('click', startRun);
 $('btn-again').addEventListener('click', startRun);
 $('btn-menu').addEventListener('click', ()=>{ state='title'; $('over').classList.add('hidden'); $('title').classList.remove('hidden'); });
 
-layout(); reset(); updateChip(); syncHUD();
+layout(); buildSprites(); reset(); updateChip(); syncHUD();
 requestAnimationFrame(frame);
 </script>
 </body>
