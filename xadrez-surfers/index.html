@@ -155,7 +155,7 @@ const DRAWVIS = 20;          // linhas de PISO desenhadas (só visual, preenche 
 const MAXLEAP = 9;           // alcance máx. de um salto (evita saltos absurdos)
 const VAL  = {P:1,N:3,B:3,R:5,Q:9,K:2};
 const NAME = {P:'PEÃO',N:'CAVALO',B:'BISPO',R:'TORRE',Q:'DAMA',K:'REI'};
-const HINT = {P:'captura na diagonal',N:'salto em L',B:'diagonais',R:'reto + laterais',Q:'tudo menos ré',K:'1 casa'};
+const HINT = {P:'avança e come na diagonal',N:'salto em L',B:'diagonais',R:'reto + laterais',Q:'tudo menos ré',K:'1 casa'};
 const GLYPH= {K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'};
 
 const BASE_V = 1.35;         // veloc. base (linhas/s)
@@ -327,9 +327,10 @@ function computeReach(){
   const add=(c,r)=>{ const o=occ(c,r); reach.push({c,r,cap:!!o, val:o?VAL[o.t]:0, up:o?VAL[o.t]>=VAL[ty]:false}); };
   const slide=(dc,dr)=>{ let c=pc+dc, r=pr+dr, n=0; while(inC(c)&&rowOk(r)&&n<MAXLEAP){ const o=occ(c,r);
       reach.push({c,r,cap:!!o,val:o?VAL[o.t]:0,up:o?VAL[o.t]>=VAL[ty]:false}); if(o) break; c+=dc; r+=dr; n++; } };
-  if(ty==='P'){
-    if(inC(pc)&&rowOk(pr+1)&&!occ(pc,pr+1)) reach.push({c:pc,r:pr+1,cap:false,val:0,up:false});
-    for(const dc of [-1,1]){ if(inC(pc+dc)&&rowOk(pr+1)&&occ(pc+dc,pr+1)) add(pc+dc,pr+1); }
+  if(ty==='P'){                                  // peão: só pra FRENTE (reto vazio, ou diagonal vazio/captura)
+    const fwd=pr+1;
+    if(inC(pc)&&rowOk(fwd)&&!occ(pc,fwd)) reach.push({c:pc,r:fwd,cap:false,val:0,up:false});
+    for(const dc of [-1,1]) if(inC(pc+dc)&&rowOk(fwd)) add(pc+dc,fwd);
   } else if(ty==='N'){
     for(const [dc,dr] of [[-1,2],[1,2],[-2,1],[2,1]]) if(inC(pc+dc)&&rowOk(pr+dr)) add(pc+dc,pr+dr);
   } else if(ty==='B'){
@@ -341,12 +342,7 @@ function computeReach(){
   } else if(ty==='K'){
     for(const [dc,dr] of [[0,1],[-1,1],[1,1],[-1,0],[1,0]]) if(inC(pc+dc)&&rowOk(pr+dr)) add(pc+dc,pr+dr);
   }
-  for(const m of reach){ m.danger = threats.has(key(m.c,m.r)); m.dmg = threats.get(key(m.c,m.r))||0; } // ameaçada = custa vida
-  if(!reach.some(m=>!m.danger)){   // sem opção segura? oferece um passo lateral sem dano
-    for(const dc of [-1,1]){ const c=pc+dc;
-      if(c>=0&&c<C && rowOk(pr) && !cells.get(key(c,pr)) && !threats.has(key(c,pr)))
-        reach.push({c,r:pr,cap:false,val:0,up:false,side:true,danger:false}); }
-  }
+  for(const m of reach){ m.danger = threats.has(key(m.c,m.r)); m.dmg = threats.get(key(m.c,m.r))||0; } // ameaçada = custa vida (não proíbe)
   for(const m of reach){ const p=projCR(m.c,m.r); m.sx=p.x; m.sy=p.y; m.sc=p.sc; }
 }
 
