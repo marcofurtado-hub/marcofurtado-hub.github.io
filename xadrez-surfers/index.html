@@ -15,7 +15,7 @@
   html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;}
   body{
     font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; color:var(--ink);
-    background:#05060d; user-select:none; -webkit-user-select:none; touch-action:none;
+    background:#0c2236; user-select:none; -webkit-user-select:none; touch-action:none;
     display:flex; align-items:center; justify-content:center;
   }
   #app{position:relative; width:100%; max-width:480px; height:100vh; height:100dvh; overflow:hidden;}
@@ -26,12 +26,12 @@
   #score{
     position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
     font-size:40px; font-weight:800; letter-spacing:.02em;
-    text-shadow:0 2px 14px rgba(0,0,0,.6); font-variant-numeric:tabular-nums;
+    text-shadow:0 2px 0 rgba(8,40,72,.55), 0 4px 12px rgba(0,0,0,.35); font-variant-numeric:tabular-nums;
   }
   #best{position:absolute; top:calc(12px + env(safe-area-inset-top)); left:calc(14px + env(safe-area-inset-left)); font-size:11px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase;}
   #hp{
     position:absolute; top:calc(58px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); width:210px; max-width:62%;
-    height:18px; border-radius:10px; background:rgba(255,255,255,.08); border:1px solid #2a3146; overflow:hidden;
+    height:18px; border-radius:10px; background:rgba(8,30,55,.4); border:1px solid rgba(255,255,255,.55); overflow:hidden;
   }
   #hp .fill{position:absolute; left:0; top:0; bottom:0; width:50%; background:#5fd36a; transition:width .12s linear, background .25s;}
   #hp .txt{position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;
@@ -168,6 +168,7 @@ let RANGE = 2;               // alcance da "aura" de ameaça das peças longas (
 let START_HP = 5;            // vida inicial
 let HP_CAP   = 15;           // teto de vida (comer além disso não acumula)
 let ATK_PERIOD = 0.9;        // intervalo entre pulsos de ataque inimigo (s)
+let LEAD_TARGET = 2.7;       // lock cam: lead fixo do jogador na tela (centro, um pouco abaixo)
 
 // ---------- canvas ----------
 const canvas = document.getElementById('game');
@@ -203,10 +204,10 @@ function project(colF, leadF){
   const scAbs = FOCAL/depth;                    // px por casa nessa profundidade
   return { x: W/2 + X*scAbs, y: CY - vert*scAbs, sc: scAbs/laneW };
 }
-const projCR = (c,r)=>project(c, r-scroll);
+const projCR = (c,r)=>project(c, r-camScroll);
 
 // ---------- state ----------
-let state='title', scroll=0, v=BASE_V, frontier=0;
+let state='title', scroll=0, camScroll=0, v=BASE_V, frontier=0;
 let player, cells, reach=[], particles=[], floats=[];
 let threats=new Map(), pawnStreak=0, phase=-1, banner={txt:'',life:0};
 let hp=5, atkTimer=0, hitFlash=0, atkTele=0, slashes=[];
@@ -223,6 +224,7 @@ function reset(){
   combo=1; comboTimer=0; score=0; captures=0; moveCD=0; morphFx=0; shake=0;
   hp=START_HP; atkTimer=ATK_PERIOD; hitFlash=0; atkTele=0; slashes=[];
   player={t:'P', c:2, r:3, vc:2, vr:3};
+  camScroll = player.r - LEAD_TARGET;
   for(let r=2;r<=VIS+4;r++) spawnRow(r);
   frontier=VIS+4;
   // pista de largada segura (3 linhas) + 1º alvo na diagonal p/ ensinar a transformação
@@ -250,18 +252,18 @@ function spawnRow(r){
   }
 }
 function spawnAhead(){
-  const top = Math.floor(scroll)+VIS+3;
+  const top = Math.floor(camScroll)+VIS+3;
   while(frontier<top){ frontier++; spawnRow(frontier); }
 }
 function cleanup(){
-  const floor = Math.floor(scroll)-2;
+  const floor = Math.floor(camScroll)-3;
   for(const k of cells.keys()){ const r=+k.split(',')[1]; if(r<floor) cells.delete(k); }
 }
 
 // ---------- threats (casas controladas pelos inimigos) ----------
 function computeThreats(){
   threats.clear();   // Map casa -> maior valor de atacante (= dano)
-  const lo=Math.floor(scroll)-1, hi=Math.floor(scroll)+VIS+2;
+  const lo=Math.floor(camScroll)-1, hi=Math.floor(camScroll)+VIS+2;
   const mark=(c,r,val)=>{ if(c>=0&&c<C){ const k=key(c,r); if(val>(threats.get(k)||0)) threats.set(k,val); } };
   const blocked=(c,r)=> cells.has(key(c,r));
   const ray=(c,r,dc,dr,val)=>{ let cc=c+dc, rr=r+dr, n=0;
@@ -306,10 +308,10 @@ function attackBeat(){
   const dmg = threats.get(key(player.c,player.r))||0;
   if(dmg<=0) return;
   hp -= dmg; hitFlash=1; shake+=5+dmg*0.8;
-  const pp=project(player.vc, player.vr-scroll);
+  const pp=project(player.vc, player.vr-camScroll);
   burst(pp.x,pp.y,'#ff3b5c',12+dmg*2);
-  floatTxt(pp.x, pp.y-laneW*0.55, '-'+dmg+'♥', '#ff5277');
-  for(const o of cells.values()){ if(o.armed && o.r>=Math.floor(scroll)-1 && enemyHits(o,player.c,player.r)){
+  floatTxt(pp.x, pp.y-laneW*0.55, '-'+dmg, '#ff5a6e', 28);
+  for(const o of cells.values()){ if(o.armed && o.r>=Math.floor(camScroll)-1 && enemyHits(o,player.c,player.r)){
     const ep=projCR(o.c,o.r); slashes.push({x1:ep.x,y1:ep.y,x2:pp.x,y2:pp.y,life:0.28,max:0.28}); } }
   sfx('hurt');
   if(hp<=0){ hp=0; gameOver('hp'); }
@@ -320,7 +322,7 @@ function computeReach(){
   reach.length=0;
   const pc=player.c, pr=player.r, ty=player.t;
   const inC=c=>c>=0&&c<C;
-  const rowOk=r=> r<=frontier && r>=Math.floor(scroll)-1;
+  const rowOk=r=> r<=frontier && r>=Math.floor(camScroll)-1;
   const occ=(c,r)=>cells.get(key(c,r));
   const add=(c,r)=>{ const o=occ(c,r); reach.push({c,r,cap:!!o, val:o?VAL[o.t]:0, up:o?VAL[o.t]>=VAL[ty]:false}); };
   const slide=(dc,dr)=>{ let c=pc+dc, r=pr+dr, n=0; while(inC(c)&&rowOk(r)&&n<MAXLEAP){ const o=occ(c,r);
@@ -361,13 +363,14 @@ function doMove(m){
     let promoted=false;
     if(player.t==='P'){ pawnStreak++; if(pawnStreak>=3){ player.t='Q'; pawnStreak=0; promoted=true; } }
     else pawnStreak=0;
-    const changed = player.t!==old;
+    const changed = player.t!==old, pts=VAL[o.t]*10*combo;
     const p=projCR(m.c,m.r);
-    burst(p.x,p.y, promoted||changed?'#7df9c0':'#ffd24a', promoted?30:18);
-    floatTxt(p.x,p.y-laneW*0.4,
-      promoted?'PROMOVIDO → DAMA' : (changed?('VIROU '+NAME[player.t]):'+'+(VAL[o.t]*10*combo)),
-      promoted?'#ffd24a':(changed?'#7df9c0':'#ffd24a'));
-    floatTxt(p.x+laneW*0.34, p.y-laneW*0.06, '+'+VAL[o.t]+'♥', '#7df9c0');
+    burst(p.x,p.y, promoted?'#ffd24a':'#7bff8e', promoted?30:18);
+    floatTxt(p.x, p.y-laneW*0.30, '+'+pts, '#6bff8e', 30);          // pontos ganhos (verde)
+    if(promoted) floatTxt(p.x, p.y-laneW*0.66, 'PROMOVIDO!', '#ffd24a', 18);
+    else if(changed) floatTxt(p.x, p.y-laneW*0.66, NAME[player.t], '#ffffff', 16);
+    floatTxt(p.x+laneW*0.42, p.y+laneW*0.02, '+'+VAL[o.t]+'♥', '#6bff8e', 15);
+    flashScore();
     morphFx=1; shake+=promoted?7:(changed?5:3);
     sfx(promoted||changed?'transform':'eat');
   } else { sfx('step'); }
@@ -421,6 +424,7 @@ function update(dt){
   for(let i=slashes.length-1;i>=0;i--){ slashes[i].life-=dt; if(slashes[i].life<=0) slashes.splice(i,1); }
   player.vc += (player.c-player.vc)*Math.min(1,dt*15);
   player.vr += (player.r-player.vr)*Math.min(1,dt*13);
+  camScroll += (player.vr - LEAD_TARGET - camScroll)*Math.min(1,dt*6);   // lock cam segue o jogador
   for(let i=particles.length-1;i>=0;i--){ const o=particles[i]; o.x+=o.vx*dt; o.y+=o.vy*dt; o.vy+=520*dt; o.life-=dt; if(o.life<=0) particles.splice(i,1); }
   for(let i=floats.length-1;i>=0;i--){ const f=floats[i]; f.y-=40*dt; f.life-=dt; if(f.life<=0) floats.splice(i,1); }
   if(state!=='run') return;
@@ -450,10 +454,11 @@ function render(){
   ctx.setTransform(dpr,0,0,dpr,sx*dpr,sy*dpr);
   // céu
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#0a1430'); g.addColorStop(0.45,'#0b1022'); g.addColorStop(1,'#05060d');
+  g.addColorStop(0,'#5fb0ee'); g.addColorStop(0.5,'#9fd7f4'); g.addColorStop(1,'#dcf1fb');
   ctx.fillStyle=g; ctx.fillRect(-30,-30,W+60,H+60);
   drawHorizon();
   drawTrack();
+  drawVoid();
   drawTargets();
   drawEntities();
   drawSlashes();
@@ -474,34 +479,51 @@ function drawBanner(){ const a=banner.life<0.5?banner.life/0.5:Math.min(1,banner
 function drawHorizon(){
   const gy=horizonY;
   const gg=ctx.createRadialGradient(W/2,gy,4, W/2,gy, W*0.7);
-  gg.addColorStop(0,'rgba(90,150,255,.35)'); gg.addColorStop(1,'rgba(90,150,255,0)');
+  gg.addColorStop(0,'rgba(255,246,205,.6)'); gg.addColorStop(1,'rgba(255,246,205,0)');
   ctx.fillStyle=gg; ctx.fillRect(0,0,W,gy*2);
 }
 function quad(c,r){ return [projCR(c-0.5,r-0.5),projCR(c+0.5,r-0.5),projCR(c+0.5,r+0.5),projCR(c-0.5,r+0.5)]; }
 function drawTrack(){
-  const r0=Math.floor(scroll)-1, r1=Math.floor(scroll)+DRAWVIS;
+  const r0=Math.floor(camScroll)-1, r1=Math.floor(camScroll)+DRAWVIS;
   for(let r=r1;r>=r0;r--){           // longe -> perto
     for(let c=0;c<C;c++){
       const q=quad(c,r); const dark=(c+r)&1;
       ctx.beginPath(); ctx.moveTo(q[0].x,q[0].y);
       for(let i=1;i<4;i++) ctx.lineTo(q[i].x,q[i].y); ctx.closePath();
-      const shade = Math.max(0, Math.min(1,(r-scroll)/VIS));
-      const base = dark? [44,56,86] : [70,84,120];
-      const f = 1 - shade*0.55;
+      const shade = Math.max(0, Math.min(1,(r-camScroll)/VIS));
+      const base = dark? [86,160,232] : [200,228,255];
+      const f = 1 - shade*0.5;
       ctx.fillStyle=`rgb(${base[0]*f|0},${base[1]*f|0},${base[2]*f|0})`;
       ctx.fill();
-      if(threats.has(key(c,r))){ const inten=(0.16+0.34*atkTele)*f; ctx.fillStyle='rgba(255,58,92,'+inten.toFixed(3)+')'; ctx.fill(); }
+      if(threats.has(key(c,r))){ const inten=(0.28+0.45*atkTele)*f; ctx.fillStyle='rgba(255,48,52,'+inten.toFixed(3)+')'; ctx.fill(); }
     }
   }
+}
+function drawVoid(){   // a "linha de morte" (scroll) persegue por trás; intensifica ao se aproximar
+  const dl = scroll - camScroll;
+  if(dl < -1.2) return;
+  const prox = Math.min(1, Math.max(0, (dl+1.2)/2.4));   // 0 = longe (calmo), 1 = colado (perigo)
+  const top = project(2, dl).y;
+  if(top >= H+20) return;
+  const pulse = 0.5+0.5*Math.sin(t*6);
+  const grad = ctx.createLinearGradient(0, top-30, 0, H);
+  grad.addColorStop(0,'rgba(255,80,80,0)');
+  grad.addColorStop(0.35,`rgba(225,30,55,${(0.18+0.22*pulse)*prox})`);
+  grad.addColorStop(1,`rgba(120,0,28,${0.55+0.4*prox})`);
+  ctx.fillStyle=grad; ctx.fillRect(0, top-30, W, H-(top-30));
+  ctx.globalAlpha=prox;
+  ctx.strokeStyle=`rgba(255,130,130,${0.6+0.4*pulse})`; ctx.lineWidth=3;
+  ctx.shadowColor='#ff5050'; ctx.shadowBlur=14;
+  ctx.beginPath(); ctx.moveTo(0,top); ctx.lineTo(W,top); ctx.stroke(); ctx.shadowBlur=0; ctx.globalAlpha=1;
 }
 function drawTargets(){
   for(const m of reach){
     ctx.save();
     if(m.cap){                          // captura: verde = upgrade, laranja = rebaixa
-      ctx.globalAlpha=0.85+0.15*Math.sin(t*7); ctx.strokeStyle=m.up?'#7df9c0':'#ffb24a'; ctx.lineWidth=3*m.sc+1;
+      ctx.globalAlpha=0.9; ctx.strokeStyle=m.up?'#5dff86':'#ff9e2c'; ctx.lineWidth=3.5*m.sc+1.5;
       ctx.beginPath(); ctx.arc(m.sx,m.sy,laneW*0.42*m.sc,0,Math.PI*2); ctx.stroke();
     } else {                            // casa vazia
-      ctx.globalAlpha=0.6+0.2*Math.sin(t*7); ctx.fillStyle='rgba(55,224,255,.6)';
+      ctx.globalAlpha=0.55+0.25*Math.sin(t*7); ctx.fillStyle='rgba(255,255,255,.85)';
       ctx.beginPath(); ctx.arc(m.sx,m.sy,laneW*0.15*m.sc,0,Math.PI*2); ctx.fill();
     }
     if(m.danger){                       // aviso: dá pra ir, mas leva dano no pulso (não é proibido)
@@ -519,7 +541,7 @@ function renderPieceSprite(cx,type,ally){
   cx.clearRect(0,0,SS,SS); cx.textAlign='center'; cx.textBaseline='middle';
   cx.font=`${Math.round(S)}px "Apple Symbols","Segoe UI Symbol","Noto Sans Symbols2",system-ui,sans-serif`;
   cx.fillStyle='rgba(0,0,0,0.40)'; cx.beginPath(); cx.ellipse(x,y+S*0.36,S*0.34,S*0.12,0,0,Math.PI*2); cx.fill();
-  const dark=ally?[120,98,42]:[12,13,18], lite=ally?[255,247,226]:[96,104,124];
+  const dark=ally?[228,166,52]:[36,42,66], lite=ally?[255,250,226]:[126,138,170];
   const mid=[(dark[0]+lite[0])/2,(dark[1]+lite[1])/2,(dark[2]+lite[2])/2], rgb=a=>`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
   const H=S*0.36, steps=12, baseY=y+S*0.12;
   for(let i=0;i<=steps;i++){ const f=i/steps;
@@ -528,7 +550,7 @@ function renderPieceSprite(cx,type,ally){
   const grad=cx.createLinearGradient(x,baseY-H-S*0.45,x,baseY-H+S*0.35);
   grad.addColorStop(0,rgb(lite)); grad.addColorStop(1,rgb(mid));
   cx.fillStyle=grad; cx.fillText(g,x,baseY-H);
-  cx.lineWidth=Math.max(0.8,S*0.014); cx.strokeStyle=ally?'rgba(55,224,255,0.6)':'rgba(255,93,126,0.7)';
+  cx.lineWidth=Math.max(0.8,S*0.016); cx.strokeStyle=ally?'rgba(255,206,90,0.95)':'rgba(255,124,124,0.9)';
   cx.strokeText(g,x,baseY-H);
 }
 function buildSprites(){ pieceSprites={};
@@ -541,12 +563,12 @@ function drawPiece(x,y,sc,type,ally,pop){
   const spr=pieceSprites[(ally?'w':'b')+type];
   const drawS=laneW*0.98*sc*(pop?1+pop*0.45:1), f=drawS/baseS, dw=SS*f, dh=SS*f;
   if(ally){ const pulse=0.5+0.5*Math.sin(t*4);
-    ctx.save(); ctx.shadowColor=`rgba(55,224,255,${(0.5+pulse*0.35).toFixed(2)})`; ctx.shadowBlur=drawS*0.22;
+    ctx.save(); ctx.shadowColor=`rgba(255,205,90,${(0.55+pulse*0.4).toFixed(2)})`; ctx.shadowBlur=drawS*0.26;
     ctx.drawImage(spr,x-dw/2,y-dh/2,dw,dh); ctx.restore(); }
   else ctx.drawImage(spr,x-dw/2,y-dh/2,dw,dh);
 }
 function drawEntities(){
-  const r0=Math.floor(scroll)-1, r1=Math.floor(scroll)+VIS+3;
+  const r0=Math.floor(camScroll)-1, r1=Math.floor(camScroll)+VIS+3;
   for(let r=r1;r>=r0;r--){
     for(let c=0;c<C;c++){ const o=cells.get(key(c,r)); if(!o) continue;
       const p=projCR(c,r);
@@ -556,14 +578,18 @@ function drawEntities(){
     // jogador na sua linha (perto da banda)
     if(Math.round(player.vr)===r || (r===r0)){ /* desenhado abaixo p/ ficar sempre por cima */ }
   }
-  const pp=project(player.vc, player.vr-scroll);
+  const pp=project(player.vc, player.vr-camScroll);
   drawPiece(pp.x,pp.y,Math.max(0.5,pp.sc),player.t,true,morphFx);
 }
 function drawParticles(){ for(const o of particles){ const a=Math.max(0,o.life/o.max);
   ctx.globalAlpha=a; ctx.fillStyle=o.col; ctx.beginPath(); ctx.arc(o.x,o.y,o.r*a+0.5,0,Math.PI*2); ctx.fill(); } ctx.globalAlpha=1; }
 function drawFloats(){ ctx.textAlign='center'; ctx.textBaseline='middle';
-  for(const f of floats){ const a=Math.max(0,f.life/f.max); ctx.globalAlpha=a; ctx.fillStyle=f.col;
-    ctx.font=`800 ${Math.round(18)}px system-ui`; ctx.fillText(f.txt,f.x,f.y); } ctx.globalAlpha=1; }
+  for(const f of floats){ const a=Math.max(0,f.life/f.max), age=f.max-f.life;
+    const pop=Math.min(1.12, 0.5+age*9), fs=Math.round((f.size||22)*pop);
+    ctx.globalAlpha=a; ctx.font=`900 ${fs}px system-ui`;
+    ctx.lineWidth=Math.max(2,fs*0.16); ctx.strokeStyle='rgba(8,18,38,0.6)'; ctx.lineJoin='round'; ctx.strokeText(f.txt,f.x,f.y);
+    ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,f.y); }
+  ctx.globalAlpha=1; }
 function drawCountdown(){ ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle='#fff'; ctx.shadowColor='#37e0ff'; ctx.shadowBlur=30;
   ctx.font=`800 ${Math.round(H*0.13)}px system-ui`;
@@ -572,7 +598,7 @@ function drawCountdown(){ ctx.save(); ctx.textAlign='center'; ctx.textBaseline='
 // ---------- fx ----------
 function burst(x,y,col,n){ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, s=40+Math.random()*220;
   particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,r:2+Math.random()*4,col,life:0.5+Math.random()*0.5,max:1}); } }
-function floatTxt(x,y,txt,col){ floats.push({x,y,txt,col,life:1.0,max:1.0}); }
+function floatTxt(x,y,txt,col,size){ floats.push({x,y,txt,col,life:1.0,max:1.0,size:size||22}); }
 
 // ---------- HUD ----------
 const $=id=>document.getElementById(id);
@@ -580,6 +606,8 @@ function updateChip(){ $('piece-chip').querySelector('.g').textContent=GLYPH[pla
   $('piece-chip').querySelector('.lbl b').textContent=NAME[player.t];
   const meter = player.t==='P' ? '   '+'●'.repeat(pawnStreak)+'○'.repeat(3-pawnStreak) : '';
   $('piece-chip').querySelector('.lbl span').textContent=HINT[player.t]+meter; }
+function flashScore(){ const el=$('score'); el.style.transition='none'; el.style.color='#6bff8e'; el.style.transform='scale(1.16)';
+  requestAnimationFrame(()=>{ el.style.transition='color .45s ease, transform .45s ease'; el.style.color=''; el.style.transform=''; }); }
 function syncHUD(){
   const total=Math.floor(scroll*10)+score;
   $('score').textContent=total;
@@ -601,7 +629,7 @@ function gameOver(reason){
   const total=Math.floor(scroll*10)+score; const isRec=total>best;
   if(isRec){ best=total; try{localStorage.setItem('xsurf_best',String(best));}catch(e){} }
   sfx('over'); shake+=14;
-  const pp=project(player.vc, player.vr-scroll); burst(pp.x,pp.y,'#ff6f8c',40);
+  const pp=project(player.vc, player.vr-camScroll); burst(pp.x,pp.y,'#ff6f8c',40);
   $('over-title').textContent = isRec?'NOVO RECORDE!':(reason==='hp'?'DEVORADO':'CAÇADO');
   $('over-sub').textContent = isRec ? 'Você surfou mais longe que nunca. ⚡'
     : (reason==='hp' ? 'Sua vida zerou nos ataques inimigos. Coma pra repor o coração!'
