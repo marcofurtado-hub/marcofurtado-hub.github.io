@@ -117,10 +117,9 @@
     <p class="kicker">endless chess runner</p>
     <h1 class="logo">XADREZ<br>SURFERS</h1>
     <ul class="how">
-      <li><span class="k">🏃</span><span>O tabuleiro <b>desce como esteira</b>. Se você ficar pra trás e cair pela base, <b>game over</b>.</span></li>
-      <li><span class="k">🍽️</span><span>Você <b>avança comendo</b> peças — <b>toque</b> num alvo ou <b>deslize</b> (↑ frente, ←→ lados) pra capturar e seguir.</span></li>
-      <li><span class="k">🔁</span><span>Você se move como a peça que <b>é agora</b>. Comeu um cavalo? <b>Vira cavalo</b>. Comeu uma fraca? <b>Rebaixa</b>. Escolha bem.</span></li>
-      <li><span class="k">❤️</span><span>Comer dá <b>vida</b> (peão +1 … dama +9). Peças de <b>aura vermelha te atacam</b> — ficar na zona delas no pulso tira vida. <b>Vida 0 = fim</b>.</span></li>
+      <li><span class="k">👆</span><span><b>Toque numa peça</b> pra comer e avançar (ou deslize ↑ ←→).</span></li>
+      <li><span class="k">🔁</span><span>Você <b>vira a peça que comeu</b> — cavalo pula em L, torre voa reto…</span></li>
+      <li><span class="k">❤️</span><span>Comer dá <b>vida</b>. Peças de <b>aura vermelha</b> atacam. Não pare: o tabuleiro desce.</span></li>
     </ul>
     <button class="play" id="btn-play">Jogar</button>
     <div class="credit">5 lanes · coma pra viver</div>
@@ -158,17 +157,17 @@ const NAME = {P:'PEÃO',N:'CAVALO',B:'BISPO',R:'TORRE',Q:'DAMA',K:'REI'};
 const HINT = {P:'avança e come na diagonal',N:'salto em L',B:'diagonais',R:'reto + laterais',Q:'tudo menos ré',K:'1 casa'};
 const GLYPH= {K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'};
 
-const BASE_V = 1.35;         // veloc. base (linhas/s)
-const ACCEL  = 0.022;        // aceleração por distância
-const MOVE_GAP = 0.16;       // intervalo mínimo entre lances (s)
-const COMBO_WIN = 1.7;       // janela de combo (s)
+const BASE_V = 1.0;          // veloc. base (linhas/s) — mais calmo
+const ACCEL  = 0.012;        // aceleração por distância — sobe devagar
+const MOVE_GAP = 0.14;       // intervalo mínimo entre lances (s)
+const COMBO_WIN = 1.9;       // janela de combo (s)
 const DEATH = -0.65;         // lead em que você cai da esteira
 let RANGE = 2;               // alcance da "aura" de ameaça das peças longas (armadas)
 // --- vida / combate ---
-let START_HP = 5;            // vida inicial
+let START_HP = 6;            // vida inicial (mais folga)
 let HP_CAP   = 15;           // teto de vida (comer além disso não acumula)
-let ATK_PERIOD = 0.9;        // intervalo entre pulsos de ataque inimigo (s)
-let LEAD_TARGET = 2.7;       // lock cam: lead fixo do jogador na tela (centro, um pouco abaixo)
+let ATK_PERIOD = 1.15;       // intervalo entre pulsos de ataque inimigo (s) — mais lento
+let LEAD_TARGET = 3.2;       // lock cam: jogador fixo no centro da tela
 
 // ---------- canvas ----------
 const canvas = document.getElementById('game');
@@ -212,7 +211,7 @@ let player, cells, reach=[], particles=[], floats=[];
 let threats=new Map(), pawnStreak=0, phase=-1, banner={txt:'',life:0};
 let hp=5, atkTimer=0, hitFlash=0, atkTele=0, slashes=[];
 let combo=1, comboTimer=0, score=0, captures=0, moveCD=0, morphFx=0, shake=0;
-let countdown=0, cdInt=99, best=0, t=0, runT=0;
+let countdown=0, cdInt=99, best=0, t=0, runT=0, firstMove=true;
 const key=(c,r)=>c+','+r;
 
 try{ best = parseInt(localStorage.getItem('xsurf_best')||'0',10)||0; }catch(e){}
@@ -222,7 +221,7 @@ function reset(){
   cells=new Map(); particles=[]; floats=[]; reach=[]; threats.clear();
   pawnStreak=0; phase=-1; banner.life=0;
   combo=1; comboTimer=0; score=0; captures=0; moveCD=0; morphFx=0; shake=0;
-  hp=START_HP; atkTimer=ATK_PERIOD; hitFlash=0; atkTele=0; slashes=[];
+  hp=START_HP; atkTimer=ATK_PERIOD; hitFlash=0; atkTele=0; slashes=[]; firstMove=true;
   player={t:'P', c:2, r:3, vc:2, vr:3};
   camScroll = player.r - LEAD_TARGET;
   for(let r=2;r<=VIS+4;r++) spawnRow(r);
@@ -244,8 +243,8 @@ function pickType(w){ let tot=0; for(const k in w) tot+=w[k]; let x=Math.random(
   for(const k in w){ x-=w[k]; if(x<=0) return k; } return 'P'; }
 function spawnRow(r){
   if(r<2) return;
-  const dens = Math.min(0.46, 0.24 + scroll*0.0022);
-  const armedCh = Math.min(0.40, 0.13 + scroll*0.0016);   // fração de peças "armadas" (com zona)
+  const dens = Math.min(0.42, 0.20 + scroll*0.0018);
+  const armedCh = Math.min(0.32, Math.max(0, (scroll-14)*0.004));   // 0 ataques no começo (aprende), sobe devagar
   const pool = typePool(); let n=0; const cap = scroll<40?2:3;
   for(let c=0;c<C;c++){
     if(Math.random()<dens && n<cap){ cells.set(key(c,r), {t:pickType(pool), c, r, armed:Math.random()<armedCh}); n++; }
@@ -370,7 +369,7 @@ function doMove(m){
     morphFx=1; shake+=promoted?7:(changed?5:3);
     sfx(promoted||changed?'transform':'eat');
   } else { sfx('step'); }
-  moveCD=MOVE_GAP;
+  moveCD=MOVE_GAP; firstMove=false;
   updateChip();
 }
 
@@ -418,9 +417,9 @@ function frame(ts){ if(!lastT)lastT=ts; let dt=(ts-lastT)/1000; lastT=ts; dt=Mat
 function update(dt){
   shake*=Math.pow(0.002,dt); morphFx=Math.max(0,morphFx-dt*4); hitFlash=Math.max(0,hitFlash-dt*2.5);
   for(let i=slashes.length-1;i>=0;i--){ slashes[i].life-=dt; if(slashes[i].life<=0) slashes.splice(i,1); }
-  player.vc += (player.c-player.vc)*Math.min(1,dt*15);
-  player.vr += (player.r-player.vr)*Math.min(1,dt*13);
-  camScroll += (player.vr - LEAD_TARGET - camScroll)*Math.min(1,dt*6);   // lock cam segue o jogador
+  player.vc += (player.c-player.vc)*Math.min(1,dt*14);
+  player.vr += (player.r-player.vr)*Math.min(1,dt*9);     // anima o lance (cenário desliza)
+  camScroll = player.vr - LEAD_TARGET;                    // peça SEMPRE no centro; o cenário é que anda
   for(let i=particles.length-1;i>=0;i--){ const o=particles[i]; o.x+=o.vx*dt; o.y+=o.vy*dt; o.vy+=520*dt; o.life-=dt; if(o.life<=0) particles.splice(i,1); }
   for(let i=floats.length-1;i>=0;i--){ const f=floats[i]; f.y-=40*dt; f.life-=dt; if(f.life<=0) floats.splice(i,1); }
   if(state!=='run') return;
@@ -428,7 +427,7 @@ function update(dt){
     if(n!==cdInt){ cdInt=n; sfx('beep'); } if(countdown<=0) sfx('go'); return; }
   runT += dt;
   v = BASE_V + scroll*ACCEL;
-  scroll += v * Math.min(1, runT/1.6) * dt;     // arranque suave p/ dar tempo de reagir
+  scroll += v * Math.min(1, runT/2.5) * dt;     // arranque bem suave p/ dar tempo de aprender
   spawnAhead(); cleanup();
   comboTimer-=dt; if(comboTimer<=0) combo=1;
   if(moveCD>0) moveCD-=dt;
@@ -459,6 +458,7 @@ function render(){
   drawEntities();
   drawSlashes();
   drawParticles(); drawFloats();
+  if(state==='run' && countdown<=0 && firstMove) drawHint();
   if(banner.life>0) drawBanner();
   if(countdown>0) drawCountdown();
   if(hitFlash>0){ ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -467,6 +467,12 @@ function render(){
 function drawSlashes(){ for(const s of slashes){ const a=s.life/s.max; ctx.save();
   ctx.globalAlpha=a; ctx.strokeStyle='#ff3b5c'; ctx.lineWidth=3+4*a; ctx.shadowColor='#ff3b5c'; ctx.shadowBlur=12;
   ctx.beginPath(); ctx.moveTo(s.x1,s.y1); ctx.lineTo(s.x2,s.y2); ctx.stroke(); ctx.restore(); } ctx.globalAlpha=1; }
+function drawHint(){ const pulse=0.5+0.5*Math.sin(t*4);
+  ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.globalAlpha=0.8+0.2*pulse;
+  ctx.font=`800 ${Math.round(H*0.028)}px system-ui`; ctx.lineWidth=Math.max(3,H*0.007);
+  ctx.lineJoin='round'; ctx.strokeStyle='rgba(8,20,40,0.65)'; ctx.fillStyle='#fff';
+  const y=H*0.40, txt='👆 toque numa peça pra avançar';
+  ctx.strokeText(txt,W/2,y); ctx.fillText(txt,W/2,y); ctx.restore(); }
 function drawBanner(){ const a=banner.life<0.5?banner.life/0.5:Math.min(1,banner.life);
   ctx.save(); ctx.globalAlpha=Math.max(0,a); ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle='#ffd24a'; ctx.shadowColor='#ffd24a'; ctx.shadowBlur=22;
