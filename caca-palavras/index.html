@@ -92,6 +92,17 @@
   }
   @media (max-width:760px){
     main{ grid-template-columns:1fr; }
+    /* Mobile: enxuga o topo para a grade subir para perto da dobra */
+    body{ padding:8px 10px 40px; }
+    .hub-link{ font-size:13px; margin-bottom:2px; }
+    header{ padding:5px 0 7px; margin-bottom:9px; }
+    header .ornamento{ display:none; }
+    header h1{ font-size:clamp(21px,6.6vw,30px); margin:0; }
+    header .lema{ display:none; }
+    .estado{ font-size:12.5px; gap:3px 12px; margin-bottom:9px; }
+    .estado .tema-atual{ font-size:14px; margin-bottom:1px; }
+    .acoes{ margin-top:12px; }
+    footer{ margin-top:18px; font-size:13px; }
   }
 
   /* ---------- Grade ---------- */
